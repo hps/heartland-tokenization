@@ -134,8 +134,8 @@
   'use strict';
 
   var urls = {
-    CERT: 'https://posgateway.cert.secureexchange.net/Hps.Exchange.PosGateway.Hpf.v1/api/token',
-    PROD: 'https://api.heartlandportico.com/SecureSubmit.v1/api/token',
+    CERT: 'https://cert.api2.heartlandportico.com/Hps.Exchange.PosGateway.Hpf.v1/api/token',
+    PROD: 'https://api2.heartlandportico.com/SecureSubmit.v1/api/token',
     iframeCERT: 'https://hps.github.io/token/2.0/',
     iframePROD: 'https://api2.heartlandportico.com/SecureSubmit.v1/token/2.0/'
   };
@@ -198,10 +198,8 @@
   // form handler (see `getFields`).
   HPS.prototype.tokenize = function (options) {
     if (options) {
-      this.options = applyOptions(this.options, options.data);
+      this.options = applyOptions(this.options, options);
       this.options = getUrlByEnv(this.options);
-      this.options.success = options.success;
-      this.options.error = options.error;
     }
     callAjax('pan', this.options);
   };
@@ -409,13 +407,11 @@
     var tokenValue;
 
     hps.tokenize({
-      data: {
-        api_key: public_key,
-        card_number: document.getElementById('heartland-card-number').value,
-        card_cvc: document.getElementById('heartland-cvv').value,
-        card_exp_month: document.getElementById('heartland-expiration-month').value,
-        card_exp_year: document.getElementById('heartland-expiration-year').value
-      },
+      api_key: public_key,
+      card_number: document.getElementById('heartland-card-number').value,
+      card_cvc: document.getElementById('heartland-cvv').value,
+      card_exp_month: document.getElementById('heartland-expiration-month').value,
+      card_exp_year: document.getElementById('heartland-expiration-year').value,
       success: function(response) {
         hps.Messages.postMessage({action: 'onTokenSuccess', response: response}, hps.parent_url, 'parent');
       },
@@ -542,6 +538,7 @@
     var lastfour = number.slice(-4);
     var cardType = getCardType(number);
     var params = getParams(type, options);
+		console.log([type, params].join(' '));
 
     jsonp(options.gateway_url + params, function(data) {
       if (data.error) {
@@ -573,24 +570,24 @@
     var params = '';
     switch (type) {
       case 'pan':
-        params += '?token_type=supt&_method=post&api_key=' + data.api_key.trim();
+        params += '?token_type=supt&object=token&_method=post&api_key=' + data.api_key.trim();
         params += '&card%5Bnumber%5D=' + data.card_number.trim();
         params += '&card%5Bexp_month%5D=' + data.card_exp_month.trim();
         params += '&card%5Bexp_year%5D=' + data.card_exp_year.trim();
         params += '&card%5Bcvc%5D=' + data.card_cvc.trim();
         break;
       case 'swipe':
-        params += '?token_type=supt&_method=post&api_key=' + data.api_key.trim();
-        params += '&card%5track_method%5D=swipe';
-        params += '&card%5track%5D=' + data.track.trim();
+        params += '?token_type=supt&object=token&_method=post&api_key=' + data.api_key.trim();
+        params += '&card%5Btrack_method%5D=swipe';
+        params += '&card%5Btrack%5D=' + encodeURIComponent(data.track.trim());
         break;
       case 'encrypted':
-        params += '?token_type=supt&_method=post&api_key=' + data.api_key.trim();
-        params += '&encrypted%5track_method%5D=swipe';
-        params += '&encrypted%5track%5D=' + data.track.trim();
-        params += '&encrypted%5track_number%5D=' + data.track_number.trim();
-        params += '&encrypted%5ktb%5D=' + data.ktb.trim();
-        params += '&encrypted%5pin_block%5D=' + data.pin_block.trim();
+        params += '?token_type=supt&object=token&_method=post&api_key=' + data.api_key.trim();
+        params += '&encryptedcard%5Btrack_method%5D=swipe';
+        params += '&encryptedcard%5Btrack%5D=' + encodeURIComponent(data.track.trim());
+        params += '&encryptedcard%5Btrack_number%5D=' +encodeURIComponent( data.track_number.trim());
+        params += '&encryptedcard%5Bktb%5D=' + encodeURIComponent(data.ktb.trim());
+        params += '&encryptedcard%5Bpin_block%5D=' + encodeURIComponent(data.pin_block.trim());
         break;
       default:
         throwError(options, 'unknown params type');
