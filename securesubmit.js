@@ -156,7 +156,7 @@
     'track_number': '',
     'ktb': '',
     'pin_block': '',
-    'type': '',
+    'type': 'pan',
     'useDefaultStyles': true
   };
 
@@ -197,16 +197,16 @@
   // credit card fields cannot/do not match the names expected in the default
   // form handler (see `getFields`).
   HPS.prototype.tokenize = function (options) {
-		options = options || {};
+    options = options || {};
     if (options) {
       this.options = applyOptions(this.options, options);
       this.options = getUrlByEnv(this.options);
     }
-		if (options.type === 'iframe') {
-			this.Messages.postMessage({action: 'tokenize', message: this.options.api_key}, this.iframe_url, 'child');
-			return;
-		}
-    callAjax(options.type || 'pan', this.options);
+    if (this.options.type === 'iframe') {
+      this.Messages.postMessage({action: 'tokenize', message: this.options.api_key}, this.iframe_url, 'child');
+      return;
+    }
+    callAjax(this.options.type, this.options);
   };
 
   // HPS.configureInternalIframe
@@ -330,11 +330,11 @@
       useDefaultStyles = false;
     }
 
-		if (options.buttonTarget) {
-	    addEventHandler(options.buttonTarget, 'click', function () {
-	      hps.Messages.postMessage({action: 'tokenize', message: options.api_key}, hps.iframe_url, 'child');
-	    });
-		}
+    if (options.buttonTarget) {
+      addEventHandler(options.buttonTarget, 'click', function () {
+        hps.Messages.postMessage({action: 'tokenize', message: options.api_key}, hps.iframe_url, 'child');
+      });
+    }
 
     hps.Messages.receiveMessage(function(m){
       switch(m.data.action) {
@@ -529,7 +529,6 @@
     var lastfour = number.slice(-4);
     var cardType = getCardType(number);
     var params = getParams(type, options);
-		console.log([type, params].join(' '));
 
     jsonp(options.gateway_url + params, function(data) {
       if (data.error) {
