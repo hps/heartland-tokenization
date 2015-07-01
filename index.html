@@ -1,0 +1,119 @@
+<html>
+<head>
+	<script src="securesubmit.js"></script>
+</head>
+<body>
+	<h1>testing</h1>
+
+	<form id="random_form" action="charge.php" method="GET">
+		<input type="hidden" name="token_value" id="token_value" />
+		<input type="hidden" name="card_last_four" id="card_last_four" />
+		<input type="hidden" name="card_exp_month" id="card_exp_month" />
+		<input type="hidden" name="card_exp_year" id="card_exp_year" />
+		<input type="hidden" name="card_type" id="card_type" />
+
+		<input type="text" placeholder="Card Number" id="card_number1" value="4111111111111111" />
+		<input type="text" placeholder="Expiration Month" id="card_expiration_month1" value="12" />
+		<input type="text" placeholder="Expiration Year" id="card_expiration_year1" value="2015" />
+		<input type="text" placeholder="CVV" id="card_cvc1" value="123" />
+
+		<a href="#" onclick="triggerPayment();">Manual Payment</a>
+	</form>
+
+	<form id="payment_form" action="charge2.php" method="GET">
+		<input type="text" placeholder="Card Number" id="card_number" value="4111111111111111" />
+		<input type="text" placeholder="Expiration Month" id="card_expiration_month" value="12" />
+		<input type="text" placeholder="Expiration Year" id="card_expiration_year" value="2015" />
+		<input type="text" placeholder="CVV" id="card_cvc" value="123" />
+		<input type="submit" value="do it" />
+	</form>
+
+	<form id="payment_form2" action="charge3.php" method="GET">
+		<input type="text" placeholder="Card Number" id="card_number" value="4242424242424242" />
+		<input type="text" placeholder="Expiration Month" id="card_expiration_month" value="01" />
+		<input type="text" placeholder="Expiration Year" id="card_expiration_year" value="2016" />
+		<input type="text" placeholder="CVV" id="card_cvc" value="123" />
+		<input type="submit" value="do it" />
+	</form>
+
+	<form id="iframe_form" action="charge4.php" method="GET">
+	  <!-- Existing payment form fields: shipping info, products, etc. -->
+	  <!-- ... -->
+	  <!-- Target div for iFrame placement -->
+	  <div id="securesubmit"></div>
+	  <div class="clearfix">
+	    <input type="hidden" id="token_value" name="token_value" />
+	    <input type="button" id="payment-submit" value="submit" />
+	  </div>
+	</form>
+
+	<script type="text/javascript">
+		// js for manual
+		function triggerPayment() {
+			var hps = new HPS({
+				api_key : "pkapi_cert_MrSafdEKB2dIHQEzDk",
+				card_number : document.getElementById("card_number1").value,
+				card_exp_year: document.getElementById("card_expiration_year1").value,
+				card_exp_month: document.getElementById("card_expiration_month1").value,
+				card_cvc: document.getElementById("card_cvc1").value,
+				success : successMethod,
+				error: errorMethod
+			});
+
+			hps.tokenize();
+		}
+
+		function successMethod(response) {
+			document.getElementById("token_value").value = response.token_value;
+			document.getElementById("card_exp_month").value = response.exp_month;
+			document.getElementById("card_exp_year").value = response.exp_year;
+			document.getElementById("card_last_four").value = response.last_four;
+			document.getElementById("card_type").value = response.card_type;
+
+			alert(response.token_value);
+		}
+
+		function errorMethod(response) {
+			if (response.error) {
+				alert(response.error.message);
+			}
+		}
+
+		var hps = new HPS({
+			api_key : "pkapi_cert_MrSafdEKB2dIHQEzDk",
+			form_id : "payment_form",
+			success: successMethod,
+			error: errorMethod
+		});
+
+		var hps2 = new HPS({
+			api_key : "pkapi_cert_MrSafdEKB2dIHQEzDk",
+			form_id : "payment_form2",
+			success: successMethod,
+			error: errorMethod
+		});
+
+
+		var hps3 = new HPS({
+      api_key: "pkapi_cert_MrSafdEKB2dIHQEzDk",
+      type: "iframe",
+      // target DOM node for iFrame placement.
+			// expects an ID.
+      iframeTarget: "securesubmit",
+      // target DOM node for submit button that
+      // initiates the tokenization process.
+			// expects an ID.
+      buttonTarget: "payment-submit",
+      onTokenSuccess: function (response) {
+        // callback for successful tokenization
+        document.getElementById("token_value").value = response.token_value;
+        document.getElementById("iframe_form").submit();
+      },
+      onTokenError: function (response) {
+        // callback on tokenization error
+        alert(response.message);
+      },
+    });
+	</script>
+</body>
+</html>
