@@ -106,8 +106,7 @@
       buttonTarget: "payment-submit",
       onTokenSuccess: function (response) {
         // callback for successful tokenization
-        document.getElementById("token_value").value = response.token_value;
-        document.getElementById("iframe_form").submit();
+				alert(response.token_value);
       },
       onTokenError: function (response) {
         // callback on tokenization error
