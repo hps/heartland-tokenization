@@ -197,27 +197,16 @@
   // credit card fields cannot/do not match the names expected in the default
   // form handler (see `getFields`).
   HPS.prototype.tokenize = function (options) {
+		options = options || {};
     if (options) {
       this.options = applyOptions(this.options, options);
       this.options = getUrlByEnv(this.options);
     }
-    callAjax('pan', this.options);
-  };
-
-  // HPS.tokenize_swipe
-  //
-  // Tokenizes track data. Used in manual integrations where the merchant
-  // wishes to process CP with a card reader.
-  HPS.prototype.tokenize_swipe = function () {
-    callAjax('swipe', this.options);
-  };
-
-  // HPS.tokenize_encrypted_card
-  //
-  // Tokenizes encrypted track data. Used in manual integrations where the
-  // merchant wishes to process CP with an E3 reader, e.g. the E3 wedge reader.
-  HPS.prototype.tokenize_encrypted_card = function () {
-    callAjax('encrypted', this.options);
+		if (options.type === 'iframe') {
+			this.Messages.postMessage({action: 'tokenize', message: this.options.api_key}, this.iframe_url, 'child');
+			return;
+		}
+    callAjax(options.type || 'pan', this.options);
   };
 
   // HPS.configureInternalIframe
@@ -341,9 +330,11 @@
       useDefaultStyles = false;
     }
 
-    addEventHandler(options.buttonTarget, 'click', function () {
-      hps.Messages.postMessage({action: 'tokenize', message: options.api_key}, hps.iframe_url, 'child');
-    });
+		if (options.buttonTarget) {
+	    addEventHandler(options.buttonTarget, 'click', function () {
+	      hps.Messages.postMessage({action: 'tokenize', message: options.api_key}, hps.iframe_url, 'child');
+	    });
+		}
 
     hps.Messages.receiveMessage(function(m){
       switch(m.data.action) {

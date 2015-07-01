@@ -103,7 +103,7 @@
       // target DOM node for submit button that
       // initiates the tokenization process.
 			// expects an ID.
-      buttonTarget: "payment-submit",
+      // buttonTarget: "payment-submit",
       onTokenSuccess: function (response) {
         // callback for successful tokenization
 				alert(response.token_value);
@@ -113,6 +113,10 @@
         alert(response.message);
       },
     });
+		var hps3button = document.getElementById('payment-submit');
+		hps3button.addEventListener('click', function () {
+			hps3.tokenize({type: 'iframe'});
+		}, false);
 	</script>
 </body>
 </html>

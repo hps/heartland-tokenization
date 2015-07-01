@@ -25,7 +25,7 @@ asyncTest('Valid Track Data should return token', function () {
     success: check_for_token,
     error: default_error
   });
-  hps.tokenize_encrypted_card();
+  hps.tokenize({type: 'encrypted'});
 });
 
 asyncTest('Valid Track error should be null', function () {
@@ -41,7 +41,7 @@ asyncTest('Valid Track error should be null', function () {
     },
     error: default_error
   });
-  hps.tokenize_encrypted_card();
+  hps.tokenize({type: 'encrypted'});
 });
 
 asyncTest('Invalid Track Data returns error', function (assert) {
@@ -58,5 +58,5 @@ asyncTest('Invalid Track Data returns error', function (assert) {
       assert.equal(response.error.message, 'encryptedcard parsing track failed.', 'message');
     }
   });
-  hps.tokenize_encrypted_card();
+  hps.tokenize({type: 'encrypted'});
 });

@@ -23,7 +23,7 @@ asyncTest('Valid card swipe should return token', function () {
 		success: check_for_token,
 		error: default_error
 	});
-  hps.tokenize_swipe();
+  hps.tokenize({type: 'swipe'});
 });
 
 asyncTest('Valid parsed swipe should return token', function () {
@@ -33,7 +33,7 @@ asyncTest('Valid parsed swipe should return token', function () {
     success: check_for_token,
     error: default_error
   });
-  hps.tokenize_swipe();
+  hps.tokenize({type: 'swipe'});
 });
 
 asyncTest('Valid swipe error should be null', function () {
@@ -47,7 +47,7 @@ asyncTest('Valid swipe error should be null', function () {
 		},
 		error: default_error
 	});
-  hps.tokenize_swipe();
+  hps.tokenize({type: 'swipe'});
 });
 
 asyncTest('Invalid swipe returns error', function (assert) {
@@ -62,5 +62,5 @@ asyncTest('Invalid swipe returns error', function (assert) {
 			assert.equal(response.error.message, 'card parsing track failed.', 'message');
 		}
 	});
-  hps.tokenize_swipe();
+  hps.tokenize({type: 'swipe'});
 });
