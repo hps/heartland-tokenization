@@ -1,147 +1,29 @@
 //JSON2
+/*ignore jslint start*//* jshint ignore:start */
 "object"!=typeof JSON&&(JSON={}),function(){"use strict";function f(t){return 10>t?"0"+t:t}function quote(t){return escapable.lastIndex=0,escapable.test(t)?'"'+t.replace(escapable,function(t){var e=meta[t];return"string"==typeof e?e:"\\u"+("0000"+t.charCodeAt(0).toString(16)).slice(-4)})+'"':'"'+t+'"'}function str(t,e){var r,n,o,f,u,p=gap,a=e[t];switch(a&&"object"==typeof a&&"function"==typeof a.toJSON&&(a=a.toJSON(t)),"function"==typeof rep&&(a=rep.call(e,t,a)),typeof a){case"string":return quote(a);case"number":return isFinite(a)?a+"":"null";case"boolean":case"null":return a+"";case"object":if(!a)return"null";if(gap+=indent,u=[],"[object Array]"===Object.prototype.toString.apply(a)){for(f=a.length,r=0;f>r;r+=1)u[r]=str(r,a)||"null";return o=0===u.length?"[]":gap?"[\n"+gap+u.join(",\n"+gap)+"\n"+p+"]":"["+u.join(",")+"]",gap=p,o}if(rep&&"object"==typeof rep)for(f=rep.length,r=0;f>r;r+=1)"string"==typeof rep[r]&&(n=rep[r],o=str(n,a),o&&u.push(quote(n)+(gap?": ":":")+o));else for(n in a)Object.prototype.hasOwnProperty.call(a,n)&&(o=str(n,a),o&&u.push(quote(n)+(gap?": ":":")+o));return o=0===u.length?"{}":gap?"{\n"+gap+u.join(",\n"+gap)+"\n"+p+"}":"{"+u.join(",")+"}",gap=p,o}}"function"!=typeof Date.prototype.toJSON&&(Date.prototype.toJSON=function(){return isFinite(this.valueOf())?this.getUTCFullYear()+"-"+f(this.getUTCMonth()+1)+"-"+f(this.getUTCDate())+"T"+f(this.getUTCHours())+":"+f(this.getUTCMinutes())+":"+f(this.getUTCSeconds())+"Z":null},String.prototype.toJSON=Number.prototype.toJSON=Boolean.prototype.toJSON=function(){return this.valueOf()});var cx,escapable,gap,indent,meta,rep;"function"!=typeof JSON.stringify&&(escapable=/[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,meta={"\b":"\\b","    ":"\\t","\n":"\\n","\f":"\\f","\r":"\\r",'"':'\\"',"\\":"\\\\"},JSON.stringify=function(t,e,r){var n;if(gap="",indent="","number"==typeof r)for(n=0;r>n;n+=1)indent+=" ";else"string"==typeof r&&(indent=r);if(rep=e,e&&"function"!=typeof e&&("object"!=typeof e||"number"!=typeof e.length))throw Error("JSON.stringify");return str("",{"":t})}),"function"!=typeof JSON.parse&&(cx=/[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,JSON.parse=function(text,reviver){function walk(t,e){var r,n,o=t[e];if(o&&"object"==typeof o)for(r in o)Object.prototype.hasOwnProperty.call(o,r)&&(n=walk(o,r),void 0!==n?o[r]=n:delete o[r]);return reviver.call(t,e,o)}var j;if(text+="",cx.lastIndex=0,cx.test(text)&&(text=text.replace(cx,function(t){return"\\u"+("0000"+t.charCodeAt(0).toString(16)).slice(-4)})),/^[\],:{}\s]*$/.test(text.replace(/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g,"@").replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g,"]").replace(/(?:^|:|,)(?:\s*\[)+/g,"")))return j=eval("("+text+")"),"function"==typeof reviver?walk({"":j},""):j;throw new SyntaxError("JSON.parse")})}();
+/*ignore jslint end*//* jshint ignore:end */
 
-(function () {
-  // Messages (constructor)
-  //
-  // Initializes a new object for wrapping `window.postMessage` and a fallback
-  // method for legacy browsers.
-  var Messages = window.Messages = function (hps){
-    this.hps = hps;
-    this.interval_id = null;
-    this.last_hash = null;
-    this.window = window;
-    this.pushIntervalStarted = false;
-  };
-
-  // Messages.pushMessages
-  //
-  // For legacy browsers, a mailbox (buffer) must be used to ensure all messages
-  // are sent between parent and child windows. When ready, this function builds
-  // the final message, encodes it, sends it, and resets the mailbox to `[]`.
-  Messages.prototype.pushMessages = function (hps) {
-    return function () {
-      var message = [];
-      var i = 0, length = 0;
-      var target_url = null;
-      var current = null;
-      var targetNode = null;
-
-      length = hps.mailbox.length;
-      if (!length) {
-        return;
-      }
-
-      for (i = 0; i < length; i++) {
-        current = hps.mailbox.shift();
-        if (!target_url) {
-          target_url = current.targetUrl;
-          targetNode = current.targetNode;
-        }
-        message.push(current.message);
-      }
-
-      if (message !== []) {
-        message = JSON.stringify(message);
-        targetNode.location = target_url.replace(/#.*$/, '') + '#' +
-          (+new Date()) + (hps.cache_bust++) + '&' +
-          encodeURIComponent(message);
-      }
-
-      message.length = 0;
-      hps.mailbox.length = 0;
-    };
-  };
-
-  // Messages.postMessage
-  //
-  // When present, wraps the built-in `window.postMessage`. When not present,
-  // pushes the message onto the mailbox for eventual sending, and on first use,
-  // starts the interval for `Messages.pushMessages`.
-  Messages.prototype.postMessage = function(message, target_url, target) {
-    var targetNode;
-    if (!target_url) {
-      return;
-    }
-
-    targetNode = this.hps[target];
-
-    if (this.window.postMessage) {
-      targetNode.postMessage(message, target_url.replace(/([^:]+:\/\/[^\/]+).*/, '$1'));
-    } else if (target_url) {
-      this.hps.mailbox.push({
-        message: message,
-        targetUrl: target_url,
-        targetNode: targetNode
-      });
-      if (!this.pushIntervalStarted) {
-        setInterval(this.pushMessages(this.hps), 100);
-      }
-    }
-  };
-
-  // Messages.postMessage
-  //
-  // When present, wraps the built-in `window.postMesage`'s `message` or
-  // `onmessage` window events. When not present, uses a single interval to
-  // check for changes to `window.location.hash` when the other window sends a
-  // message and will decode the JSON and URI encoded hash.
-  Messages.prototype.receiveMessage = function(callback, source_origin) {
-    if (this.window.postMessage) {
-      if (window.addEventListener) {
-        window[callback ? 'addEventListener' : 'removeEventListener']('message', callback, !1);
-      } else {
-        window[callback ? 'attachEvent' : 'detachEvent']('onmessage', callback);
-      }
-    } else {
-      if (this.interval_id) {
-        clearInterval(this.interval_id);
-      }
-      this.interval_id = null;
-
-      if (callback) {
-        this.interval_id = setInterval(function(){
-          var hash = document.location.hash,
-          re = /^#?\d+&/;
-          if (hash !== this.last_hash && re.test(hash)) {
-            var m = {};
-            var i;
-            m.data = JSON.parse(decodeURIComponent(hash.replace(re, '')));
-            this.last_hash = hash;
-            if (Object.prototype.toString.call(m.data) !== '[object Array]') {
-              callback(m);
-              return;
-            }
-
-            for (i in m.data) {
-              callback({data: m.data[i]});
-            }
-          }
-        }, 100);
-      }
-    }
-    triggerEvent('receiveMessageHandlerAdded', document);
-  };
-
-  function triggerEvent(name, target, data) {
-    var event = target.createEvent('Event');
-    event.initEvent(name, true, true);
-    target.dispatchEvent(event);
-  }
-}());
-
-(function() {
+(function (window, document) {
   'use strict';
+
+  var heartland = window.heartland || {};
+  heartland.Ajax = heartland.Ajax || {};
+  heartland.DOM = heartland.DOM || {};
+  heartland.Events = heartland.Events || {};
+  heartland.Frames = heartland.Frames || {};
+  heartland.Messages = heartland.Messages || {};
+  heartland.Styles = heartland.Styles || {};
+  heartland.Util = heartland.Util || {};
 
   var urls = {
     CERT: 'https://cert.api2.heartlandportico.com/Hps.Exchange.PosGateway.Hpf.v1/api/token',
     PROD: 'https://api2.heartlandportico.com/SecureSubmit.v1/api/token',
-    iframeCERT: 'https://hps.github.io/token/2.0/',
+    iframeCERT: 'http://localhost:8889/iframeIndex.html',
     iframePROD: 'https://api2.heartlandportico.com/SecureSubmit.v1/token/2.0/'
   };
 
   var defaults = {
-    'api_key': '',
+    'publicKey': '',
     'success': '',
     'error': '',
     'object': 'token',
@@ -160,144 +42,163 @@
     'useDefaultStyles': true
   };
 
+  var fields = [
+    'cardNumber',
+    'cardCvv',
+    'cardExpiration'
+  ];
+
   /// Public API
 
-  // HPS (constructor)
+  // heartland.HPS (constructor)
   //
   // Initializes options and adds the default form handler if a `form_id` is
   // passed as an option. This expects the default fields (see `getFields`) to
   // be present as children of `form_id`.
-  window.HPS = function() {
+  heartland.HPS = window.HPS = function () {
     if (arguments[0] && typeof arguments[0] === 'object') {
-      this.options = applyOptions(defaults, arguments[0]);
+      this.options = heartland.Util.applyOptions(defaults, arguments[0]);
+    } else if (!arguments[0] && window.parent) {
+      return;
     }
 
-    this.options = getUrlByEnv(this.options);
+    this.options = heartland.Util.getUrlByEnv(this.options);
 
     if (this.options.form_id.length > 0) {
       addFormHandler(this.options);
     }
 
+    this.frames = {};
     if (this.options.type === 'iframe') {
-      this.parent = null;
-      this.parent_url = '';
-      this.child = null;
       this.iframe_url = '';
 
-      this.Messages = new window.Messages(this);
+      this.Messages = new heartland.Messages(this);
       this.mailbox = [];
       this.cache_bust = 1;
-      configureIframe(this);
+      heartland.Frames.configureIframe(this);
     }
   };
 
-  // HPS.tokenize
+  // heartland.HPS.tokenize
   //
   // Tokenizes card data. Used in manual integrations where the merchant's
   // credit card fields cannot/do not match the names expected in the default
   // form handler (see `getFields`).
-  HPS.prototype.tokenize = function (options) {
+  heartland.HPS.prototype.tokenize = function (options) {
     options = options || {};
     if (options) {
-      this.options = applyOptions(this.options, options);
-      this.options = getUrlByEnv(this.options);
+      this.options = heartland.Util.applyOptions(this.options, options);
+      this.options = heartland.Util.getUrlByEnv(this.options);
     }
     if (this.options.type === 'iframe') {
-      this.Messages.postMessage({action: 'tokenize', message: this.options.api_key}, this.iframe_url, 'child');
+      this.Messages.post({action: 'tokenize', message: this.options.publicKey}, 'child');
       return;
     }
-    callAjax(this.options.type, this.options);
+    heartland.Ajax.call(this.options.type, this.options);
   };
 
-  // HPS.configureInternalIframe
+  // heartland.HPS.configureInternalIframe
   //
   // Sets up a child iframe window to prepare it for communication with the
   // parent and for tokenization.
-  HPS.prototype.configureInternalIframe = function (options) {
-    this.parent = window.parent;
-    this.Messages = new window.Messages(this);
-    this.parent_url = decodeURIComponent(document.location.hash.replace(/^#/, ''));
+  heartland.HPS.prototype.configureInternalIframe = function (options) {
+    this.Messages = new heartland.Messages(this);
+    this.parent = window.postMessage ? window.parent.contentWindow : window.parent;
+    this.frames = this.frames || {};
+    this.frames.parent = {
+      name: 'parent',
+      frame: window.parent,
+      url: decodeURIComponent(document.location.hash.replace(/^#/, ''))
+    };
 
-    addEventHandler(window, 'load', (function (hps) {
+    heartland.Events.addHandler(window, 'load', (function (hps) {
       return function () {
-        resizeFrame(hps);
+        heartland.DOM.resizeFrame(hps);
       };
     }(this)));
 
-    addEventHandler(document, 'receiveMessageHandlerAdded', (function (hps) {
+    heartland.Events.addHandler(document, 'receiveMessageHandlerAdded', (function (hps) {
       return function () {
-        hps.Messages.postMessage({action: 'receiveMessageHandlerAdded'}, hps.parent_url, 'parent');
+        hps.Messages.post({action: 'receiveMessageHandlerAdded'}, 'parent');
       };
     }(this)));
 
-    this.Messages.receiveMessage((function (hps) {
-      return function (m) {
-        switch(m.data.action) {
-          case 'tokenize': {
-            tokenizeIframe(hps, m.data.message);
-            break;
-          }
-          case 'setStyle': {
-            setStyle(m.data.id, m.data.style);
-            resizeFrame(hps);
-            break;
-          }
-          case 'appendStyle': {
-            appendStyle(m.data.id, m.data.style);
-            resizeFrame(hps);
-            break;
-          }
-          case 'setText': {
-            setText(m.data.id, m.data.text);
-            resizeFrame(hps);
-            break;
-          }
-          case 'setPlaceholder': {
-            setPlaceholder(m.data.id, m.data.text);
-            break;
-          }
-        }
-      };
-    }(this)), '*');
+    this.Messages.receive(heartland.Events.frameHandleWith(this), '*');
   };
 
-  // HPS.resizeIFrame
+  // heartland.HPS.configureFieldIframe
+  //
+  // Sets up a child iframe window to prepare it for communication with the
+  // parent and for tokenization.
+  heartland.HPS.prototype.configureFieldIframe = function (options) {
+    var hash = document.location.hash.replace(/^#/, '');
+    var split = hash.split(':');
+    this.Messages = new heartland.Messages(this);
+    this.field = split.shift();
+    this.parent = window.postMessage ? window.parent.contentWindow : window.parent;
+    this.frames = this.frames || {};
+    this.frames.parent = {
+      name: 'parent',
+      frame: window.parent,
+      url: decodeURIComponent(split.join(':').replace(/^:/, ''))
+    };
+
+    heartland.Events.addHandler(window, 'load', (function (hps) {
+      return function () {
+        heartland.DOM.resizeFrame(hps);
+        heartland.DOM.configureField(hps);
+      };
+    }(this)));
+
+    heartland.Events.addHandler(document, 'receiveMessageHandlerAdded', (function (hps) {
+      return function () {
+        hps.Messages.post({action: 'receiveMessageHandlerAdded'}, 'parent');
+      };
+    }(this)));
+
+    this.Messages.receive(heartland.Events.frameHandleWith(this), '*');
+  };
+
+  // heartland.HPS.resizeIFrame
   //
   // Called automatically when the child iframe window alerts the parent to
   // resize.
-  HPS.prototype.resizeIFrame = function (frame, height) {
+  heartland.HPS.prototype.resizeIFrame = function (frame, height) {
     frame.style.height = (parseInt(height, 10)) + 'px';
   };
 
-  // HPS.setText
+  // heartland.HPS.setText
   //
   // Public API for setting an element's inner text.
-  HPS.prototype.setText = function (elementid, elementtext) {
-    this.Messages.postMessage({action: 'setText', id: elementid, text: elementtext}, this.iframe_url, 'child');
+  heartland.HPS.prototype.setText = function (elementid, elementtext) {
+    this.Messages.post({action: 'setText', id: elementid, text: elementtext}, 'child');
   };
 
-  // HPS.setStyle
+  // heartland.HPS.setStyle
   //
   // Public API for setting an element's style.
-  HPS.prototype.setStyle = function (elementid, elementstyle) {
-    this.Messages.postMessage({action: 'setStyle', id: elementid, style: elementstyle}, this.iframe_url, 'child');
+  heartland.HPS.prototype.setStyle = function (elementid, elementstyle) {
+    this.Messages.post({action: 'setStyle', id: elementid, style: elementstyle}, 'child');
   };
 
-  // HPS.appendStyle
+  // heartland.HPS.appendStyle
   //
   // Public API for appending to an element's style.
-  HPS.prototype.appendStyle = function (elementid, elementstyle) {
-    this.Messages.postMessage({action: 'appendStyle', id: elementid, style: elementstyle}, this.iframe_url, 'child');
+  heartland.HPS.prototype.appendStyle = function (elementid, elementstyle) {
+    this.Messages.post({action: 'appendStyle', id: elementid, style: elementstyle}, 'child');
   };
 
   /// Private API
 
-  // configureIframe
-  function configureIframe(hps) {
+  // heartland.Frames.configureIframe
+  //
+  // Prepares the pages iFrames for communication with the parent window.
+  heartland.Frames.configureIframe = function configureIframe(hps) {
     var frame;
     var options = hps.options;
     var target = document.getElementById(options.iframeTarget);
-    hps.Messages = hps.Messages || new window.Messages(hps);
+    var useDefaultStyles = true;
+    hps.Messages = hps.Messages || new heartland.Messages(hps);
 
     if (options.env === 'cert') {
       hps.iframe_url = urls.iframeCERT;
@@ -309,34 +210,45 @@
       frame = target;
       hps.iframe_url = frame.src;
     } else {
-      frame = document.createElement('iframe');
-      frame.id = 'securesubmit-iframe';
-      frame.style.border = '0';
-      frame.scrolling = 'no';
+      frame = heartland.DOM.makeFrame('securesubmit-iframe');
       target.appendChild(frame);
+    }
+
+    if (options.fields) {
+      heartland.Frames.makeFieldAndLink(hps);
     }
 
     hps.iframe_url = hps.iframe_url + '#' + encodeURIComponent(document.location.href.split('#')[0]);
     frame.src = hps.iframe_url;
 
-    hps.frame = frame;
-    if (window.postMessage) {
-      hps.child = frame.contentWindow;
-    } else {
-      hps.child = frame;
-    }
+    hps.frames.child = {
+      name: 'child',
+      frame: window.postMessage ? frame.contentWindow : frame,
+      url: hps.iframe_url
+    };
 
     if (options.useDefaultStyles === false) {
       useDefaultStyles = false;
     }
 
     if (options.buttonTarget) {
-      addEventHandler(options.buttonTarget, 'click', function () {
-        hps.Messages.postMessage({action: 'tokenize', message: options.api_key}, hps.iframe_url, 'child');
+      heartland.Events.addHandler(options.buttonTarget, 'click', function (e) {
+        e.preventDefault();
+        hps.Messages.post(
+          {
+            action: 'tokenize',
+            message: options.publicKey,
+            accumulateData: !!hps.frames.cardNumber
+          },
+          hps.frames.cardNumber ? 'cardNumber' : 'child'
+        );
+        return false;
       });
     }
 
-    hps.Messages.receiveMessage(function(m){
+    hps.Messages.receive(function(m){
+      var fieldFrame = hps.frames[m.source.name];
+
       switch(m.data.action) {
         case 'onTokenSuccess': {
           options.onTokenSuccess(m.data.response);
@@ -347,28 +259,222 @@
           break;
         }
         case 'resize': {
-          hps.resizeIFrame(frame, m.data.height);
+          if (fieldFrame) {
+            hps.resizeIFrame(fieldFrame.frame, m.data.height);
+          } else {
+            hps.resizeIFrame(frame, m.data.height);
+          }
+
           break;
         }
         case 'receiveMessageHandlerAdded': {
-          if (options.useDefaultStyles) {
-            defaultStyles.body(hps);
-            defaultStyles.labelsAndLegend(hps);
-            defaultStyles.inputsAndSelects(hps);
-            defaultStyles.fieldset(hps);
-            defaultStyles.selects(hps);
-            defaultStyles.selectLabels(hps);
-            defaultStyles.cvvContainer(hps);
-            defaultStyles.cvv(hps);
+          if (!fieldFrame && useDefaultStyles) {
+            heartland.Styles.Defaults.body(hps);
+            heartland.Styles.Defaults.labelsAndLegend(hps);
+            heartland.Styles.Defaults.inputsAndSelects(hps);
+            heartland.Styles.Defaults.fieldset(hps);
+            heartland.Styles.Defaults.selects(hps);
+            heartland.Styles.Defaults.selectLabels(hps);
+            heartland.Styles.Defaults.cvvContainer(hps);
+            heartland.Styles.Defaults.cvv(hps);
           }
-          triggerEvent('securesubmitIframeReady', document);
+
+          if (fieldFrame && fieldFrame.options.placeholder) {
+            hps.Messages.post(
+              {
+                action: 'setPlaceholder',
+                id: 'heartland-field',
+                text: fieldFrame.options.placeholder
+              },
+              fieldFrame.name
+            );
+          }
+
+          heartland.Events.trigger('securesubmitIframeReady', document);
+          break;
+        }
+        case 'accumulateData': {
+          var i = 0;
+          var field;
+
+          for (i in hps.frames) {
+            if (i === 'cardNumber') continue;
+            field = hps.frames[i];
+            hps.Messages.post(
+              {
+                action: 'getFieldData',
+                id: 'heartland-field'
+              },
+              field.name
+            );
+          }
+          break;
+        }
+        case 'passData': {
+          var cardNumberFieldFrame = hps.frames.cardNumber;
+          if (!cardNumberFieldFrame) {
+            break;
+          }
+
+          hps.Messages.post(
+            {
+              action: 'setFieldData',
+              id: fieldFrame.name,
+              value: m.data.value
+            },
+            cardNumberFieldFrame.name
+          );
           break;
         }
       }
     }, '*');
-  }
+  };
 
-  function addEventHandler(target, event, callback) {
+  // heartland.Frames.makeFieldAndLink
+  //
+  // Creates a set of single field iFrames and stores a reference to
+  // them in the parent window's state.
+  heartland.Frames.makeFieldAndLink = function makeFieldAndLink(hps) {
+    var fieldsLength = fields.length;
+    var baseUrl = hps.iframe_url.replace('iframeIndex.html', '') + 'iframeField.html';
+    var options = hps.options;
+
+    for (var i = 0; i < fieldsLength; i++) {
+      var field = fields[i];
+      var fieldOptions = options.fields[field];
+      var frame = heartland.DOM.makeFrame(field);
+      var url = baseUrl + '#' + field + ':' + encodeURIComponent(document.location.href.split('#')[0]);
+      frame.src = url;
+
+      document
+        .getElementById(fieldOptions.target)
+        .appendChild(frame);
+
+      hps.frames[field] = {
+        name: field,
+        frame: frame,
+        options: fieldOptions,
+        target: fieldOptions.target,
+        targetNode: window.postMessage ? frame.contentWindow : frame,
+        url: url
+      };
+    }
+  };
+
+  // heartland.DOM.configureField
+  //
+  // Configures an input field in a single field iFrame.
+  heartland.DOM.configureField = function configureField(hps) {
+    document.getElementById('heartland-field').name = hps.field;
+  };
+
+  // heartland.DOM.makeFrame
+  //
+  // Creates a single iFrame element with the appropriate defaults.
+  heartland.DOM.makeFrame = function makeFrame(id) {
+      var frame = document.createElement('iframe');
+      frame.id = id;
+      frame.style.border = '0';
+      frame.scrolling = 'no';
+      return frame;
+  };
+
+  // heartland.DOM.addField
+  //
+  // Adds a DOM `input` node to `formParent` with type `fieldType`, name
+  // `fieldName`, and value `fieldValue`.
+  heartland.DOM.addField = function addField(formParent, fieldType, fieldName, fieldValue) {
+    var input = document.createElement('input');
+
+    input.setAttribute('type', fieldType);
+    input.setAttribute('name', fieldName);
+    input.setAttribute('value', fieldValue);
+
+    document.getElementById(formParent).appendChild(input);
+  };
+
+  // heartland.DOM.setStyle
+  //
+  // Sets an element's style attribute within a child iframe window.
+  heartland.DOM.setStyle = function setStyle(elementid, htmlstyle) {
+    var el = document.getElementById(elementid);
+    if (el) {
+      el.setAttribute('style', htmlstyle);
+    }
+  };
+
+  // heartland.DOM.appendStyle
+  //
+  // Appends an element's style attribute within a child iframe window.
+  heartland.DOM.appendStyle = function appendStyle(elementid, htmlstyle) {
+    var el = document.getElementById(elementid);
+    if (el) {
+      var currstyle = el.getAttribute('style');
+      var newstyle = (currstyle ? currstyle : '') + htmlstyle;
+      el.setAttribute('style', newstyle);
+    }
+  };
+
+  // heartland.DOM.setText
+  //
+  // Sets an element's inner text within a child iframe window.
+  heartland.DOM.setText = function setText(elementid, text) {
+    var el = document.getElementById(elementid);
+    if (el) {
+      el.innerHTML = text;
+    }
+  };
+
+  // heartland.DOM.setPlaceholder
+  //
+  // Sets an element's placeholder attribute within a child iframe window.
+  heartland.DOM.setPlaceholder = function setPlaceholder(elementid, text) {
+    var el = document.getElementById(elementid);
+    if (el) {
+      el.setAttribute('placeholder', text);
+    }
+  };
+
+  // heartland.DOM.resizeFrame
+  //
+  // Alerts a parent window to resize the iframe.
+  heartland.DOM.resizeFrame = function resizeFrame(hps) {
+    var html = document.getElementsByTagName('html')[0];
+    var docHeight = html.offsetHeight;
+    hps.Messages.post({action: 'resize', height: docHeight}, 'parent');
+  };
+
+  // heartland.DOM.setFieldData
+  //
+  // Receives a field value from another frame prior to the tokenization process.
+  heartland.DOM.setFieldData = function setFieldData(elementid, value) {
+    var el = document.getElementById(elementid);
+    if (!el && document.getElementById('heartland-field')) {
+      el = document.createElement('input');
+      el.id = elementid;
+      el.type = 'hidden';
+      document.getElementById('heartland-field-wrapper').appendChild(el);
+    }
+
+    if (el) {
+      el.setAttribute('value', value);
+    }
+  };
+
+  // heartland.DOM.getFieldData
+  //
+  // Retrieves a field value for another frame prior to the tokenization process.
+  heartland.DOM.getFieldData = function getFieldData(hps, elementid) {
+    var el = document.getElementById(elementid);
+    if (el) {
+      hps.Messages.post({action: 'passData', value: el.value}, 'parent');
+    }
+  };
+
+  // heartland.Events.addHandler
+  //
+  // Adds an `event` handler for a given `target` element.
+  heartland.Events.addHandler = function addHandler(target, event, callback) {
     if (typeof target === 'string') {
       target = document.getElementById(target);
     }
@@ -382,32 +488,114 @@
 
       target.attachEvent(event, callback);
     }
-  }
+  };
 
-  function triggerEvent(name, target, data) {
+  // heartland.Events.trigger
+  //
+  // Fires off an `event` for a given `target` element.
+  heartland.Events.trigger = function trigger(name, target, data) {
     var event = target.createEvent('Event');
     event.initEvent(name, true, true);
     target.dispatchEvent(event);
-  }
+  };
+
+  // hearltand.Events.frameHandleWith
+  //
+  // Wraps `hps` state in a closure to provide a `heartland.Messages.receive`
+  // callback handler for iFrame children.
+  heartland.Events.frameHandleWith = function frameHandleWith(hps) {
+    return function (m) {
+      switch(m.data.action) {
+        case 'tokenize': {
+          if (m.data.accumulateData) {
+            hps.Messages.post(
+              {
+                action: 'accumulateData'
+              },
+              'parent'
+            );
+            var el = document.createElement('input');
+            el.id = 'publicKey';
+            el.type = 'hidden';
+            el.value = m.data.message;
+            document
+              .getElementById('heartland-field-wrapper')
+              .appendChild(el);
+          } else {
+            tokenizeIframe(hps, m.data.message);
+          }
+          break;
+        }
+        case 'setStyle': {
+          heartland.DOM.setStyle(m.data.id, m.data.style);
+          heartland.DOM.resizeFrame(hps);
+          break;
+        }
+        case 'appendStyle': {
+          heartland.DOM.appendStyle(m.data.id, m.data.style);
+          heartland.DOM.resizeFrame(hps);
+          break;
+        }
+        case 'setText': {
+          heartland.DOM.setText(m.data.id, m.data.text);
+          heartland.DOM.resizeFrame(hps);
+          break;
+        }
+        case 'setPlaceholder': {
+          heartland.DOM.setPlaceholder(m.data.id, m.data.text);
+          break;
+        }
+        case 'setFieldData': {
+          heartland.DOM.setFieldData(m.data.id, m.data.value);
+          if (document.getElementById('heartland-field') &&
+              document.getElementById('cardCvv') &&
+              document.getElementById('cardExpiration')) {
+            tokenizeIframe(hps, document.getElementById('publicKey').value);
+          }
+          break;
+        }
+        case 'getFieldData': {
+          heartland.DOM.getFieldData(hps, m.data.id);
+          break;
+        }
+      }
+    };
+  };
 
   // tokenizeIframe
   //
   // Tokenizes card data. Used in iframe integrations to tokenize on Heartland's
   // servers.
-  function tokenizeIframe(hps, public_key) {
+  function tokenizeIframe(hps, publicKey) {
+    var card = {};
     var tokenValue;
 
+    card.number = (document.getElementById('heartland-field') || document.getElementById('heartland-card-number')).value;
+    card.cvv = (document.getElementById('cardCvv') || document.getElementById('heartland-cvv')).value;
+    card.exp = document.getElementById('cardExpiration');
+
+    if (cardExpiration) {
+      var cardExpSplit = card.exp.value.split('/');
+      card.expMonth = cardExpSplit[0];
+      card.expYear = cardExpSplit[1];
+      delete card.exp;
+    } else {
+      card.expMonth = document.getElementById('heartland-expiration-month').value;
+      card.expYear = document.getElementById('heartland-expiration-year').value;
+    }
+
     hps.tokenize({
-      api_key: public_key,
-      card_number: document.getElementById('heartland-card-number').value,
-      card_cvc: document.getElementById('heartland-cvv').value,
-      card_exp_month: document.getElementById('heartland-expiration-month').value,
-      card_exp_year: document.getElementById('heartland-expiration-year').value,
+      publicKey: publicKey,
+      card_number: card.number,
+      card_cvc: card.cvv,
+      card_exp_month: card.expMonth,
+      card_exp_year: card.expYear,
+      type: 'pan',
       success: function(response) {
-        hps.Messages.postMessage({action: 'onTokenSuccess', response: response}, hps.parent_url, 'parent');
+        hps.Messages.post({action: 'onTokenSuccess', response: response}, 'parent');
       },
       error: function (response) {
-        hps.Messages.postMessage({action: 'onTokenError', response: response}, hps.parent_url, 'parent');
+        hps.Messages.post({action: 'onTokenError', response: response}, 'parent');
       }
     });
   }
@@ -427,24 +615,24 @@
       }
 
       var fields = getFields(options.form_id);
-      var cardType = getCardType(fields.card_number);
+      var cardType = heartland.Util.getCardType(fields.card_number);
 
       options.card_number = fields.card_number;
       options.card_exp_month = fields.card_expiration_month;
       options.card_exp_year = fields.card_expiration_year;
       options.card_cvc = fields.card_cvc;
 
-      callAjax('pan', options);
+      heartland.Ajax.call('pan', options);
     };
 
-    addEventHandler(payment_form, 'submit', code);
-    addField(options.form_id, 'hidden', 'api_key', options.api_key);
+    heartland.Events.addHandler(payment_form, 'submit', code);
+    heartland.DOM.addField(options.form_id, 'hidden', 'publicKey', options.publicKey);
   }
 
-  // getCardType
+  // heartland.Util.getCardType
   //
   // Parses a credit card number to obtain the card type/brand.
-  function getCardType(number) {
+  heartland.Util.getCardType = function getCardType(number) {
     var cardType = '';
     var re = {
       visa: /^4[0-9]{12}(?:[0-9]{3})?$/,
@@ -470,15 +658,19 @@
     }
 
     return cardType;
-  }
+  };
 
-  // applyOptions
+  // heartland.Util.applyOptions
   //
   // Creates a single object by merging a `source` (default) and `properties`
   // obtained elsewhere, e.g. a function argument in `HPS`. Any properties in
   // `properties` will overwrite matching properties in `source`.
-  function applyOptions(source, properties) {
+  heartland.Util.applyOptions = function applyOptions(source, properties) {
     var property;
+
+    if (!source) {
+      source = {};
+    }
 
     for (property in properties) {
       if (properties.hasOwnProperty(property)) {
@@ -487,26 +679,41 @@
     }
 
     return source;
-  }
+  };
 
-  // throwError
+  // heartland.Util.throwError
   //
   // Allows a merchant-defined error handler to be used in cases where the
   // tokenization process fails. If not provided, we throw the message as a
   // JS runtime error.
-  function throwError(options, errorMessage) {
+  heartland.Util.throwError = function throwError(options, errorMessage) {
     if (typeof(options.error) === 'function') {
       options.error(errorMessage);
     } else {
       throw errorMessage;
     }
-  }
+  };
 
-  // jsonp
+  // heartland.Util.getItemByPropertyValue
+  //
+  // Enumerates over a `collection` to retreive an item whose `property` is
+  // a given `value`.
+  heartland.Util.getItemByPropertyValue = function getItemByPropertyValue(collection, property, value) {
+    var length = collection.length;
+    var i = 0;
+
+    for (i; i < length; i++) {
+      if (collection[i][property] === value) {
+        return collection[i];
+      }
+    }
+  };
+
+  // heartland.Ajax.jsonp
   //
   // Creates a new DOM node containing a created JSONP callback handler for an
   // impending Ajax JSONP request. Removes need for `XMLHttpRequest`.
-  function jsonp(url, callback) {
+  heartland.Ajax.jsonp = function jsonp(url, callback) {
     var callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
     window[callbackName] = function(data) {
       delete window[callbackName];
@@ -517,88 +724,105 @@
     var script = document.createElement('script');
     script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
     document.body.appendChild(script);
-  }
+  };
 
-  // callAjax
+  // heartland.Ajax.call
   //
-  // Sets up a request to be passed to `jsonp`. On successful tokenization,
+  // Sets up a request to be passed to `heartland.Ajax.jsonp`. On successful tokenization,
   // `options.success` will be called with the tokenization data as the only
   // argument passed.
-  function callAjax(type, options) {
+  heartland.Ajax.call = function call(type, options) {
     var number = options.card_number.trim();
     var lastfour = number.slice(-4);
-    var cardType = getCardType(number);
-    var params = getParams(type, options);
+    var cardType = heartland.Util.getCardType(number);
+    var params = heartland.Util.getParams(type, options);
 
-    jsonp(options.gateway_url + params, function(data) {
+    heartland.Ajax.jsonp(options.gateway_url + params, function(data) {
       if (data.error) {
-        throwError(options, data);
+        heartland.Util.throwError(options, data);
       } else {
         data.last_four = lastfour;
         data.card_type = cardType;
         data.exp_month = options.card_exp_month;
         data.exp_year = options.card_exp_year;
 
-        if (options.form_id.length > 0) {
-          addField(options.form_id, 'hidden', 'token_value', data.token_value);
-          addField(options.form_id, 'hidden', 'last_four', lastfour);
-          addField(options.form_id, 'hidden', 'card_exp_year', options.card_exp_year);
-          addField(options.form_id, 'hidden', 'card_exp_month', options.card_exp_month);
-          addField(options.form_id, 'hidden', 'card_type', cardType);
+        if (options.form_id && options.form_id.length > 0) {
+          heartland.DOM.addField(options.form_id, 'hidden', 'token_value', data.token_value);
+          heartland.DOM.addField(options.form_id, 'hidden', 'last_four', lastfour);
+          heartland.DOM.addField(options.form_id, 'hidden', 'card_exp_year', options.card_exp_year);
+          heartland.DOM.addField(options.form_id, 'hidden', 'card_exp_month', options.card_exp_month);
+          heartland.DOM.addField(options.form_id, 'hidden', 'card_type', cardType);
         }
 
         options.success(data);
       }
     });
-  }
+  };
 
-  // getParams
+  // heartland.Util.getParams
   //
   // Builds param list for a particular `type` from expected properties in
   // `data`.
-  function getParams(type, data) {
-    var params = '';
+  heartland.Util.getParams = function getParams(type, data) {
+    var params = [];
     switch (type) {
       case 'pan':
-        params += '?token_type=supt&object=token&_method=post&api_key=' + data.api_key.trim();
-        params += '&card%5Bnumber%5D=' + data.card_number.trim();
-        params += '&card%5Bexp_month%5D=' + data.card_exp_month.trim();
-        params += '&card%5Bexp_year%5D=' + data.card_exp_year.trim();
-        params += '&card%5Bcvc%5D=' + data.card_cvc.trim();
+        params.push(
+          'token_type=supt',
+          'object=token',
+          '_method=post',
+          'api_key=' + data.publicKey.trim(),
+          'card%5Bnumber%5D=' + data.card_number.trim(),
+          'card%5Bexp_month%5D=' + data.card_exp_month.trim(),
+          'card%5Bexp_year%5D=' + data.card_exp_year.trim(),
+          'card%5Bcvc%5D=' + data.card_cvc.trim()
+        );
         break;
       case 'swipe':
-        params += '?token_type=supt&object=token&_method=post&api_key=' + data.api_key.trim();
-        params += '&card%5Btrack_method%5D=swipe';
-        params += '&card%5Btrack%5D=' + encodeURIComponent(data.track.trim());
+        params.push(
+          'token_type=supt',
+          'object=token',
+          '_method=post',
+          'api_key=' + data.publicKey.trim(),
+          'card%5Btrack_method%5D=swipe',
+          'card%5Btrack%5D=' + encodeURIComponent(data.track.trim())
+        );
         break;
       case 'encrypted':
-        params += '?token_type=supt&object=token&_method=post&api_key=' + data.api_key.trim();
-        params += '&encryptedcard%5Btrack_method%5D=swipe';
-        params += '&encryptedcard%5Btrack%5D=' + encodeURIComponent(data.track.trim());
-        params += '&encryptedcard%5Btrack_number%5D=' +encodeURIComponent( data.track_number.trim());
-        params += '&encryptedcard%5Bktb%5D=' + encodeURIComponent(data.ktb.trim());
-        params += '&encryptedcard%5Bpin_block%5D=' + encodeURIComponent(data.pin_block.trim());
+        params.push(
+          'token_type=supt',
+          'object=token',
+          '_method=post',
+          'api_key=' + data.publicKey.trim(),
+          'encryptedcard%5Btrack_method%5D=swipe',
+          'encryptedcard%5Btrack%5D=' + encodeURIComponent(data.track.trim()),
+          'encryptedcard%5Btrack_number%5D=' +encodeURIComponent( data.track_number.trim()),
+          'encryptedcard%5Bktb%5D=' + encodeURIComponent(data.ktb.trim()),
+          'encryptedcard%5Bpin_block%5D=' + encodeURIComponent(data.pin_block.trim())
+        );
         break;
       default:
-        throwError(options, 'unknown params type');
+        heartland.Util.throwError(data, 'unknown params type');
         break;
     }
-    return params;
-  }
+    return '?' + params.join('&');
+  };
 
-  // addField
+  // heartland.Util.getUrlByEnv
   //
-  // Adds a DOM `input` node to `formParent` with type `fieldType`, name
-  // `fieldName`, and value `fieldValue`.
-  function addField(formParent, fieldType, fieldName, fieldValue) {
-    var input = document.createElement('input');
+  // Selects the appropriate toeknization service URL for the
+  // active `publicKey`.
+  heartland.Util.getUrlByEnv = function getUrlByEnv(options) {
+    options.env = options.publicKey.split('_')[1];
 
-    input.setAttribute('type', fieldType);
-    input.setAttribute('name', fieldName);
-    input.setAttribute('value', fieldValue);
+    if (options.env === 'cert') {
+      options.gateway_url = urls.CERT;
+    } else {
+      options.gateway_url = urls.PROD;
+    }
 
-    document.getElementById(formParent).appendChild(input);
-  }
+    return options;
+  };
 
   // getFields
   //
@@ -627,52 +851,12 @@
     return fields;
   }
 
-  // setStyle
-  //
-  // Sets an element's style attribute within a child iframe window.
-  function setStyle(elementid, htmlstyle) {
-    document.getElementById(elementid).setAttribute('style', htmlstyle);
-  }
-
-  // appendStyle
-  //
-  // Appends an element's style attribute within a child iframe window.
-  function appendStyle(elementid, htmlstyle) {
-    var element = document.getElementById(elementid);
-    var currstyle = element.getAttribute('style');
-    var newstyle = (currstyle ? currstyle : '') + htmlstyle;
-    element.setAttribute('style', newstyle);
-  }
-
-  // setText
-  //
-  // Sets an element's inner text within a child iframe window.
-  function setText(elementid, text) {
-    document.getElementById(elementid).innerHTML = text;
-  }
-
-  // setPlaceholder
-  //
-  // Sets an element's placeholder attribute within a child iframe window.
-  function setPlaceholder(elementid, text) {
-    document.getElementById(elementid).placeholder = text;
-  }
-
-  // resizeFrame
-  //
-  // Alerts a parent window to resize the iframe.
-  function resizeFrame(hps) {
-    var html = document.getElementsByTagName('html')[0];
-    var docHeight = html.offsetHeight;
-    hps.Messages.postMessage({action: 'resize', height: docHeight}, hps.parent_url, 'parent');
-  }
-
-  // defaultStyles
+  // heartland.Styles.Defaults
   //
   // Collection of helper functions for applying default styles to a child
   // window's fields. Serves as an example of these methods' use in merchant
   // modifications.
-  var defaultStyles = {
+  heartland.Styles.Defaults = {
     body: function (hps) {
       hps.setStyle('heartland-body',
         'margin: 0;' +
@@ -789,15 +973,136 @@
     }
   };
 
-  function getUrlByEnv(options) {
-    options.env = options.api_key.split('_')[1];
+  // heartland.Messages (constructor)
+  //
+  // Initializes a new object for wrapping `window.postMessage` and a fallback
+  // method for legacy browsers.
+  heartland.Messages = function Messages(hps){
+    this.hps = hps;
+    this.interval_id = null;
+    this.lastHash = null;
+    this.pushIntervalStarted = false;
+  };
 
-    if (options.env === 'cert') {
-      options.gateway_url = urls.CERT;
-    } else {
-      options.gateway_url = urls.PROD;
+  // heartland.Messages.pushMessages
+  //
+  // For legacy browsers, a mailbox (buffer) must be used to ensure all messages
+  // are sent between parent and child windows. When ready, this function builds
+  // the final message, encodes it, sends it, and resets the mailbox to `[]`.
+  heartland.Messages.prototype.pushMessages = function pushMessages(hps) {
+    return function () {
+      var message = [];
+      var i = 0, length = 0;
+      var target_url = null;
+      var current = null;
+      var targetNode = null;
+
+      length = hps.mailbox.length;
+      if (!length) {
+        return;
+      }
+
+      for (i = 0; i < length; i++) {
+        current = hps.mailbox.shift();
+        if (!target_url) {
+          target_url = current.targetUrl;
+          targetNode = current.targetNode;
+        }
+        message.push(current.message);
+      }
+
+      if (message !== []) {
+        message = JSON.stringify(message);
+        targetNode.location = target_url.replace(/#.*$/, '') + '#' +
+          (+new Date()) + (hps.cache_bust++) + '&' +
+          encodeURIComponent(message);
+      }
+
+      message.length = 0;
+      hps.mailbox.length = 0;
+    };
+  };
+
+  // heartland.Messages.post
+  //
+  // When present, wraps the built-in `window.postMessage`. When not present,
+  // pushes the message onto the mailbox for eventual sending, and on first use,
+  // starts the interval for `Messages.pushMessages`.
+  heartland.Messages.prototype.post = function post(message, target) {
+    var frame;
+    var targetNode;
+    var targetUrl;
+
+    if (!this.hps.frames) {
+      return;
     }
 
-    return options;
-  }
-}());
+    frame = this.hps[target] || this.hps.frames[target];
+
+    if (!frame) {
+      return;
+    }
+
+    targetNode = frame.targetNode || frame.frame || frame;
+    targetUrl = frame.url;
+
+    if (window.postMessage) {
+      targetNode.postMessage(
+        message,
+        targetUrl
+      );
+    } else {
+      this.hps.mailbox.push({
+        message: message,
+        targetUrl: targetUrl,
+        targetNode: targetNode
+      });
+      if (!this.pushIntervalStarted) {
+        setInterval(this.pushMessages(this.hps), 100);
+      }
+    }
+  };
+
+  // heartland.Messages.receive
+  //
+  // When present, wraps the built-in `window.postMesage`'s `message` or
+  // `onmessage` window events. When not present, uses a single interval to
+  // check for changes to `window.location.hash` when the other window sends a
+  // message and will decode the JSON and URI encoded hash.
+  heartland.Messages.prototype.receive = function receive(callback, source_origin) {
+    if (window.postMessage) {
+      if (window.addEventListener) {
+        window[callback ? 'addEventListener' : 'removeEventListener']('message', callback, !1);
+      } else {
+        window[callback ? 'attachEvent' : 'detachEvent']('onmessage', callback);
+      }
+    } else {
+      if (this.interval_id) {
+        clearInterval(this.interval_id);
+      }
+      this.interval_id = null;
+
+      if (callback) {
+        this.interval_id = setInterval(function(){
+          var hash = document.location.hash,
+          re = /^#?\d+&/;
+          if (hash !== this.lastHash && re.test(hash)) {
+            var m = {};
+            var i;
+            m.data = JSON.parse(decodeURIComponent(hash.replace(re, '')));
+            this.lastHash = hash;
+            if (Object.prototype.toString.call(m.data) !== '[object Array]') {
+              callback(m);
+              return;
+            }
+
+            for (i in m.data) {
+              callback({data: m.data[i]});
+            }
+          }
+        }, 100);
+      }
+    }
+    heartland.Events.trigger('receiveMessageHandlerAdded', document);
+  };
+}(window, document));
