@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Hosted Fields Test</title>
+  </head>
+  <body>
+    <form action="/charge.php" method="get">
+      <div id="cardNumber"></div>
+      <div id="cardCvv"></div>
+      <div id="cardExp"></div>
+      <div id="securesubmit" style="display:none"></div>
+      <div class="submit">
+        <input id="submit" type="submit" name="submit" />
+      </div>
+    </form>
+    <script type="text/javascript" src="/dist/securesubmit.min.js"></script>
+    <script type="text/javascript">
+      (function () {
+        window.hps = new HPS({
+          publicKey: 'pkapi_cert_dNpEYIISXCGDDyKJiV',
+          type: 'iframe',
+          iframeTarget: 'securesubmit',
+          buttonTarget: 'submit',
+          fields: {
+            cardNumber: {
+              target: 'cardNumber',
+              placeholder: 'Card Number'
+            },
+            cardCvv: {
+              target: 'cardCvv',
+              placeholder: 'Security Code'
+            },
+            cardExpiration: {
+              target: 'cardExp',
+              placeholder: 'MM / YYYY'
+            }
+          },
+          onTokenSuccess: function (response) {
+            console.log(response);
+          },
+          onTokenError: function (response) {
+            console.log(response);
+          }
+        });
+      }());
+    </script>
+  </body>
+</html>

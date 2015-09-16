@@ -2,16 +2,20 @@
   "name": "heartland-tokenization",
   "version": "1.0.0",
   "description": "This plugin allows you to use your SecureSubmit Public API Key to convert a credit card into a secure Token which can be charged in a PCI friendly way.",
-  "main": "securesubmit.js",
+  "main": "dist/securesubmit.min.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
+    "build": "npm run build-ts && npm run minify",
+    "build-ts": "node_modules/.bin/tsc",
+    "minify": "node_modules/.bin/uglifyjs -c -o dist/securesubmit.min.js --source-map-root ./src  --source-map-url /dist/securesubmit.min.js.map --source-map dist/securesubmit.min.js.map --in-source-map dist/securesubmit.js.map --enclose -- dist/securesubmit.js",
+    "install": "npm run build",
     "test": "open 'test/index.html'"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hps/heartland-tokenization.git"
+    "url": "https://github.com/hps/heartland-tokenization.git"
   },
   "keywords": [
     "hps",
@@ -23,9 +27,13 @@
     "card"
   ],
   "author": "Heartland Payment Systems",
-  "license": "",
+  "license": "Custom",
   "bugs": {
     "url": "https://github.com/hps/heartland-tokenization/issues"
   },
-  "homepage": "https://github.com/hps/heartland-tokenization#readme"
+  "homepage": "https://github.com/hps/heartland-tokenization#readme",
+  "devDependencies": {
+    "typescript": "^1.5.3",
+    "uglify-js": "^2.4.24"
+  }
 }
