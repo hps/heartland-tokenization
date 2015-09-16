@@ -449,9 +449,10 @@ var Heartland;
         // Heartland.DOM.makeFrame
         //
         // Creates a single iFrame element with the appropriate defaults.
-        function makeFrame(id) {
+        function makeFrame(name) {
             var frame = document.createElement('iframe');
-            frame.id = id;
+            frame.id = name;
+            frame.name = name;
             frame.style.border = '0';
             frame.scrolling = 'no';
             return frame;
@@ -542,7 +543,7 @@ var Heartland;
         function getFieldData(hps, elementid) {
             var el = document.getElementById(elementid);
             if (el) {
-                hps.Messages.post({ action: 'passData', value: el.getAttribute('value') }, 'parent');
+                hps.Messages.post({ action: 'passData', value: el.value }, 'parent');
             }
         }
         DOM.getFieldData = getFieldData;
@@ -662,25 +663,25 @@ var Heartland;
         // servers.
         function tokenizeIframe(hps, publicKey) {
             var card = {};
-            card.number = (document.getElementById('heartland-field') || document.getElementById('heartland-card-number')).getAttribute('value');
-            card.cvv = (document.getElementById('cardCvv') || document.getElementById('heartland-cvv')).getAttribute('value');
+            card.number = (document.getElementById('heartland-field') || document.getElementById('heartland-card-number')).value;
+            card.cvv = (document.getElementById('cardCvv') || document.getElementById('heartland-cvv')).value;
             card.exp = document.getElementById('cardExpiration');
             if (card.exp) {
-                var cardExpSplit = card.exp.getAttribute('value').split('/');
+                var cardExpSplit = card.exp.value.split('/');
                 card.expMonth = cardExpSplit[0];
                 card.expYear = cardExpSplit[1];
                 delete card.exp;
             }
             else {
-                card.expMonth = document.getElementById('heartland-expiration-month').getAttribute('value');
-                card.expYear = document.getElementById('heartland-expiration-year').getAttribute('value');
+                card.expMonth = document.getElementById('heartland-expiration-month').value;
+                card.expYear = document.getElementById('heartland-expiration-year').value;
             }
             hps.tokenize({
                 publicKey: publicKey,
-                card_number: card.number,
-                card_cvc: card.cvv,
-                card_exp_month: card.expMonth,
-                card_exp_year: card.expYear,
+                cardNumber: card.number,
+                cardCvv: card.cvv,
+                cardExpMonth: card.expMonth,
+                cardExpYear: card.expYear,
                 type: 'pan',
                 success: function (response) {
                     hps.Messages.post({ action: 'onTokenSuccess', response: response }, 'parent');
@@ -949,7 +950,7 @@ var Heartland;
         function configureIframe(hps) {
             var frame;
             var options = hps.options;
-            var target = document.getElementById(options.iframeTarget);
+            var target;
             var useDefaultStyles = true;
             hps.Messages = hps.Messages || new Heartland.Messages(hps);
             if (options.env === 'cert') {
@@ -958,24 +959,27 @@ var Heartland;
             else {
                 hps.iframe_url = Heartland.urls.iframePROD;
             }
-            if (options.targetType === 'myframe') {
-                frame = target;
-                hps.iframe_url = frame.src;
-            }
-            else {
-                frame = Heartland.DOM.makeFrame('securesubmit-iframe');
-                target.appendChild(frame);
-            }
             if (options.fields) {
                 Heartland.Frames.makeFieldAndLink(hps);
             }
-            hps.iframe_url = hps.iframe_url + '#' + encodeURIComponent(document.location.href.split('#')[0]);
-            frame.src = hps.iframe_url;
-            hps.frames.child = {
-                name: 'child',
-                frame: window.postMessage ? frame.contentWindow : frame,
-                url: hps.iframe_url
-            };
+            if (options.iframeTarget) {
+                frame = document.getElementById(options.iframeTarget);
+                if (options.targetType === 'myframe') {
+                    frame = target;
+                    hps.iframe_url = frame.src;
+                }
+                else {
+                    frame = Heartland.DOM.makeFrame('securesubmit-iframe');
+                    target.appendChild(frame);
+                }
+                hps.iframe_url = hps.iframe_url + '#' + encodeURIComponent(document.location.href.split('#')[0]);
+                frame.src = hps.iframe_url;
+                hps.frames.child = {
+                    name: 'child',
+                    frame: window.postMessage ? frame.contentWindow : frame,
+                    url: hps.iframe_url
+                };
+            }
             if (options.useDefaultStyles === false) {
                 useDefaultStyles = false;
             }
@@ -1014,7 +1018,7 @@ var Heartland;
                         }
                         break;
                     case 'receiveMessageHandlerAdded':
-                        if (!fieldFrame && useDefaultStyles) {
+                        if (!options.fields && useDefaultStyles) {
                             Heartland.Styles.Defaults.body(hps);
                             Heartland.Styles.Defaults.labelsAndLegend(hps);
                             Heartland.Styles.Defaults.inputsAndSelects(hps);
@@ -1157,7 +1161,15 @@ var Heartland;
             if (!frame) {
                 return;
             }
-            targetNode = frame.targetNode || frame.frame || frame;
+            if (typeof frame.targetNode !== 'undefined') {
+                targetNode = frame.targetNode;
+            }
+            else if (typeof frame.frame !== 'undefined') {
+                targetNode = frame.frame;
+            }
+            else {
+                targetNode = frame;
+            }
             targetUrl = frame.url;
             if (window.postMessage) {
                 targetNode.postMessage(message, targetUrl);

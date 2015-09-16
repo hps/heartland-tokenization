@@ -8,7 +8,6 @@
       <div id="cardNumber"></div>
       <div id="cardCvv"></div>
       <div id="cardExp"></div>
-      <div id="securesubmit" style="display:none"></div>
       <div class="submit">
         <input id="submit" type="submit" name="submit" />
       </div>
@@ -19,7 +18,6 @@
         window.hps = new HPS({
           publicKey: 'pkapi_cert_dNpEYIISXCGDDyKJiV',
           type: 'iframe',
-          iframeTarget: 'securesubmit',
           buttonTarget: 'submit',
           fields: {
             cardNumber: {

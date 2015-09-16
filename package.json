@@ -11,7 +11,8 @@
     "build-ts": "node_modules/.bin/tsc",
     "minify": "node_modules/.bin/uglifyjs -c -o dist/securesubmit.min.js --source-map-root ./src  --source-map-url /dist/securesubmit.min.js.map --source-map dist/securesubmit.min.js.map --in-source-map dist/securesubmit.js.map --enclose -- dist/securesubmit.js",
     "install": "npm run build",
-    "test": "open 'test/index.html'"
+    "test": "open 'test/index.html'",
+    "watch": "node_modeuls/.bin/tsc --watch"
   },
   "repository": {
     "type": "git",

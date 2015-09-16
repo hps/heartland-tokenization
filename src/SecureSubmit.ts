@@ -29,24 +29,24 @@ module Heartland {
       if (!options && window.parent) {
         return;
       }
-  
+
       this.options = Heartland.Util.applyOptions(defaults, options);
       this.options = Heartland.Util.getUrlByEnv(this.options);
-  
+
       if (this.options.formId.length > 0) {
         Heartland.Util.addFormHandler(this.options);
       }
-  
+
       this.frames = {};
       if (this.options.type === 'iframe') {
         this.iframe_url = '';
-  
+
         this.Messages = new Heartland.Messages(this);
         this.mailbox = [];
         this.cache_bust = 1;
         Heartland.Frames.configureIframe(this);
       }
-      
+
       return this;
     }
 
@@ -67,7 +67,7 @@ module Heartland {
       }
       Heartland.Ajax.call(this.options.type, this.options);
     };
-  
+
     // Heartland.HPS.configureInternalIframe
     //
     // Sets up a child iframe window to prepare it for communication with the
@@ -82,22 +82,22 @@ module Heartland {
         frame: window.parent,
         url: decodeURIComponent(document.location.hash.replace(/^#/, ''))
       };
-  
+
       Heartland.Events.addHandler(window, 'load', (function (hps: HPS) {
         return function () {
           Heartland.DOM.resizeFrame(hps);
         };
       }(this)));
-  
+
       Heartland.Events.addHandler(document, 'receiveMessageHandlerAdded', (function (hps: HPS) {
         return function () {
           hps.Messages.post({action: 'receiveMessageHandlerAdded'}, 'parent');
         };
       }(this)));
-  
+
       this.Messages.receive(Heartland.Events.frameHandleWith(this), '*');
     };
-  
+
     // Heartland.HPS.configureFieldIframe
     //
     // Sets up a child iframe window to prepare it for communication with the
@@ -115,23 +115,23 @@ module Heartland {
         frame: window.parent,
         url: decodeURIComponent(split.join(':').replace(/^:/, ''))
       };
-  
+
       Heartland.Events.addHandler(window, 'load', (function (hps: HPS) {
         return function () {
           Heartland.DOM.resizeFrame(hps);
           Heartland.DOM.configureField(hps);
         };
       }(this)));
-  
+
       Heartland.Events.addHandler(document, 'receiveMessageHandlerAdded', (function (hps: HPS) {
         return function () {
           hps.Messages.post({action: 'receiveMessageHandlerAdded'}, 'parent');
         };
       }(this)));
-  
+
       this.Messages.receive(Heartland.Events.frameHandleWith(this), '*');
     };
-  
+
     // Heartland.HPS.resizeIFrame
     //
     // Called automatically when the child iframe window alerts the parent to
@@ -139,21 +139,21 @@ module Heartland {
     resizeIFrame(frame: HTMLIFrameElement, height: string): void {
       frame.style.height = (parseInt(height, 10)) + 'px';
     };
-  
+
     // Heartland.HPS.setText
     //
     // Public API for setting an element's inner text.
     setText(elementid: string, elementtext: string): void {
       this.Messages.post({action: 'setText', id: elementid, text: elementtext}, 'child');
     };
-  
+
     // Heartland.HPS.setStyle
     //
     // Public API for setting an element's style.
     setStyle(elementid: string, elementstyle: string): void {
       this.Messages.post({action: 'setStyle', id: elementid, style: elementstyle}, 'child');
     };
-  
+
     // Heartland.HPS.appendStyle
     //
     // Public API for appending to an element's style.

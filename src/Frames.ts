@@ -9,7 +9,7 @@ module Heartland {
     export function configureIframe(hps: HPS) {
       var frame: any;
       var options = hps.options;
-      var target = document.getElementById(options.iframeTarget);
+      var target: HTMLElement;
       var useDefaultStyles = true;
       hps.Messages = hps.Messages || new Heartland.Messages(hps);
     
@@ -19,26 +19,29 @@ module Heartland {
         hps.iframe_url = urls.iframePROD;
       }
     
-      if (options.targetType === 'myframe') {
-        frame = target;
-        hps.iframe_url = frame.src;
-      } else {
-        frame = Heartland.DOM.makeFrame('securesubmit-iframe');
-        target.appendChild(frame);
-      }
-    
       if (options.fields) {
         Heartland.Frames.makeFieldAndLink(hps);
       }
     
-      hps.iframe_url = hps.iframe_url + '#' + encodeURIComponent(document.location.href.split('#')[0]);
-      frame.src = hps.iframe_url;
+      if (options.iframeTarget) {
+        frame = document.getElementById(options.iframeTarget);
+        if (options.targetType === 'myframe') {
+          frame = target;
+          hps.iframe_url = frame.src;
+        } else {
+          frame = Heartland.DOM.makeFrame('securesubmit-iframe');
+          target.appendChild(frame);
+        }
     
-      hps.frames.child = {
-        name: 'child',
-        frame: window.postMessage ? frame.contentWindow : frame,
-        url: hps.iframe_url
-      };
+        hps.iframe_url = hps.iframe_url + '#' + encodeURIComponent(document.location.href.split('#')[0]);
+        frame.src = hps.iframe_url;
+      
+        hps.frames.child = {
+          name: 'child',
+          frame: window.postMessage ? frame.contentWindow : frame,
+          url: hps.iframe_url
+        };
+      }
     
       if (options.useDefaultStyles === false) {
         useDefaultStyles = false;
@@ -82,7 +85,7 @@ module Heartland {
     
             break;
           case 'receiveMessageHandlerAdded':
-            if (!fieldFrame && useDefaultStyles) {
+            if (!options.fields && useDefaultStyles) {
               Heartland.Styles.Defaults.body(hps);
               Heartland.Styles.Defaults.labelsAndLegend(hps);
               Heartland.Styles.Defaults.inputsAndSelects(hps);

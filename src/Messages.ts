@@ -77,8 +77,14 @@ module Heartland {
       if (!frame) {
         return;
       }
-    
-      targetNode = frame.targetNode || frame.frame || frame;
+
+      if (typeof frame.targetNode !== 'undefined') {
+        targetNode = frame.targetNode;
+      } else if (typeof frame.frame !== 'undefined') {
+        targetNode = frame.frame
+      } else {
+        targetNode = frame;
+      }
       targetUrl = frame.url;
     
       if (window.postMessage) {

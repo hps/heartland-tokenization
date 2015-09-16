@@ -14,18 +14,18 @@ module Heartland {
       } else {
         node = target;
       }
-    
+
       if (node.addEventListener) {
         node.addEventListener(event, callback, false);
       } else if ((<any>node).attachEvent) {
         if (event === 'submit') {
           event = 'on' + event;
         }
-    
+
         (<any>node).attachEvent(event, callback);
       }
     }
-    
+
     // Heartland.Events.trigger
     //
     // Fires off an `event` for a given `target` element.
@@ -34,7 +34,7 @@ module Heartland {
       event.initEvent(name, true, true);
       target.dispatchEvent(event);
     }
-    
+
     // hearltand.Events.frameHandleWith
     //
     // Wraps `hps` state in a closure to provide a `Heartland.Messages.receive`
@@ -97,34 +97,34 @@ module Heartland {
         }
       };
     }
-    
+
     // tokenizeIframe
     //
     // Tokenizes card data. Used in iframe integrations to tokenize on Heartland's
     // servers.
     function tokenizeIframe(hps: HPS, publicKey: string) {
       var card: Card = {};
-    
-      card.number = (document.getElementById('heartland-field') || document.getElementById('heartland-card-number')).getAttribute('value');
-      card.cvv = (document.getElementById('cardCvv') || document.getElementById('heartland-cvv')).getAttribute('value');
+
+      card.number = (<HTMLInputElement>(document.getElementById('heartland-field') || document.getElementById('heartland-card-number'))).value;
+      card.cvv = (<HTMLInputElement>(document.getElementById('cardCvv') || document.getElementById('heartland-cvv'))).value;
       card.exp = document.getElementById('cardExpiration');
-    
+
       if (card.exp) {
-        var cardExpSplit = card.exp.getAttribute('value').split('/');
+        var cardExpSplit = (<HTMLInputElement>card.exp).value.split('/');
         card.expMonth = cardExpSplit[0];
         card.expYear = cardExpSplit[1];
         delete card.exp;
       } else {
-        card.expMonth = document.getElementById('heartland-expiration-month').getAttribute('value');
-        card.expYear = document.getElementById('heartland-expiration-year').getAttribute('value');
+        card.expMonth = (<HTMLInputElement>document.getElementById('heartland-expiration-month')).value;
+        card.expYear = (<HTMLInputElement>document.getElementById('heartland-expiration-year')).value;
       }
-    
+
       hps.tokenize({
         publicKey: publicKey,
-        card_number: card.number,
-        card_cvc: card.cvv,
-        card_exp_month: card.expMonth,
-        card_exp_year: card.expYear,
+        cardNumber: card.number,
+        cardCvv: card.cvv,
+        cardExpMonth: card.expMonth,
+        cardExpYear: card.expYear,
         type: 'pan',
         success: function (response: TokenizationResponse) {
           hps.Messages.post({action: 'onTokenSuccess', response: response}, 'parent');
