@@ -1,5 +1,5 @@
 module Heartland {
-  export interface Card {
+  export interface CardData {
     number?: string;
     cvv?: string;
     exp?: HTMLElement;

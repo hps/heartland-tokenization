@@ -1,8 +1,8 @@
 /// <reference path="vars/fields.ts" />
 /// <reference path="vars/urls.ts" />
 /// <reference path="Events.ts" />
+/// <reference path="HPS.ts" />
 /// <reference path="Messages.ts" />
-/// <reference path="SecureSubmit.ts" />
 /// <reference path="Styles.ts" />
 
 module Heartland {

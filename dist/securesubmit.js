@@ -552,6 +552,39 @@ var Heartland;
         DOM.getFieldData = getFieldData;
     })(DOM = Heartland.DOM || (Heartland.DOM = {}));
 })(Heartland || (Heartland = {}));
+/// <reference path="../types/CardType.ts" />
+var Heartland;
+(function (Heartland) {
+    var Card;
+    (function (Card) {
+        Card.types = [
+            {
+                code: 'visa',
+                regex: /^4[0-9]{12}(?:[0-9]{3})?$/
+            },
+            {
+                code: 'mastercard',
+                regex: /^5[1-5][0-9]{14}$/
+            },
+            {
+                code: 'amex',
+                regex: /^3[47][0-9]{13}$/
+            },
+            {
+                code: 'diners',
+                regex: /^3(?:0[0-5]|[68][0-9])[0-9]{11}$/
+            },
+            {
+                code: 'discover',
+                regex: /^6(?:011|5[0-9]{2})[0-9]{12}$/
+            },
+            {
+                code: 'jcb',
+                regex: /^(?:2131|1800|35\d{3})\d{11}$/
+            }
+        ];
+    })(Card = Heartland.Card || (Heartland.Card = {}));
+})(Heartland || (Heartland = {}));
 var Heartland;
 (function (Heartland) {
     Heartland.urls = {
@@ -561,9 +594,9 @@ var Heartland;
         iframePROD: 'https://api2.heartlandportico.com/SecureSubmit.v1/token/2.0/'
     };
 })(Heartland || (Heartland = {}));
-/// <reference path="types/Card.ts" />
+/// <reference path="types/CardData.ts" />
 /// <reference path="DOM.ts" />
-/// <reference path="SecureSubmit.ts" />
+/// <reference path="HPS.ts" />
 var Heartland;
 (function (Heartland) {
     var Events;
@@ -696,8 +729,10 @@ var Heartland;
         }
     })(Events = Heartland.Events || (Heartland.Events = {}));
 })(Heartland || (Heartland = {}));
-/// <reference path="types/Card.ts" />
+/// <reference path="types/CardData.ts" />
+/// <reference path="types/CardType.ts" />
 /// <reference path="types/Options.ts" />
+/// <reference path="vars/cardTypes.ts" />
 /// <reference path="vars/urls.ts" />
 /// <reference path="Events.ts" />
 var Heartland;
@@ -708,34 +743,13 @@ var Heartland;
         //
         // Parses a credit card number to obtain the card type/brand.
         function getCardType(number) {
-            var cardType = '';
-            var re = {
-                visa: /^4[0-9]{12}(?:[0-9]{3})?$/,
-                mastercard: /^5[1-5][0-9]{14}$/,
-                amex: /^3[47][0-9]{13}$/,
-                diners: /^3(?:0[0-5]|[68][0-9])[0-9]{11}$/,
-                discover: /^6(?:011|5[0-9]{2})[0-9]{12}$/,
-                jcb: /^(?:2131|1800|35\d{3})\d{11}$/
-            };
-            if (re.visa.test(number)) {
-                cardType = 'visa';
+            var cardType;
+            var i;
+            for (i in Heartland.Card.types) {
+                cardType = Heartland.Card.types[i];
+                if (cardType.regex.test(number))
+                    return cardType.code;
             }
-            else if (re.mastercard.test(number)) {
-                cardType = 'mastercard';
-            }
-            else if (re.amex.test(number)) {
-                cardType = 'amex';
-            }
-            else if (re.diners.test(number)) {
-                cardType = 'diners';
-            }
-            else if (re.discover.test(number)) {
-                cardType = 'discover';
-            }
-            else if (re.jcb.test(number)) {
-                cardType = 'jcb';
-            }
-            return cardType;
         }
         Util.getCardType = getCardType;
         // Heartland.Util.applyOptions
@@ -942,7 +956,7 @@ var Heartland;
     ];
 })(Heartland || (Heartland = {}));
 /// <reference path="Events.ts" />
-/// <reference path="SecureSubmit.ts" />
+/// <reference path="HPS.ts" />
 var Heartland;
 (function (Heartland) {
     // Heartland.Messages (constructor)
@@ -1215,8 +1229,8 @@ var Heartland;
 /// <reference path="vars/fields.ts" />
 /// <reference path="vars/urls.ts" />
 /// <reference path="Events.ts" />
+/// <reference path="HPS.ts" />
 /// <reference path="Messages.ts" />
-/// <reference path="SecureSubmit.ts" />
 /// <reference path="Styles.ts" />
 var Heartland;
 (function (Heartland) {
@@ -1534,5 +1548,9 @@ var Heartland;
     })();
     Heartland.HPS = HPS;
 })(Heartland || (Heartland = {}));
-window.HPS = Heartland.HPS;
+/// <reference path="HPS.ts" />
+var Heartland;
+(function (Heartland) {
+    window.HPS = Heartland.HPS;
+})(Heartland || (Heartland = {}));
 //# sourceMappingURL=securesubmit.js.map

@@ -1,5 +1,5 @@
 /// <reference path="Events.ts" />
-/// <reference path="SecureSubmit.ts" />
+/// <reference path="HPS.ts" />
 
 module Heartland {
   // Heartland.Messages (constructor)

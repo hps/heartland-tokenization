@@ -1,6 +1,6 @@
-/// <reference path="types/Card.ts" />
+/// <reference path="types/CardData.ts" />
 /// <reference path="DOM.ts" />
-/// <reference path="SecureSubmit.ts" />
+/// <reference path="HPS.ts" />
 
 module Heartland {
   export module Events {
@@ -103,7 +103,7 @@ module Heartland {
     // Tokenizes card data. Used in iframe integrations to tokenize on Heartland's
     // servers.
     function tokenizeIframe(hps: HPS, publicKey: string) {
-      var card: Card = {};
+      var card: CardData = {};
 
       card.number = (<HTMLInputElement>(document.getElementById('heartland-field') || document.getElementById('heartland-card-number'))).value;
       card.cvv = (<HTMLInputElement>(document.getElementById('cardCvv') || document.getElementById('heartland-cvv'))).value;

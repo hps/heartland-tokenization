@@ -7,12 +7,14 @@
     "test": "test"
   },
   "scripts": {
-    "build": "npm run build-ts && npm run minify",
+    "build": "npm run clean && npm run build-ts && npm run minify && npm run cp-html",
     "build-ts": "node_modules/.bin/tsc",
+    "clean": "rm -rf dist",
+    "cp-html": "cp field.html index.html dist",
     "minify": "node_modules/.bin/uglifyjs -c -o dist/securesubmit.min.js --source-map-root ./src  --source-map-url /dist/securesubmit.min.js.map --source-map dist/securesubmit.min.js.map --in-source-map dist/securesubmit.js.map --enclose -- dist/securesubmit.js",
     "install": "npm run build",
     "test": "open 'test/index.html'",
-    "watch": "node_modeuls/.bin/tsc --watch"
+    "watch": "node_modules/.bin/tsc --watch"
   },
   "repository": {
     "type": "git",
