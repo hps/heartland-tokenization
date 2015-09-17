@@ -1,3 +1,6 @@
+/// <reference path="Events.ts" />
+/// <reference path="SecureSubmit.ts" />
+
 module Heartland {
   // Heartland.Messages (constructor)
   //
@@ -5,17 +8,17 @@ module Heartland {
   // method for legacy browsers.
   export class Messages {
     hps: HPS;
-    interval_id: number;
+    intervalId: number;
     lastHash: string;
     pushIntervalStarted: boolean;
 
     constructor(hps: HPS) {
       this.hps = hps;
-      this.interval_id = null;
-      this.lastHash = null;
+      this.intervalId = null;
+      this.lastHash = '';
       this.pushIntervalStarted = false;
     }
-  
+
     // Heartland.Messages.pushMessages
     //
     // For legacy browsers, a mailbox (buffer) must be used to ensure all messages
@@ -23,18 +26,20 @@ module Heartland {
     // the final message, encodes it, sends it, and resets the mailbox to `[]`.
     pushMessages(hps: HPS): () => void {
       return function() {
+        var data: Array<any> = []
         var messageArr: Array<any> = [];
         var message = '';
         var i = 0, length = 0;
-        var targetUrl: string;
+        var targetUrl = '', url = '';
         var current: any;
         var targetNode: Window;
-    
+        var re = /^#?\d+&/;
+
         length = hps.mailbox.length;
         if (!length) {
           return;
         }
-    
+
         for (i = 0; i < length; i++) {
           current = hps.mailbox.shift();
           if (!targetUrl) {
@@ -43,21 +48,35 @@ module Heartland {
           }
           messageArr.push(current.message);
         }
-    
-        if (messageArr !== []) {
-          message = JSON.stringify(messageArr);
-          var location = new Location();
-          location.href = targetUrl.replace(/#.*$/, '') + '#' +
-            (+new Date()) + (hps.cache_bust++) + '&' +
-            encodeURIComponent(message);
-           targetNode.location = location;
+
+        current = null;
+        console.log(window.location.hash)
+        if (re.test(window.location.hash)) {
+          current = JSON.parse(decodeURIComponent(window.location.hash.replace(re, '')));
+          data.concat(current);
         }
-    
+        console.log(data);
+
+        if (messageArr !== []) {
+          hps.cacheBust = hps.cacheBust || 1
+          data.push({source: {name: hps.field || 'parent'}, data: messageArr});
+          console.log(data);
+          message = JSON.stringify(data);
+          url = targetUrl.replace(/#.*$/, '') + '#' +
+              (+new Date()) + (hps.cacheBust++) + '&' +
+              encodeURIComponent(message);
+          if (targetNode.location) {
+            targetNode.location.href = url;
+          } else {
+            (<any>targetNode).src = url;
+          }
+        }
+
         messageArr.length = 0;
         hps.mailbox.length = 0;
       };
     }
-    
+
     // Heartland.Messages.post
     //
     // When present, wraps the built-in `window.postMessage`. When not present,
@@ -67,16 +86,18 @@ module Heartland {
       var frame: any;
       var targetNode: Window;
       var targetUrl: string;
-    
+
       if (!this.hps.frames) {
         return;
       }
-    
+
       frame = (<any>this.hps)[target] || this.hps.frames[target];
-    
+
       if (!frame) {
         return;
       }
+
+      targetUrl = this.hps.frames[target].url;
 
       if (typeof frame.targetNode !== 'undefined') {
         targetNode = frame.targetNode;
@@ -85,25 +106,25 @@ module Heartland {
       } else {
         targetNode = frame;
       }
-      targetUrl = frame.url;
-    
+
       if (window.postMessage) {
         targetNode.postMessage(
           message,
           targetUrl
           );
       } else {
+        this.hps.mailbox = this.hps.mailbox || [];
         this.hps.mailbox.push({
           message: message,
           targetUrl: targetUrl,
           targetNode: targetNode
         });
         if (!this.pushIntervalStarted) {
-          setInterval(this.pushMessages(this.hps), 100);
+          setInterval(this.pushMessages(this.hps), 10);
         }
       }
     }
-    
+
     // Heartland.Messages.receive
     //
     // When present, wraps the built-in `window.postMesage`'s `message` or
@@ -118,27 +139,31 @@ module Heartland {
           (<any>window)[callback ? 'attachEvent' : 'detachEvent']('onmessage', callback);
         }
       } else {
-        if (this.interval_id) {
-          clearInterval(this.interval_id);
+        if (this.intervalId) {
+          clearInterval(this.intervalId);
         }
-        this.interval_id = null;
-    
+        this.intervalId = null;
+
         if (callback) {
-          this.interval_id = setInterval(function() {
+          this.intervalId = setInterval(function() {
             var hash = document.location.hash,
               re = /^#?\d+&/;
             if (hash !== this.lastHash && re.test(hash)) {
-              var m: MessageEvent = new MessageEvent();
-              var i: string;
-              m.data = JSON.parse(decodeURIComponent(hash.replace(re, '')));
+              var data = JSON.parse(decodeURIComponent(hash.replace(re, '')));;
+              var i: any, j: any;
+              var m: any;
               this.lastHash = hash;
-              if (Object.prototype.toString.call(m.data) !== '[object Array]') {
-                callback(m);
-                return;
-              }
-    
-              for (i in m.data) {
-                callback({ data: m.data[i] });
+
+              for (i in data) {
+                m = data[i];
+                if (Object.prototype.toString.call(m.data) !== '[object Array]') {
+                  callback(m);
+                  continue;
+                }
+
+                for (j in m.data) {
+                  callback({ source: m.source, data: m.data[j] });
+                }
               }
             }
           }, 100);

@@ -34,7 +34,7 @@
   },
   "homepage": "https://github.com/hps/heartland-tokenization#readme",
   "devDependencies": {
-    "typescript": "^1.5.3",
+    "typescript": "^1.6.2",
     "uglify-js": "^2.4.24"
   }
 }

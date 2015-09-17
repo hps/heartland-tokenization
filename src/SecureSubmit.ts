@@ -21,7 +21,7 @@ module Heartland {
     iframe_url: string;
     Messages: Messages;
     mailbox: any; // [];
-    cache_bust: number;
+    cacheBust: number;
     parent: Window;
     field: string;
 
@@ -43,7 +43,7 @@ module Heartland {
 
         this.Messages = new Heartland.Messages(this);
         this.mailbox = [];
-        this.cache_bust = 1;
+        this.cacheBust = 1;
         Heartland.Frames.configureIframe(this);
       }
 

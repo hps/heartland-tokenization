@@ -12,7 +12,7 @@ module Heartland {
     // Creates a single iFrame element with the appropriate defaults.
     export function makeFrame(name: string) {
       var frame = document.createElement('iframe');
-      frame.id = name;
+      frame.id = 'heartland-frame-' + name;
       frame.name = name;
       frame.style.border = '0';
       frame.scrolling = 'no';

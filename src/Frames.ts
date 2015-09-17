@@ -1,5 +1,9 @@
 /// <reference path="vars/fields.ts" />
 /// <reference path="vars/urls.ts" />
+/// <reference path="Events.ts" />
+/// <reference path="Messages.ts" />
+/// <reference path="SecureSubmit.ts" />
+/// <reference path="Styles.ts" />
 
 module Heartland {
   export module Frames {
@@ -12,17 +16,17 @@ module Heartland {
       var target: HTMLElement;
       var useDefaultStyles = true;
       hps.Messages = hps.Messages || new Heartland.Messages(hps);
-    
+
       if (options.env === 'cert') {
         hps.iframe_url = urls.iframeCERT;
       } else {
         hps.iframe_url = urls.iframePROD;
       }
-    
+
       if (options.fields) {
         Heartland.Frames.makeFieldAndLink(hps);
       }
-    
+
       if (options.iframeTarget) {
         frame = document.getElementById(options.iframeTarget);
         if (options.targetType === 'myframe') {
@@ -32,21 +36,21 @@ module Heartland {
           frame = Heartland.DOM.makeFrame('securesubmit-iframe');
           target.appendChild(frame);
         }
-    
+
         hps.iframe_url = hps.iframe_url + '#' + encodeURIComponent(document.location.href.split('#')[0]);
         frame.src = hps.iframe_url;
-      
+
         hps.frames.child = {
           name: 'child',
           frame: window.postMessage ? frame.contentWindow : frame,
           url: hps.iframe_url
         };
       }
-    
+
       if (options.useDefaultStyles === false) {
         useDefaultStyles = false;
       }
-    
+
       if (options.buttonTarget) {
         Heartland.Events.addHandler(options.buttonTarget, 'click', function(e) {
           e.preventDefault();
@@ -61,14 +65,14 @@ module Heartland {
           return false;
         });
       }
-    
+
       hps.Messages.receive(function(m: MessageEvent) {
         var fieldFrame: any;
-        
+
         try {
           fieldFrame = hps.frames[m.source.name];
         } catch (e) { return; }
-    
+
         switch (m.data.action) {
           case 'onTokenSuccess':
             options.onTokenSuccess(m.data.response);
@@ -82,7 +86,7 @@ module Heartland {
             } else {
               hps.resizeIFrame(frame, m.data.height);
             }
-    
+
             break;
           case 'receiveMessageHandlerAdded':
             if (!options.fields && useDefaultStyles) {
@@ -95,7 +99,7 @@ module Heartland {
               Heartland.Styles.Defaults.cvvContainer(hps);
               Heartland.Styles.Defaults.cvv(hps);
             }
-    
+
             if (fieldFrame && fieldFrame.options.placeholder) {
               hps.Messages.post(
                 {
@@ -106,13 +110,13 @@ module Heartland {
                 fieldFrame.name
                 );
             }
-    
+
             Heartland.Events.trigger('securesubmitIframeReady', document);
             break;
           case 'accumulateData':
             var i: string;
             var field: any;
-    
+
             for (i in hps.frames) {
               if (i === 'cardNumber') continue;
               field = hps.frames[i];
@@ -130,7 +134,7 @@ module Heartland {
             if (!cardNumberFieldFrame) {
               break;
             }
-    
+
             hps.Messages.post(
               {
                 action: 'setFieldData',
@@ -142,28 +146,31 @@ module Heartland {
             break;
         }
       }, '*');
+
+
+      // monitorFieldEvents(hps, )
     }
-    
+
     // Heartland.Frames.makeFieldAndLink
     //
     // Creates a set of single field iFrames and stores a reference to
     // them in the parent window's state.
     export function makeFieldAndLink(hps: HPS) {
       var fieldsLength = fields.length;
-      var baseUrl = hps.iframe_url.replace('iframeIndex.html', '') + 'iframeField.html';
+      var baseUrl = hps.iframe_url.replace('index.html', '') + 'field.html';
       var options = hps.options;
-    
+
       for (var i = 0; i < fieldsLength; i++) {
         var field = fields[i];
         var fieldOptions = options.fields[field];
         var frame = Heartland.DOM.makeFrame(field);
         var url = baseUrl + '#' + field + ':' + encodeURIComponent(document.location.href.split('#')[0]);
         frame.src = url;
-    
+
         document
           .getElementById(fieldOptions.target)
           .appendChild(frame);
-    
+
         hps.frames[field] = {
           name: field,
           frame: frame,
@@ -172,6 +179,26 @@ module Heartland {
           targetNode: window.postMessage ? frame.contentWindow : frame,
           url: url
         };
+      }
+    }
+
+    function monitorFieldEvents(hps: HPS, target: string | EventTarget) {
+      var events = ['click', 'blur', 'focus', 'change', 'keypress', 'keydown', 'keyup'];
+      var i = 0, length = events.length;
+      var event: string;
+
+      for (i; i < length; i++) {
+        event = events[i];
+        Heartland.Events.addHandler(target, event, function(e) {
+          hps.Messages.post(
+            {
+              action: 'fieldEvent',
+              event: event,
+              eventData: e
+            },
+            'parent'
+          )
+        });
       }
     }
   }

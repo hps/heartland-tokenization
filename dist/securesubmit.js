@@ -246,7 +246,10 @@ var JSON2 = {};
     }
     function str(key, holder) {
         // Produce a string from holder[key].
-        var i, k = null, v, length, mind = gap, partial, value = holder[key];
+        var i, // The loop counter.
+        k = null, // The member key.
+        v, // The member value.
+        length, mind = gap, partial, value = holder[key];
         // If the value has a toJSON method, call it to obtain a replacement value.
         if (value && typeof value === 'object' &&
             typeof value.toJSON === 'function') {
@@ -451,7 +454,7 @@ var Heartland;
         // Creates a single iFrame element with the appropriate defaults.
         function makeFrame(name) {
             var frame = document.createElement('iframe');
-            frame.id = name;
+            frame.id = 'heartland-frame-' + name;
             frame.name = name;
             frame.style.border = '0';
             frame.scrolling = 'no';
@@ -554,7 +557,7 @@ var Heartland;
     Heartland.urls = {
         CERT: 'https://cert.api2.heartlandportico.com/Hps.Exchange.PosGateway.Hpf.v1/api/token',
         PROD: 'https://api2.heartlandportico.com/SecureSubmit.v1/api/token',
-        iframeCERT: 'http://localhost:8889/iframeIndex.html',
+        iframeCERT: 'http://localhost:8889/',
         iframePROD: 'https://api2.heartlandportico.com/SecureSubmit.v1/token/2.0/'
     };
 })(Heartland || (Heartland = {}));
@@ -938,163 +941,8 @@ var Heartland;
         'cardExpiration'
     ];
 })(Heartland || (Heartland = {}));
-/// <reference path="vars/fields.ts" />
-/// <reference path="vars/urls.ts" />
-var Heartland;
-(function (Heartland) {
-    var Frames;
-    (function (Frames) {
-        // Heartland.Frames.configureIframe
-        //
-        // Prepares the pages iFrames for communication with the parent window.
-        function configureIframe(hps) {
-            var frame;
-            var options = hps.options;
-            var target;
-            var useDefaultStyles = true;
-            hps.Messages = hps.Messages || new Heartland.Messages(hps);
-            if (options.env === 'cert') {
-                hps.iframe_url = Heartland.urls.iframeCERT;
-            }
-            else {
-                hps.iframe_url = Heartland.urls.iframePROD;
-            }
-            if (options.fields) {
-                Heartland.Frames.makeFieldAndLink(hps);
-            }
-            if (options.iframeTarget) {
-                frame = document.getElementById(options.iframeTarget);
-                if (options.targetType === 'myframe') {
-                    frame = target;
-                    hps.iframe_url = frame.src;
-                }
-                else {
-                    frame = Heartland.DOM.makeFrame('securesubmit-iframe');
-                    target.appendChild(frame);
-                }
-                hps.iframe_url = hps.iframe_url + '#' + encodeURIComponent(document.location.href.split('#')[0]);
-                frame.src = hps.iframe_url;
-                hps.frames.child = {
-                    name: 'child',
-                    frame: window.postMessage ? frame.contentWindow : frame,
-                    url: hps.iframe_url
-                };
-            }
-            if (options.useDefaultStyles === false) {
-                useDefaultStyles = false;
-            }
-            if (options.buttonTarget) {
-                Heartland.Events.addHandler(options.buttonTarget, 'click', function (e) {
-                    e.preventDefault();
-                    hps.Messages.post({
-                        action: 'tokenize',
-                        message: options.publicKey,
-                        accumulateData: !!hps.frames.cardNumber
-                    }, hps.frames.cardNumber ? 'cardNumber' : 'child');
-                    return false;
-                });
-            }
-            hps.Messages.receive(function (m) {
-                var fieldFrame;
-                try {
-                    fieldFrame = hps.frames[m.source.name];
-                }
-                catch (e) {
-                    return;
-                }
-                switch (m.data.action) {
-                    case 'onTokenSuccess':
-                        options.onTokenSuccess(m.data.response);
-                        break;
-                    case 'onTokenError':
-                        options.onTokenError(m.data.response);
-                        break;
-                    case 'resize':
-                        if (fieldFrame) {
-                            hps.resizeIFrame(fieldFrame.frame, m.data.height);
-                        }
-                        else {
-                            hps.resizeIFrame(frame, m.data.height);
-                        }
-                        break;
-                    case 'receiveMessageHandlerAdded':
-                        if (!options.fields && useDefaultStyles) {
-                            Heartland.Styles.Defaults.body(hps);
-                            Heartland.Styles.Defaults.labelsAndLegend(hps);
-                            Heartland.Styles.Defaults.inputsAndSelects(hps);
-                            Heartland.Styles.Defaults.fieldset(hps);
-                            Heartland.Styles.Defaults.selects(hps);
-                            Heartland.Styles.Defaults.selectLabels(hps);
-                            Heartland.Styles.Defaults.cvvContainer(hps);
-                            Heartland.Styles.Defaults.cvv(hps);
-                        }
-                        if (fieldFrame && fieldFrame.options.placeholder) {
-                            hps.Messages.post({
-                                action: 'setPlaceholder',
-                                id: 'heartland-field',
-                                text: fieldFrame.options.placeholder
-                            }, fieldFrame.name);
-                        }
-                        Heartland.Events.trigger('securesubmitIframeReady', document);
-                        break;
-                    case 'accumulateData':
-                        var i;
-                        var field;
-                        for (i in hps.frames) {
-                            if (i === 'cardNumber')
-                                continue;
-                            field = hps.frames[i];
-                            hps.Messages.post({
-                                action: 'getFieldData',
-                                id: 'heartland-field'
-                            }, field.name);
-                        }
-                        break;
-                    case 'passData':
-                        var cardNumberFieldFrame = hps.frames.cardNumber;
-                        if (!cardNumberFieldFrame) {
-                            break;
-                        }
-                        hps.Messages.post({
-                            action: 'setFieldData',
-                            id: fieldFrame.name,
-                            value: m.data.value
-                        }, cardNumberFieldFrame.name);
-                        break;
-                }
-            }, '*');
-        }
-        Frames.configureIframe = configureIframe;
-        // Heartland.Frames.makeFieldAndLink
-        //
-        // Creates a set of single field iFrames and stores a reference to
-        // them in the parent window's state.
-        function makeFieldAndLink(hps) {
-            var fieldsLength = Heartland.fields.length;
-            var baseUrl = hps.iframe_url.replace('iframeIndex.html', '') + 'iframeField.html';
-            var options = hps.options;
-            for (var i = 0; i < fieldsLength; i++) {
-                var field = Heartland.fields[i];
-                var fieldOptions = options.fields[field];
-                var frame = Heartland.DOM.makeFrame(field);
-                var url = baseUrl + '#' + field + ':' + encodeURIComponent(document.location.href.split('#')[0]);
-                frame.src = url;
-                document
-                    .getElementById(fieldOptions.target)
-                    .appendChild(frame);
-                hps.frames[field] = {
-                    name: field,
-                    frame: frame,
-                    options: fieldOptions,
-                    target: fieldOptions.target,
-                    targetNode: window.postMessage ? frame.contentWindow : frame,
-                    url: url
-                };
-            }
-        }
-        Frames.makeFieldAndLink = makeFieldAndLink;
-    })(Frames = Heartland.Frames || (Heartland.Frames = {}));
-})(Heartland || (Heartland = {}));
+/// <reference path="Events.ts" />
+/// <reference path="SecureSubmit.ts" />
 var Heartland;
 (function (Heartland) {
     // Heartland.Messages (constructor)
@@ -1104,8 +952,8 @@ var Heartland;
     var Messages = (function () {
         function Messages(hps) {
             this.hps = hps;
-            this.interval_id = null;
-            this.lastHash = null;
+            this.intervalId = null;
+            this.lastHash = '';
             this.pushIntervalStarted = false;
         }
         // Heartland.Messages.pushMessages
@@ -1115,12 +963,14 @@ var Heartland;
         // the final message, encodes it, sends it, and resets the mailbox to `[]`.
         Messages.prototype.pushMessages = function (hps) {
             return function () {
+                var data = [];
                 var messageArr = [];
                 var message = '';
                 var i = 0, length = 0;
-                var targetUrl;
+                var targetUrl = '', url = '';
                 var current;
                 var targetNode;
+                var re = /^#?\d+&/;
                 length = hps.mailbox.length;
                 if (!length) {
                     return;
@@ -1133,13 +983,27 @@ var Heartland;
                     }
                     messageArr.push(current.message);
                 }
+                current = null;
+                console.log(window.location.hash);
+                if (re.test(window.location.hash)) {
+                    current = JSON.parse(decodeURIComponent(window.location.hash.replace(re, '')));
+                    data.concat(current);
+                }
+                console.log(data);
                 if (messageArr !== []) {
-                    message = JSON.stringify(messageArr);
-                    var location = new Location();
-                    location.href = targetUrl.replace(/#.*$/, '') + '#' +
-                        (+new Date()) + (hps.cache_bust++) + '&' +
+                    hps.cacheBust = hps.cacheBust || 1;
+                    data.push({ source: { name: hps.field || 'parent' }, data: messageArr });
+                    console.log(data);
+                    message = JSON.stringify(data);
+                    url = targetUrl.replace(/#.*$/, '') + '#' +
+                        (+new Date()) + (hps.cacheBust++) + '&' +
                         encodeURIComponent(message);
-                    targetNode.location = location;
+                    if (targetNode.location) {
+                        targetNode.location.href = url;
+                    }
+                    else {
+                        targetNode.src = url;
+                    }
                 }
                 messageArr.length = 0;
                 hps.mailbox.length = 0;
@@ -1161,6 +1025,7 @@ var Heartland;
             if (!frame) {
                 return;
             }
+            targetUrl = this.hps.frames[target].url;
             if (typeof frame.targetNode !== 'undefined') {
                 targetNode = frame.targetNode;
             }
@@ -1170,18 +1035,18 @@ var Heartland;
             else {
                 targetNode = frame;
             }
-            targetUrl = frame.url;
             if (window.postMessage) {
                 targetNode.postMessage(message, targetUrl);
             }
             else {
+                this.hps.mailbox = this.hps.mailbox || [];
                 this.hps.mailbox.push({
                     message: message,
                     targetUrl: targetUrl,
                     targetNode: targetNode
                 });
                 if (!this.pushIntervalStarted) {
-                    setInterval(this.pushMessages(this.hps), 100);
+                    setInterval(this.pushMessages(this.hps), 10);
                 }
             }
         };
@@ -1201,24 +1066,28 @@ var Heartland;
                 }
             }
             else {
-                if (this.interval_id) {
-                    clearInterval(this.interval_id);
+                if (this.intervalId) {
+                    clearInterval(this.intervalId);
                 }
-                this.interval_id = null;
+                this.intervalId = null;
                 if (callback) {
-                    this.interval_id = setInterval(function () {
+                    this.intervalId = setInterval(function () {
                         var hash = document.location.hash, re = /^#?\d+&/;
                         if (hash !== this.lastHash && re.test(hash)) {
-                            var m = new MessageEvent();
-                            var i;
-                            m.data = JSON.parse(decodeURIComponent(hash.replace(re, '')));
+                            var data = JSON.parse(decodeURIComponent(hash.replace(re, '')));
+                            ;
+                            var i, j;
+                            var m;
                             this.lastHash = hash;
-                            if (Object.prototype.toString.call(m.data) !== '[object Array]') {
-                                callback(m);
-                                return;
-                            }
-                            for (i in m.data) {
-                                callback({ data: m.data[i] });
+                            for (i in data) {
+                                m = data[i];
+                                if (Object.prototype.toString.call(m.data) !== '[object Array]') {
+                                    callback(m);
+                                    continue;
+                                }
+                                for (j in m.data) {
+                                    callback({ source: m.source, data: m.data[j] });
+                                }
                             }
                         }
                     }, 100);
@@ -1343,6 +1212,183 @@ var Heartland;
         };
     })(Styles = Heartland.Styles || (Heartland.Styles = {}));
 })(Heartland || (Heartland = {}));
+/// <reference path="vars/fields.ts" />
+/// <reference path="vars/urls.ts" />
+/// <reference path="Events.ts" />
+/// <reference path="Messages.ts" />
+/// <reference path="SecureSubmit.ts" />
+/// <reference path="Styles.ts" />
+var Heartland;
+(function (Heartland) {
+    var Frames;
+    (function (Frames) {
+        // Heartland.Frames.configureIframe
+        //
+        // Prepares the pages iFrames for communication with the parent window.
+        function configureIframe(hps) {
+            var frame;
+            var options = hps.options;
+            var target;
+            var useDefaultStyles = true;
+            hps.Messages = hps.Messages || new Heartland.Messages(hps);
+            if (options.env === 'cert') {
+                hps.iframe_url = Heartland.urls.iframeCERT;
+            }
+            else {
+                hps.iframe_url = Heartland.urls.iframePROD;
+            }
+            if (options.fields) {
+                Heartland.Frames.makeFieldAndLink(hps);
+            }
+            if (options.iframeTarget) {
+                frame = document.getElementById(options.iframeTarget);
+                if (options.targetType === 'myframe') {
+                    frame = target;
+                    hps.iframe_url = frame.src;
+                }
+                else {
+                    frame = Heartland.DOM.makeFrame('securesubmit-iframe');
+                    target.appendChild(frame);
+                }
+                hps.iframe_url = hps.iframe_url + '#' + encodeURIComponent(document.location.href.split('#')[0]);
+                frame.src = hps.iframe_url;
+                hps.frames.child = {
+                    name: 'child',
+                    frame: window.postMessage ? frame.contentWindow : frame,
+                    url: hps.iframe_url
+                };
+            }
+            if (options.useDefaultStyles === false) {
+                useDefaultStyles = false;
+            }
+            if (options.buttonTarget) {
+                Heartland.Events.addHandler(options.buttonTarget, 'click', function (e) {
+                    e.preventDefault();
+                    hps.Messages.post({
+                        action: 'tokenize',
+                        message: options.publicKey,
+                        accumulateData: !!hps.frames.cardNumber
+                    }, hps.frames.cardNumber ? 'cardNumber' : 'child');
+                    return false;
+                });
+            }
+            hps.Messages.receive(function (m) {
+                var fieldFrame;
+                try {
+                    fieldFrame = hps.frames[m.source.name];
+                }
+                catch (e) {
+                    return;
+                }
+                switch (m.data.action) {
+                    case 'onTokenSuccess':
+                        options.onTokenSuccess(m.data.response);
+                        break;
+                    case 'onTokenError':
+                        options.onTokenError(m.data.response);
+                        break;
+                    case 'resize':
+                        if (fieldFrame) {
+                            hps.resizeIFrame(fieldFrame.frame, m.data.height);
+                        }
+                        else {
+                            hps.resizeIFrame(frame, m.data.height);
+                        }
+                        break;
+                    case 'receiveMessageHandlerAdded':
+                        if (!options.fields && useDefaultStyles) {
+                            Heartland.Styles.Defaults.body(hps);
+                            Heartland.Styles.Defaults.labelsAndLegend(hps);
+                            Heartland.Styles.Defaults.inputsAndSelects(hps);
+                            Heartland.Styles.Defaults.fieldset(hps);
+                            Heartland.Styles.Defaults.selects(hps);
+                            Heartland.Styles.Defaults.selectLabels(hps);
+                            Heartland.Styles.Defaults.cvvContainer(hps);
+                            Heartland.Styles.Defaults.cvv(hps);
+                        }
+                        if (fieldFrame && fieldFrame.options.placeholder) {
+                            hps.Messages.post({
+                                action: 'setPlaceholder',
+                                id: 'heartland-field',
+                                text: fieldFrame.options.placeholder
+                            }, fieldFrame.name);
+                        }
+                        Heartland.Events.trigger('securesubmitIframeReady', document);
+                        break;
+                    case 'accumulateData':
+                        var i;
+                        var field;
+                        for (i in hps.frames) {
+                            if (i === 'cardNumber')
+                                continue;
+                            field = hps.frames[i];
+                            hps.Messages.post({
+                                action: 'getFieldData',
+                                id: 'heartland-field'
+                            }, field.name);
+                        }
+                        break;
+                    case 'passData':
+                        var cardNumberFieldFrame = hps.frames.cardNumber;
+                        if (!cardNumberFieldFrame) {
+                            break;
+                        }
+                        hps.Messages.post({
+                            action: 'setFieldData',
+                            id: fieldFrame.name,
+                            value: m.data.value
+                        }, cardNumberFieldFrame.name);
+                        break;
+                }
+            }, '*');
+            // monitorFieldEvents(hps, )
+        }
+        Frames.configureIframe = configureIframe;
+        // Heartland.Frames.makeFieldAndLink
+        //
+        // Creates a set of single field iFrames and stores a reference to
+        // them in the parent window's state.
+        function makeFieldAndLink(hps) {
+            var fieldsLength = Heartland.fields.length;
+            var baseUrl = hps.iframe_url.replace('index.html', '') + 'field.html';
+            var options = hps.options;
+            for (var i = 0; i < fieldsLength; i++) {
+                var field = Heartland.fields[i];
+                var fieldOptions = options.fields[field];
+                var frame = Heartland.DOM.makeFrame(field);
+                var url = baseUrl + '#' + field + ':' + encodeURIComponent(document.location.href.split('#')[0]);
+                frame.src = url;
+                document
+                    .getElementById(fieldOptions.target)
+                    .appendChild(frame);
+                hps.frames[field] = {
+                    name: field,
+                    frame: frame,
+                    options: fieldOptions,
+                    target: fieldOptions.target,
+                    targetNode: window.postMessage ? frame.contentWindow : frame,
+                    url: url
+                };
+            }
+        }
+        Frames.makeFieldAndLink = makeFieldAndLink;
+        function monitorFieldEvents(hps, target) {
+            var events = ['click', 'blur', 'focus', 'change', 'keypress', 'keydown', 'keyup'];
+            var i = 0, length = events.length;
+            var event;
+            for (i; i < length; i++) {
+                event = events[i];
+                Heartland.Events.addHandler(target, event, function (e) {
+                    hps.Messages.post({
+                        action: 'fieldEvent',
+                        event: event,
+                        eventData: e
+                    }, 'parent');
+                });
+            }
+        }
+    })(Frames = Heartland.Frames || (Heartland.Frames = {}));
+})(Heartland || (Heartland = {}));
 /// <reference path="vars/defaults.ts" />
 /// <reference path="vendor/json2.ts" />
 /// <reference path="Ajax.ts" />
@@ -1374,7 +1420,7 @@ var Heartland;
                 this.iframe_url = '';
                 this.Messages = new Heartland.Messages(this);
                 this.mailbox = [];
-                this.cache_bust = 1;
+                this.cacheBust = 1;
                 Heartland.Frames.configureIframe(this);
             }
             return this;
