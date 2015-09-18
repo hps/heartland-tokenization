@@ -1,6 +1,6 @@
 <html>
 <head>
-	<script src="securesubmit.js"></script>
+	<script src="/dist/securesubmit.js"></script>
 </head>
 <body>
 	<h1>testing</h1>
@@ -51,11 +51,11 @@
 		// js for manual
 		function triggerPayment() {
 			var hps = new HPS({
-				api_key : "pkapi_cert_MrSafdEKB2dIHQEzDk",
-				card_number : document.getElementById("card_number1").value,
-				card_exp_year: document.getElementById("card_expiration_year1").value,
-				card_exp_month: document.getElementById("card_expiration_month1").value,
-				card_cvc: document.getElementById("card_cvc1").value,
+				publicKey: "pkapi_cert_MrSafdEKB2dIHQEzDk",
+				cardNumber : document.getElementById("card_number1").value,
+				cardExpYear: document.getElementById("card_expiration_year1").value,
+				cardExpMonth: document.getElementById("card_expiration_month1").value,
+				cardCvv: document.getElementById("card_cvc1").value,
 				success : successMethod,
 				error: errorMethod
 			});
@@ -80,39 +80,40 @@
 		}
 
 		var hps = new HPS({
-			api_key : "pkapi_cert_MrSafdEKB2dIHQEzDk",
-			form_id : "payment_form",
+			publicKey: "pkapi_cert_MrSafdEKB2dIHQEzDk",
+			formId: "payment_form",
 			success: successMethod,
 			error: errorMethod
 		});
 
 		var hps2 = new HPS({
-			api_key : "pkapi_cert_MrSafdEKB2dIHQEzDk",
-			form_id : "payment_form2",
+			publicKey: "pkapi_cert_MrSafdEKB2dIHQEzDk",
+			formId: "payment_form2",
 			success: successMethod,
 			error: errorMethod
 		});
 
 
 		var hps3 = new HPS({
-      api_key: "pkapi_cert_MrSafdEKB2dIHQEzDk",
-      type: "iframe",
-      // target DOM node for iFrame placement.
-			// expects an ID.
-      iframeTarget: "securesubmit",
-      // target DOM node for submit button that
-      // initiates the tokenization process.
-			// expects an ID.
-      // buttonTarget: "payment-submit",
-      onTokenSuccess: function (response) {
-        // callback for successful tokenization
-				alert(response.token_value);
-      },
-      onTokenError: function (response) {
-        // callback on tokenization error
-        alert(response.message);
-      },
-    });
+          publicKey: "pkapi_cert_MrSafdEKB2dIHQEzDk",
+          type: "iframe",
+          // target DOM node for iFrame placement.
+          // expects an ID.
+          iframeTarget: "securesubmit",
+          // target DOM node for submit button that
+          // initiates the tokenization process.
+          // expects an ID.
+          // buttonTarget: "payment-submit",
+          onTokenSuccess: function (response) {
+            // callback for successful tokenization
+            alert(response.token_value);
+          },
+          onTokenError: function (response) {
+            // callback on tokenization error
+            alert(response.message);
+          }
+        });
+
 		var hps3button = document.getElementById('payment-submit');
 		hps3button.addEventListener('click', function () {
 			hps3.tokenize();

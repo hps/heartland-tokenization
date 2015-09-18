@@ -46,7 +46,7 @@ module Heartland {
     // Allows a merchant-defined error handler to be used in cases where the
     // tokenization process fails. If not provided, we throw the message as a
     // JS runtime error.
-    export function throwError(options: Options, errorMessage: string) {
+    export function throwError(options: Options, errorMessage: string | TokenizationResponse) {
       if (typeof (options.error) === 'function') {
         options.error(errorMessage);
       } else {

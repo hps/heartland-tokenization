@@ -18,11 +18,11 @@ QUnit.module('tokenize');
 
 asyncTest('Valid card should return token', function () {
 	var hps = new HPS({
-		api_key: public_key,
-		card_number: '4242424242424242',
-		card_cvc: '123',
-		card_exp_month: '12',
-		card_exp_year: '2015',
+		publicKey: public_key,
+		cardNumber: '4242424242424242',
+		cardCvv: '123',
+		cardExpMonth: '12',
+		cardExpYear: '2015',
 		success: check_for_token,
 		error: default_error
 	});
@@ -31,11 +31,11 @@ asyncTest('Valid card should return token', function () {
 
 asyncTest('Valid error should be null', function () {
 	var hps = new HPS({
-		api_key: public_key,
-		card_number: '4242424242424242',
-		card_cvc: '123',
-		card_exp_month: '12',
-		card_exp_year: '2015',
+		publicKey: public_key,
+		cardNumber: '4242424242424242',
+		cardCvv: '123',
+		cardExpMonth: '12',
+		cardExpYear: '2015',
 		success: function (response) {
 			start();
 			ok(response.token_value);
@@ -48,8 +48,8 @@ asyncTest('Valid error should be null', function () {
 
 asyncTest('Invalid number returns error', function (assert) {
 	var hps = new HPS({
-		api_key: public_key,
-		card_number: '0',
+		publicKey: public_key,
+		cardNumber: '0',
 		success: check_for_token,
 		error: function (response) {
 			start();
@@ -63,11 +63,11 @@ asyncTest('Invalid number returns error', function (assert) {
 
 asyncTest('Valid number with whitespace should get trimmed', function () {
 	var hps = new HPS({
-		api_key: public_key,
-		card_number: '   	  4242424242424242 ',
-		card_cvc: '123',
-		card_exp_month: '12',
-		card_exp_year: '2015',
+		publicKey: public_key,
+		cardNumber: '   	  4242424242424242 ',
+		cardCvv: '123',
+		cardExpMonth: '12',
+		cardExpYear: '2015',
 		success: check_for_token,
 		error: default_error
 	});
@@ -76,8 +76,8 @@ asyncTest('Valid number with whitespace should get trimmed', function () {
 
 asyncTest('Invalid long number returns error', function (assert) {
 	var hps = new HPS({
-		api_key: public_key,
-		card_number: '11111111111111111111111111111111111',
+		publicKey: public_key,
+		cardNumber: '11111111111111111111111111111111111',
 		success: check_for_token,
 		error: function (response) {
 			start();
@@ -91,9 +91,9 @@ asyncTest('Invalid long number returns error', function (assert) {
 
 asyncTest('Invalid exp month (low) returns error', function (assert) {
 	var hps = new HPS({
-		api_key: public_key,
-		card_number: '4242424242424242',
-		card_exp_month: '0',
+		publicKey: public_key,
+		cardNumber: '4242424242424242',
+		cardExpMonth: '0',
 		success: check_for_token,
 		error: function (response) {
 			start();
@@ -107,9 +107,9 @@ asyncTest('Invalid exp month (low) returns error', function (assert) {
 
 asyncTest('Invalid exp month (high) returns error', function (assert) {
 	var hps = new HPS({
-		api_key: public_key,
-		card_number: '4242424242424242',
-		card_exp_month: '13',
+		publicKey: public_key,
+		cardNumber: '4242424242424242',
+		cardExpMonth: '13',
 		success: check_for_token,
 		error: function (response) {
 			start();
@@ -123,10 +123,10 @@ asyncTest('Invalid exp month (high) returns error', function (assert) {
 
 asyncTest('Invalid exp year returns error', function (assert) {
 	var hps = new HPS({
-		api_key: public_key,
-		card_number: '4242424242424242',
-		card_exp_month: '12',
-		card_exp_year: '9999',
+		publicKey: public_key,
+		cardNumber: '4242424242424242',
+		cardExpMonth: '12',
+		cardExpYear: '9999',
 		success: check_for_token,
 		error: function (response) {
 			start();
@@ -140,10 +140,10 @@ asyncTest('Invalid exp year returns error', function (assert) {
 
 asyncTest('Previous year expiration returns error', function (assert) {
 	var hps = new HPS({
-		api_key: public_key,
-		card_number: '4242424242424242',
-		card_exp_month: '12',
-		card_exp_year: '2013',
+		publicKey: public_key,
+		cardNumber: '4242424242424242',
+		cardExpMonth: '12',
+		cardExpYear: '2013',
 		success: check_for_token,
 		error: function (response) {
 			start();

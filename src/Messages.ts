@@ -55,12 +55,10 @@ module Heartland {
           current = JSON.parse(decodeURIComponent(window.location.hash.replace(re, '')));
           data.concat(current);
         }
-        console.log(data);
 
         if (messageArr !== []) {
           hps.cacheBust = hps.cacheBust || 1
           data.push({source: {name: hps.field || 'parent'}, data: messageArr});
-          console.log(data);
           message = JSON.stringify(data);
           url = targetUrl.replace(/#.*$/, '') + '#' +
               (+new Date()) + (hps.cacheBust++) + '&' +

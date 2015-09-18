@@ -33,7 +33,7 @@ module Heartland {
           frame = target;
           hps.iframe_url = frame.src;
         } else {
-          frame = Heartland.DOM.makeFrame('securesubmit-iframe');
+          frame = Heartland.DOM.makeFrame('heartland-frame-securesubmit');
           target.appendChild(frame);
         }
 

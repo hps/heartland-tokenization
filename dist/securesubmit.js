@@ -588,7 +588,7 @@ var Heartland;
 var Heartland;
 (function (Heartland) {
     Heartland.urls = {
-        CERT: 'https://cert.api2.heartlandportico.com/Hps.Exchange.PosGateway.Hpf.v1/api/token',
+        CERT: 'https://posgateway.cert.secureexchange.net/Hps.Exchange.PosGateway.Hpf.v1/api/token',
         PROD: 'https://api2.heartlandportico.com/SecureSubmit.v1/api/token',
         iframeCERT: 'http://localhost:8889/',
         iframePROD: 'https://api2.heartlandportico.com/SecureSubmit.v1/token/2.0/'
@@ -911,7 +911,7 @@ var Heartland;
             var params = Heartland.Util.getParams(type, options);
             jsonp(options.gatewayUrl + params, function (data) {
                 if (data.error) {
-                    Heartland.Util.throwError(options, data.error);
+                    Heartland.Util.throwError(options, data);
                 }
                 else {
                     data.last_four = lastfour;
@@ -1003,11 +1003,9 @@ var Heartland;
                     current = JSON.parse(decodeURIComponent(window.location.hash.replace(re, '')));
                     data.concat(current);
                 }
-                console.log(data);
                 if (messageArr !== []) {
                     hps.cacheBust = hps.cacheBust || 1;
                     data.push({ source: { name: hps.field || 'parent' }, data: messageArr });
-                    console.log(data);
                     message = JSON.stringify(data);
                     url = targetUrl.replace(/#.*$/, '') + '#' +
                         (+new Date()) + (hps.cacheBust++) + '&' +
@@ -1261,7 +1259,7 @@ var Heartland;
                     hps.iframe_url = frame.src;
                 }
                 else {
-                    frame = Heartland.DOM.makeFrame('securesubmit-iframe');
+                    frame = Heartland.DOM.makeFrame('heartland-frame-securesubmit');
                     target.appendChild(frame);
                 }
                 hps.iframe_url = hps.iframe_url + '#' + encodeURIComponent(document.location.href.split('#')[0]);

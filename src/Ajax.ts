@@ -14,16 +14,16 @@ module Heartland {
       var lastfour = number.slice(-4);
       var cardType = Heartland.Util.getCardType(number);
       var params = Heartland.Util.getParams(type, options);
-    
+
       jsonp(options.gatewayUrl + params, function(data) {
         if (data.error) {
-          Heartland.Util.throwError(options, data.error);
+          Heartland.Util.throwError(options, data);
         } else {
           data.last_four = lastfour;
           data.card_type = cardType;
           data.exp_month = options.cardExpMonth;
           data.exp_year = options.cardExpYear;
-    
+
           if (options.formId && options.formId.length > 0) {
             Heartland.DOM.addField(options.formId, 'hidden', 'token_value', data.token_value);
             Heartland.DOM.addField(options.formId, 'hidden', 'last_four', lastfour);
@@ -31,7 +31,7 @@ module Heartland {
             Heartland.DOM.addField(options.formId, 'hidden', 'card_exp_month', options.cardExpMonth);
             Heartland.DOM.addField(options.formId, 'hidden', 'card_type', cardType);
           }
-    
+
           options.success(data);
         }
       });
@@ -48,7 +48,7 @@ module Heartland {
         document.body.removeChild(script);
         callback(data);
       };
-    
+
       var script = document.createElement('script');
       script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
       document.body.appendChild(script);

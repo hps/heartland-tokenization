@@ -7,8 +7,8 @@ module Heartland {
       var cardType: CardType;
       var i: any;
 
-      for (i in cardTypes) {
-        cardType = cardTypes[i];
+      for (i in Card.types) {
+        cardType = Card.types[i];
         if (cardType.regex.test(number)) break;
       }
 
