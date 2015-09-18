@@ -2,7 +2,18 @@
 /// <reference path="vars/cardTypes.ts" />
 
 module Heartland {
+  /**
+   * @namespace Heartland.Card
+   */
   export module Card {
+    /**
+     * Heartland.Card.typeByNumber
+     *
+     * Helper function to grab the CardType for a given card number.
+     *
+     * @param {string} number - The card number
+     * @returns {Heartland.CardType}
+     */
     export function typeByNumber(number: string): CardType {
       var cardType: CardType;
       var i: any;
@@ -15,6 +26,12 @@ module Heartland {
       return cardType;
     }
 
+    /**
+     * Heartland.Card.luhnCheck
+     *
+     * @param {string} number - The card number
+     * @returns {boolean}
+     */
     export function luhnCheck(number: string): boolean {
       var odd = true;
       var sum = 0;

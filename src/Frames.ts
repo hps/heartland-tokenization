@@ -6,10 +6,19 @@
 /// <reference path="Styles.ts" />
 
 module Heartland {
+  /**
+   * @namespace Heartland.Frames
+   */
   export module Frames {
-    // Heartland.Frames.configureIframe
-    //
-    // Prepares the pages iFrames for communication with the parent window.
+    /**
+     * Heartland.Frames.configureIframe
+     *
+     * Prepares the pages iFrames for communication with the parent window.
+     *
+     * @param {Heartland.HPS} hps
+     * @listens click
+     * @listens message
+     */
     export function configureIframe(hps: HPS) {
       var frame: any;
       var options = hps.options;
@@ -151,10 +160,14 @@ module Heartland {
       // monitorFieldEvents(hps, )
     }
 
-    // Heartland.Frames.makeFieldAndLink
-    //
-    // Creates a set of single field iFrames and stores a reference to
-    // them in the parent window's state.
+    /**
+     * Heartland.Frames.makeFieldAndLink
+     *
+     * Creates a set of single field iFrames and stores a reference to
+     * them in the parent window's state.
+     *
+     * @param {Heartland.HPS} hps
+     */
     export function makeFieldAndLink(hps: HPS) {
       var fieldsLength = fields.length;
       var baseUrl = hps.iframe_url.replace('index.html', '') + 'field.html';
@@ -182,6 +195,12 @@ module Heartland {
       }
     }
 
+    /**
+     * Heartland.Frames.monitorFieldEvents
+     *
+     * @param {Heartland.HPS} hps
+     * @param {string | EventTarget} target
+     */
     function monitorFieldEvents(hps: HPS, target: string | EventTarget) {
       var events = ['click', 'blur', 'focus', 'change', 'keypress', 'keydown', 'keyup'];
       var i = 0, length = events.length;

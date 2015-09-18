@@ -3,10 +3,19 @@
 /// <reference path="HPS.ts" />
 
 module Heartland {
+  /**
+   * @namespace Heartland.Events
+   */
   export module Events {
-    // Heartland.Events.addHandler
-    //
-    // Adds an `event` handler for a given `target` element.
+    /**
+     * Heartland.Events.addHandler
+     *
+     * Adds an `event` handler for a given `target` element.
+     *
+     * @param {string | EventTarget} target
+     * @param {string} event
+     * @param {EventListener} callback
+     */
     export function addHandler(target: string | EventTarget, event: string, callback: EventListener) {
       var node: EventTarget;
       if (typeof target === 'string') {
@@ -26,19 +35,29 @@ module Heartland {
       }
     }
 
-    // Heartland.Events.trigger
-    //
-    // Fires off an `event` for a given `target` element.
+    /**
+     * Heartland.Events.trigger
+     *
+     * Fires off an `event` for a given `target` element.
+     *
+     * @param {string} name
+     * @param {any} target
+     * @param {any} data [optional]
+     */
     export function trigger(name: string, target: any, data?: any) {
       var event = target.createEvent('Event');
       event.initEvent(name, true, true);
       target.dispatchEvent(event);
     }
 
-    // hearltand.Events.frameHandleWith
-    //
-    // Wraps `hps` state in a closure to provide a `Heartland.Messages.receive`
-    // callback handler for iFrame children.
+    /**
+     * Heartland.Events.frameHandleWith
+     *
+     * Wraps `hps` state in a closure to provide a `Heartland.Messages.receive`
+     * callback handler for iFrame children.
+     *
+     * @param {Heartland.HPS} hps
+     */
     export function frameHandleWith(hps: HPS) : (m: any) => void {
       return function(m) {
         switch (m.data.action) {
@@ -98,10 +117,15 @@ module Heartland {
       };
     }
 
-    // tokenizeIframe
-    //
-    // Tokenizes card data. Used in iframe integrations to tokenize on Heartland's
-    // servers.
+    /**
+     * tokenizeIframe
+     *
+     * Tokenizes card data. Used in iframe integrations to tokenize on Heartland's
+     * servers.
+     *
+     * @param {Heartland.HPS} hps
+     * @param {string} publicKey
+     */
     function tokenizeIframe(hps: HPS, publicKey: string) {
       var card: CardData = {};
 

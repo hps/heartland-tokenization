@@ -1,10 +1,16 @@
 module Heartland {
+  /**
+   * @namespace Heartland.Styles
+   */
   export module Styles {
-    // Heartland.Styles.Defaults
-    //
-    // Collection of helper functions for applying default styles to a child
-    // window's fields. Serves as an example of these methods' use in merchant
-    // modifications.
+    /**
+     * Heartland.Styles.Defaults
+     *
+     * Collection of helper functions for applying default styles to a child
+     * window's fields. Serves as an example of these methods' use in merchant
+     * modifications. Each function expects a `Heartland.HPS` object to be passed
+     * as an argument.
+     */
     export var Defaults = {
       body: function(hps: HPS) {
         hps.setStyle('heartland-body',

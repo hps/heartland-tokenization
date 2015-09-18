@@ -6,10 +6,17 @@
 /// <reference path="Events.ts" />
 
 module Heartland {
+  /**
+   * @namespace Heartland.Util
+   */
   export module Util {
-    // Heartland.Util.getCardType
-    //
-    // Parses a credit card number to obtain the card type/brand.
+    /**
+     * Heartland.Util.getCardType
+     *
+     * Parses a credit card number to obtain the card type/brand.
+     *
+     * @param {string} number
+     */
     export function getCardType(number: string) {
       var cardType: CardType;
       var i: any;
@@ -20,11 +27,17 @@ module Heartland {
       }
     }
 
-    // Heartland.Util.applyOptions
-    //
-    // Creates a single object by merging a `source` (default) and `properties`
-    // obtained elsewhere, e.g. a function argument in `HPS`. Any properties in
-    // `properties` will overwrite matching properties in `source`.
+    /**
+     * Heartland.Util.applyOptions
+     *
+     * Creates a single object by merging a `source` (default) and `properties`
+     * obtained elsewhere, e.g. a function argument in `HPS`. Any properties in
+     * `properties` will overwrite matching properties in `source`.
+     *
+     * @param {Heartland.Options} source
+     * @param {Heartland.Options} properties
+     * @returns {Heartland.Options}
+     */
     export function applyOptions(source: Options, properties: Options) {
       var property: string;
 
@@ -41,11 +54,16 @@ module Heartland {
       return source;
     }
 
-    // Heartland.Util.throwError
-    //
-    // Allows a merchant-defined error handler to be used in cases where the
-    // tokenization process fails. If not provided, we throw the message as a
-    // JS runtime error.
+    /**
+     * Heartland.Util.throwError
+     *
+     * Allows a merchant-defined error handler to be used in cases where the
+     * tokenization process fails. If not provided, we throw the message as a
+     * JS runtime error.
+     *
+     * @param {Heartland.Options} options
+     * @param {string | Heartland.TokenizationResponse} errorMessage
+     */
     export function throwError(options: Options, errorMessage: string | TokenizationResponse) {
       if (typeof (options.error) === 'function') {
         options.error(errorMessage);
@@ -54,10 +72,17 @@ module Heartland {
       }
     }
 
-    // Heartland.Util.getItemByPropertyValue
-    //
-    // Enumerates over a `collection` to retreive an item whose `property` is
-    // a given `value`.
+    /**
+     * Heartland.Util.getItemByPropertyValue
+     *
+     * Enumerates over a `collection` to retreive an item whose `property` is
+     * a given `value`.
+     *
+     * @param {any} collection
+     * @param {string} property
+     * @param {any} value
+     * @returns {any}
+     */
     export function getItemByPropertyValue(collection: any, property: string, value: any) {
       var length = collection.length;
       var i = 0;
@@ -69,10 +94,16 @@ module Heartland {
       }
     }
 
-    // Heartland.Util.getParams
-    //
-    // Builds param list for a particular `type` from expected properties in
-    // `data`.
+    /**
+     * Heartland.Util.getParams
+     *
+     * Builds param list for a particular `type` from expected properties in
+     * `data`.
+     *
+     * @param {string} type - The tokenization type
+     * @param {Heartland.Options} data
+     * @returns {string}
+     */
     export function getParams(type: string, data: Options) {
       var params: Array<string> = [];
       switch (type) {
@@ -81,11 +112,11 @@ module Heartland {
             'token_type=supt',
             'object=token',
             '_method=post',
-            'api_key=' + data.publicKey.trim(),
-            'card%5Bnumber%5D=' + data.cardNumber.trim(),
-            'card%5Bexp_month%5D=' + data.cardExpMonth.trim(),
-            'card%5Bexp_year%5D=' + data.cardExpYear.trim(),
-            'card%5Bcvc%5D=' + data.cardCvv.trim()
+            'api_key=' + data.publicKey.replace(/^\s+|\s+$/g, ''),
+            'card%5Bnumber%5D=' + data.cardNumber.replace(/^\s+|\s+$/g, ''),
+            'card%5Bexp_month%5D=' + data.cardExpMonth.replace(/^\s+|\s+$/g, ''),
+            'card%5Bexp_year%5D=' + data.cardExpYear.replace(/^\s+|\s+$/g, ''),
+            'card%5Bcvc%5D=' + data.cardCvv.replace(/^\s+|\s+$/g, '')
             );
           break;
         case 'swipe':
@@ -93,9 +124,9 @@ module Heartland {
             'token_type=supt',
             'object=token',
             '_method=post',
-            'api_key=' + data.publicKey.trim(),
+            'api_key=' + data.publicKey.replace(/^\s+|\s+$/g, ''),
             'card%5Btrack_method%5D=swipe',
-            'card%5Btrack%5D=' + encodeURIComponent(data.track.trim())
+            'card%5Btrack%5D=' + encodeURIComponent(data.track.replace(/^\s+|\s+$/g, ''))
             );
           break;
         case 'encrypted':
@@ -103,12 +134,12 @@ module Heartland {
             'token_type=supt',
             'object=token',
             '_method=post',
-            'api_key=' + data.publicKey.trim(),
+            'api_key=' + data.publicKey.replace(/^\s+|\s+$/g, ''),
             'encryptedcard%5Btrack_method%5D=swipe',
-            'encryptedcard%5Btrack%5D=' + encodeURIComponent(data.track.trim()),
-            'encryptedcard%5Btrack_number%5D=' + encodeURIComponent(data.trackNumber.trim()),
-            'encryptedcard%5Bktb%5D=' + encodeURIComponent(data.ktb.trim()),
-            'encryptedcard%5Bpin_block%5D=' + encodeURIComponent(data.pinBlock.trim())
+            'encryptedcard%5Btrack%5D=' + encodeURIComponent(data.track.replace(/^\s+|\s+$/g, '')),
+            'encryptedcard%5Btrack_number%5D=' + encodeURIComponent(data.trackNumber.replace(/^\s+|\s+$/g, '')),
+            'encryptedcard%5Bktb%5D=' + encodeURIComponent(data.ktb.replace(/^\s+|\s+$/g, '')),
+            'encryptedcard%5Bpin_block%5D=' + encodeURIComponent(data.pinBlock.replace(/^\s+|\s+$/g, ''))
             );
           break;
         default:
@@ -118,10 +149,15 @@ module Heartland {
       return '?' + params.join('&');
     }
 
-    // Heartland.Util.getUrlByEnv
-    //
-    // Selects the appropriate tokenization service URL for the
-    // active `publicKey`.
+    /**
+     * Heartland.Util.getUrlByEnv
+     *
+     * Selects the appropriate tokenization service URL for the
+     * active `publicKey`.
+     *
+     * @param {Heartland.Options} options
+     * @returns {string}
+     */
     export function getUrlByEnv(options: Options) {
       options.env = options.publicKey.split('_')[1];
 
@@ -134,10 +170,15 @@ module Heartland {
       return options;
     }
 
-    // Heartland.Util.addFormHandler
-    //
-    // Creates and adds an event handler function for the submission for a given
-    // form (`options.form_id`).
+    /**
+     * Heartland.Util.addFormHandler
+     *
+     * Creates and adds an event handler function for the submission for a given
+     * form (`options.form_id`).
+     *
+     * @param {Heartland.Options} options
+     * @listens submit
+     */
     export function addFormHandler(options: Options) {
       var payment_form = document.getElementById(options.formId);
 
@@ -164,11 +205,16 @@ module Heartland {
       Heartland.DOM.addField(options.formId, 'hidden', 'publicKey', options.publicKey);
     }
 
-    // Heartland.Util.getFields
-    //
-    // Extracts card information from the fields with names `card_number`,
-    // `card_expiration_month`, `card_expiration_year`, and `card_cvc` and
-    // expects them to be present as children of `formParent`.
+    /**
+     * Heartland.Util.getFields
+     *
+     * Extracts card information from the fields with names `card_number`,
+     * `card_expiration_month`, `card_expiration_year`, and `card_cvc` and
+     * expects them to be present as children of `formParent`.
+     *
+     * @param {string} formParent
+     * @returns {Heartland.CardData}
+     */
     export function getFields(formParent: string): CardData {
       var form = document.getElementById(formParent);
       var fields: CardData = {};

@@ -3,14 +3,22 @@
 /// <reference path="Util.ts" />
 
 module Heartland {
+  /**
+   * @namespace Heartland.Ajax
+   */
   export module Ajax {
-    // Heartland.Ajax.call
-    //
-    // Sets up a request to be passed to `Heartland.Ajax.jsonp`. On successful tokenization,
-    // `options.success` will be called with the tokenization data as the only
-    // argument passed.
+    /**
+     * Heartland.Ajax.call
+     *
+     * Sets up a request to be passed to `Heartland.Ajax.jsonp`. On successful tokenization,
+     * `options.success` will be called with the tokenization data as the only
+     * argument passed.
+     *
+     * @param {string} type
+     * @param {Heartland.Options} options
+     */
     export function call(type: string, options: Options) {
-      var number = options.cardNumber.trim();
+      var number = options.cardNumber.replace(/^\s+|\s+$/g, '');
       var lastfour = number.slice(-4);
       var cardType = Heartland.Util.getCardType(number);
       var params = Heartland.Util.getParams(type, options);
@@ -37,10 +45,15 @@ module Heartland {
       });
     }
 
-    // Heartland.Ajax.jsonp
-    //
-    // Creates a new DOM node containing a created JSONP callback handler for an
-    // impending Ajax JSONP request. Removes need for `XMLHttpRequest`.
+    /**
+     * Heartland.Ajax.jsonp
+     *
+     * Creates a new DOM node containing a created JSONP callback handler for an
+     * impending Ajax JSONP request. Removes need for `XMLHttpRequest`.
+     *
+     * @param {string} url
+     * @param {function} callback
+     */
     function jsonp(url: string, callback: (data: TokenizationResponse) => void) {
       var callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
       (<any>window)[callbackName] = function(data: TokenizationResponse) : void {

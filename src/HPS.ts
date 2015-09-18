@@ -10,11 +10,13 @@
 /// <reference path="Util.ts" />
 
 module Heartland {
-  // Heartland.HPS (constructor)
-  //
-  // Initializes options and adds the default form handler if a `form_id` is
-  // passed as an option. This expects the default fields (see `getFields`) to
-  // be present as children of `form_id`.
+  /**
+   * Heartland.HPS
+   *
+   * Initializes options and adds the default form handler if a `formId` is
+   * passed as an option. This expects the default fields (see `getFields`) to
+   * be present as children of `formId`.
+   */
   export class HPS {
     options: Options;
     frames: any;
@@ -25,6 +27,13 @@ module Heartland {
     parent: Window;
     field: string;
 
+    /**
+     * Heartland.HPS (constructor)
+     *
+     * @constructor
+     * @param {Heartland.Options} options [optional]
+     * @returns {Heartland.HPS}
+     */
     constructor(options?: Options) {
       if (!options && window.parent) {
         return;
@@ -50,11 +59,15 @@ module Heartland {
       return this;
     }
 
-    // Heartland.HPS.tokenize
-    //
-    // Tokenizes card data. Used in manual integrations where the merchant's
-    // credit card fields cannot/do not match the names expected in the default
-    // form handler (see `getFields`).
+    /**
+     * Heartland.HPS.tokenize
+     *
+     * Tokenizes card data. Used in manual integrations where the merchant's
+     * credit card fields cannot/do not match the names expected in the default
+     * form handler (see `getFields`).
+     *
+     * @param {Heartland.Options} options [optional]
+     */
     tokenize(options?: Options): void {
       options = options || {};
       if (options) {
@@ -68,10 +81,14 @@ module Heartland {
       Heartland.Ajax.call(this.options.type, this.options);
     };
 
-    // Heartland.HPS.configureInternalIframe
-    //
-    // Sets up a child iframe window to prepare it for communication with the
-    // parent and for tokenization.
+    /**
+     * Heartland.HPS.configureInternalIframe
+     *
+     * Sets up a child iframe window to prepare it for communication with the
+     * parent and for tokenization.
+     *
+     * @param {Heartland.Options} options
+     */
     configureInternalIframe(options: Options): void {
       var win: any = window.parent;
       this.Messages = new Heartland.Messages(this);
@@ -98,10 +115,14 @@ module Heartland {
       this.Messages.receive(Heartland.Events.frameHandleWith(this), '*');
     };
 
-    // Heartland.HPS.configureFieldIframe
-    //
-    // Sets up a child iframe window to prepare it for communication with the
-    // parent and for tokenization.
+    /**
+     * Heartland.HPS.configureFieldIframe
+     *
+     * Sets up a child iframe window to prepare it for communication with the
+     * parent and for tokenization.
+     *
+     * @param {Heartland.Options} options
+     */
     configureFieldIframe(options: Options): void {
       var win: any = window;
       var hash = document.location.hash.replace(/^#/, '');
@@ -132,31 +153,51 @@ module Heartland {
       this.Messages.receive(Heartland.Events.frameHandleWith(this), '*');
     };
 
-    // Heartland.HPS.resizeIFrame
-    //
-    // Called automatically when the child iframe window alerts the parent to
-    // resize.
+    /**
+     * Heartland.HPS.resizeIFrame
+     *
+     * Called automatically when the child iframe window alerts the parent to
+     * resize.
+     *
+     * @param {HTMLIFrameElement} frame
+     * @param {string} height
+     */
     resizeIFrame(frame: HTMLIFrameElement, height: string): void {
       frame.style.height = (parseInt(height, 10)) + 'px';
     };
 
-    // Heartland.HPS.setText
-    //
-    // Public API for setting an element's inner text.
+    /**
+     * Heartland.HPS.setText
+     *
+     * Public API for setting an element's inner text.
+     *
+     * @param {string} elementid
+     * @param {string} elementtext
+     */
     setText(elementid: string, elementtext: string): void {
       this.Messages.post({action: 'setText', id: elementid, text: elementtext}, 'child');
     };
 
-    // Heartland.HPS.setStyle
-    //
-    // Public API for setting an element's style.
+    /**
+     * Heartland.HPS.setStyle
+     *
+     * Public API for setting an element's style.
+     *
+     * @param {string} elementid
+     * @param {string} elementstyle
+     */
     setStyle(elementid: string, elementstyle: string): void {
       this.Messages.post({action: 'setStyle', id: elementid, style: elementstyle}, 'child');
     };
 
-    // Heartland.HPS.appendStyle
-    //
-    // Public API for appending to an element's style.
+    /**
+     * Heartland.HPS.appendStyle
+     *
+     * Public API for appending to an element's style.
+     *
+     * @param {string} elementid
+     * @param {string} elementstyle
+     */
     appendStyle(elementid: string, elementstyle: string): void {
       this.Messages.post({action: 'appendStyle', id: elementid, style: elementstyle}, 'child');
     };
