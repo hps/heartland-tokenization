@@ -37,7 +37,7 @@ module Heartland {
       }
 
       if (options.iframeTarget) {
-        frame = document.getElementById(options.iframeTarget);
+        target = document.getElementById(options.iframeTarget);
         if (options.targetType === 'myframe') {
           frame = target;
           hps.iframe_url = frame.src;
@@ -169,9 +169,9 @@ module Heartland {
      * @param {Heartland.HPS} hps
      */
     export function makeFieldAndLink(hps: HPS) {
-      var fieldsLength = fields.length;
-      var baseUrl = hps.iframe_url.replace('index.html', '') + 'field.html';
       var options = hps.options;
+      var fieldsLength = options.fields.length;
+      var baseUrl = hps.iframe_url.replace('index.html', '') + 'field.html';
 
       for (var i = 0; i < fieldsLength; i++) {
         var field = fields[i];

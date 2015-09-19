@@ -14,7 +14,7 @@ var default_error = function(response) {
 	ok(false, response.error.message);
 };
 
-QUnit.module('tokenize_encrypted_card');
+QUnit.module('tokenize encrypted card');
 
 asyncTest('Valid Track Data should return token', function () {
   var hps = new HPS({

@@ -440,18 +440,30 @@ var JSON2 = {};
 }());
 var Heartland;
 (function (Heartland) {
+    /**
+     * @namespace Heartland.DOM
+     */
     var DOM;
     (function (DOM) {
-        // Heartland.DOM.configureField
-        //
-        // Configures an input field in a single field iFrame.
+        /**
+         * Heartland.DOM.configureField
+         *
+         * Configures an input field in a single field iFrame.
+         *
+         * @param {Heartland.HPS} hps
+         */
         function configureField(hps) {
             document.getElementById('heartland-field').setAttribute('name', hps.field);
         }
         DOM.configureField = configureField;
-        // Heartland.DOM.makeFrame
-        //
-        // Creates a single iFrame element with the appropriate defaults.
+        /**
+         * Heartland.DOM.makeFrame
+         *
+         * Creates a single iFrame element with the appropriate defaults.
+         *
+         * @param {string} name
+         * @returns {HTMLIframeElement}
+         */
         function makeFrame(name) {
             var frame = document.createElement('iframe');
             frame.id = 'heartland-frame-' + name;
@@ -461,10 +473,17 @@ var Heartland;
             return frame;
         }
         DOM.makeFrame = makeFrame;
-        // Heartland.DOM.addField
-        //
-        // Adds a DOM `input` node to `formParent` with type `fieldType`, name
-        // `fieldName`, and value `fieldValue`.
+        /**
+         * Heartland.DOM.addField
+         *
+         * Adds a DOM `input` node to `formParent` with type `fieldType`, name
+         * `fieldName`, and value `fieldValue`.
+         *
+         * @param {string} formParent
+         * @param {string} fieldType
+         * @param {string} fieldName
+         * @param {string} fieldValue
+         */
         function addField(formParent, fieldType, fieldName, fieldValue) {
             var input = document.createElement('input');
             input.setAttribute('type', fieldType);
@@ -473,9 +492,14 @@ var Heartland;
             document.getElementById(formParent).appendChild(input);
         }
         DOM.addField = addField;
-        // Heartland.DOM.setStyle
-        //
-        // Sets an element's style attribute within a child iframe window.
+        /**
+         * Heartland.DOM.setStyle
+         *
+         * Sets an element's style attribute within a child iframe window.
+         *
+         * @param {string} elementid
+         * @param {string} htmlstyle
+         */
         function setStyle(elementid, htmlstyle) {
             var el = document.getElementById(elementid);
             if (el) {
@@ -483,9 +507,14 @@ var Heartland;
             }
         }
         DOM.setStyle = setStyle;
-        // Heartland.DOM.appendStyle
-        //
-        // Appends an element's style attribute within a child iframe window.
+        /**
+         * Heartland.DOM.appendStyle
+         *
+         * Appends an element's style attribute within a child iframe window.
+         *
+         * @param {string} elementid
+         * @param {String} htmlstyle
+         */
         function appendStyle(elementid, htmlstyle) {
             var el = document.getElementById(elementid);
             if (el) {
@@ -495,9 +524,14 @@ var Heartland;
             }
         }
         DOM.appendStyle = appendStyle;
-        // Heartland.DOM.setText
-        //
-        // Sets an element's inner text within a child iframe window.
+        /**
+         * Heartland.DOM.setText
+         *
+         * Sets an element's inner text within a child iframe window.
+         *
+         * @param {string} elementid
+         * @param {string} text
+         */
         function setText(elementid, text) {
             var el = document.getElementById(elementid);
             if (el) {
@@ -505,9 +539,14 @@ var Heartland;
             }
         }
         DOM.setText = setText;
-        // Heartland.DOM.setPlaceholder
-        //
-        // Sets an element's placeholder attribute within a child iframe window.
+        /**
+         * Heartland.DOM.setPlaceholder
+         *
+         * Sets an element's placeholder attribute within a child iframe window.
+         *
+         * @param {string} elementid
+         * @param {string} text
+         */
         function setPlaceholder(elementid, text) {
             var el = document.getElementById(elementid);
             if (el) {
@@ -515,18 +554,27 @@ var Heartland;
             }
         }
         DOM.setPlaceholder = setPlaceholder;
-        // Heartland.DOM.resizeFrame
-        //
-        // Alerts a parent window to resize the iframe.
+        /**
+         * Heartland.DOM.resizeFrame
+         *
+         * Alerts a parent window to resize the iframe.
+         *
+         * @param {Heartland.HPS} hps
+         */
         function resizeFrame(hps) {
             var html = document.getElementsByTagName('html')[0];
             var docHeight = html.offsetHeight;
             hps.Messages.post({ action: 'resize', height: docHeight }, 'parent');
         }
         DOM.resizeFrame = resizeFrame;
-        // Heartland.DOM.setFieldData
-        //
-        // Receives a field value from another frame prior to the tokenization process.
+        /**
+         * Heartland.DOM.setFieldData
+         *
+         * Receives a field value from another frame prior to the tokenization process.
+         *
+         * @param {string} elementid
+         * @param {string} value
+         */
         function setFieldData(elementid, value) {
             var el = document.getElementById(elementid);
             if (!el && document.getElementById('heartland-field')) {
@@ -540,9 +588,14 @@ var Heartland;
             }
         }
         DOM.setFieldData = setFieldData;
-        // Heartland.DOM.getFieldData
-        //
-        // Retrieves a field value for another frame prior to the tokenization process.
+        /**
+         * Heartland.DOM.getFieldData
+         *
+         * Retrieves a field value for another frame prior to the tokenization process.
+         *
+         * @param {Heartland.HPS} hps
+         * @param {string} elementid
+         */
         function getFieldData(hps, elementid) {
             var el = document.getElementById(elementid);
             if (el) {
@@ -599,11 +652,20 @@ var Heartland;
 /// <reference path="HPS.ts" />
 var Heartland;
 (function (Heartland) {
+    /**
+     * @namespace Heartland.Events
+     */
     var Events;
     (function (Events) {
-        // Heartland.Events.addHandler
-        //
-        // Adds an `event` handler for a given `target` element.
+        /**
+         * Heartland.Events.addHandler
+         *
+         * Adds an `event` handler for a given `target` element.
+         *
+         * @param {string | EventTarget} target
+         * @param {string} event
+         * @param {EventListener} callback
+         */
         function addHandler(target, event, callback) {
             var node;
             if (typeof target === 'string') {
@@ -623,19 +685,29 @@ var Heartland;
             }
         }
         Events.addHandler = addHandler;
-        // Heartland.Events.trigger
-        //
-        // Fires off an `event` for a given `target` element.
+        /**
+         * Heartland.Events.trigger
+         *
+         * Fires off an `event` for a given `target` element.
+         *
+         * @param {string} name
+         * @param {any} target
+         * @param {any} data [optional]
+         */
         function trigger(name, target, data) {
             var event = target.createEvent('Event');
             event.initEvent(name, true, true);
             target.dispatchEvent(event);
         }
         Events.trigger = trigger;
-        // hearltand.Events.frameHandleWith
-        //
-        // Wraps `hps` state in a closure to provide a `Heartland.Messages.receive`
-        // callback handler for iFrame children.
+        /**
+         * Heartland.Events.frameHandleWith
+         *
+         * Wraps `hps` state in a closure to provide a `Heartland.Messages.receive`
+         * callback handler for iFrame children.
+         *
+         * @param {Heartland.HPS} hps
+         */
         function frameHandleWith(hps) {
             return function (m) {
                 switch (m.data.action) {
@@ -693,10 +765,15 @@ var Heartland;
             };
         }
         Events.frameHandleWith = frameHandleWith;
-        // tokenizeIframe
-        //
-        // Tokenizes card data. Used in iframe integrations to tokenize on Heartland's
-        // servers.
+        /**
+         * tokenizeIframe
+         *
+         * Tokenizes card data. Used in iframe integrations to tokenize on Heartland's
+         * servers.
+         *
+         * @param {Heartland.HPS} hps
+         * @param {string} publicKey
+         */
         function tokenizeIframe(hps, publicKey) {
             var card = {};
             card.number = (document.getElementById('heartland-field') || document.getElementById('heartland-card-number')).value;
@@ -737,11 +814,18 @@ var Heartland;
 /// <reference path="Events.ts" />
 var Heartland;
 (function (Heartland) {
+    /**
+     * @namespace Heartland.Util
+     */
     var Util;
     (function (Util) {
-        // Heartland.Util.getCardType
-        //
-        // Parses a credit card number to obtain the card type/brand.
+        /**
+         * Heartland.Util.getCardType
+         *
+         * Parses a credit card number to obtain the card type/brand.
+         *
+         * @param {string} number
+         */
         function getCardType(number) {
             var cardType;
             var i;
@@ -752,11 +836,17 @@ var Heartland;
             }
         }
         Util.getCardType = getCardType;
-        // Heartland.Util.applyOptions
-        //
-        // Creates a single object by merging a `source` (default) and `properties`
-        // obtained elsewhere, e.g. a function argument in `HPS`. Any properties in
-        // `properties` will overwrite matching properties in `source`.
+        /**
+         * Heartland.Util.applyOptions
+         *
+         * Creates a single object by merging a `source` (default) and `properties`
+         * obtained elsewhere, e.g. a function argument in `HPS`. Any properties in
+         * `properties` will overwrite matching properties in `source`.
+         *
+         * @param {Heartland.Options} source
+         * @param {Heartland.Options} properties
+         * @returns {Heartland.Options}
+         */
         function applyOptions(source, properties) {
             var property;
             if (!source) {
@@ -770,11 +860,16 @@ var Heartland;
             return source;
         }
         Util.applyOptions = applyOptions;
-        // Heartland.Util.throwError
-        //
-        // Allows a merchant-defined error handler to be used in cases where the
-        // tokenization process fails. If not provided, we throw the message as a
-        // JS runtime error.
+        /**
+         * Heartland.Util.throwError
+         *
+         * Allows a merchant-defined error handler to be used in cases where the
+         * tokenization process fails. If not provided, we throw the message as a
+         * JS runtime error.
+         *
+         * @param {Heartland.Options} options
+         * @param {string | Heartland.TokenizationResponse} errorMessage
+         */
         function throwError(options, errorMessage) {
             if (typeof (options.error) === 'function') {
                 options.error(errorMessage);
@@ -784,10 +879,17 @@ var Heartland;
             }
         }
         Util.throwError = throwError;
-        // Heartland.Util.getItemByPropertyValue
-        //
-        // Enumerates over a `collection` to retreive an item whose `property` is
-        // a given `value`.
+        /**
+         * Heartland.Util.getItemByPropertyValue
+         *
+         * Enumerates over a `collection` to retreive an item whose `property` is
+         * a given `value`.
+         *
+         * @param {any} collection
+         * @param {string} property
+         * @param {any} value
+         * @returns {any}
+         */
         function getItemByPropertyValue(collection, property, value) {
             var length = collection.length;
             var i = 0;
@@ -798,21 +900,27 @@ var Heartland;
             }
         }
         Util.getItemByPropertyValue = getItemByPropertyValue;
-        // Heartland.Util.getParams
-        //
-        // Builds param list for a particular `type` from expected properties in
-        // `data`.
+        /**
+         * Heartland.Util.getParams
+         *
+         * Builds param list for a particular `type` from expected properties in
+         * `data`.
+         *
+         * @param {string} type - The tokenization type
+         * @param {Heartland.Options} data
+         * @returns {string}
+         */
         function getParams(type, data) {
             var params = [];
             switch (type) {
                 case 'pan':
-                    params.push('token_type=supt', 'object=token', '_method=post', 'api_key=' + data.publicKey.trim(), 'card%5Bnumber%5D=' + data.cardNumber.trim(), 'card%5Bexp_month%5D=' + data.cardExpMonth.trim(), 'card%5Bexp_year%5D=' + data.cardExpYear.trim(), 'card%5Bcvc%5D=' + data.cardCvv.trim());
+                    params.push('token_type=supt', 'object=token', '_method=post', 'api_key=' + data.publicKey.replace(/^\s+|\s+$/g, ''), 'card%5Bnumber%5D=' + data.cardNumber.replace(/^\s+|\s+$/g, ''), 'card%5Bexp_month%5D=' + data.cardExpMonth.replace(/^\s+|\s+$/g, ''), 'card%5Bexp_year%5D=' + data.cardExpYear.replace(/^\s+|\s+$/g, ''), 'card%5Bcvc%5D=' + data.cardCvv.replace(/^\s+|\s+$/g, ''));
                     break;
                 case 'swipe':
-                    params.push('token_type=supt', 'object=token', '_method=post', 'api_key=' + data.publicKey.trim(), 'card%5Btrack_method%5D=swipe', 'card%5Btrack%5D=' + encodeURIComponent(data.track.trim()));
+                    params.push('token_type=supt', 'object=token', '_method=post', 'api_key=' + data.publicKey.replace(/^\s+|\s+$/g, ''), 'card%5Btrack_method%5D=swipe', 'card%5Btrack%5D=' + encodeURIComponent(data.track.replace(/^\s+|\s+$/g, '')));
                     break;
                 case 'encrypted':
-                    params.push('token_type=supt', 'object=token', '_method=post', 'api_key=' + data.publicKey.trim(), 'encryptedcard%5Btrack_method%5D=swipe', 'encryptedcard%5Btrack%5D=' + encodeURIComponent(data.track.trim()), 'encryptedcard%5Btrack_number%5D=' + encodeURIComponent(data.trackNumber.trim()), 'encryptedcard%5Bktb%5D=' + encodeURIComponent(data.ktb.trim()), 'encryptedcard%5Bpin_block%5D=' + encodeURIComponent(data.pinBlock.trim()));
+                    params.push('token_type=supt', 'object=token', '_method=post', 'api_key=' + data.publicKey.replace(/^\s+|\s+$/g, ''), 'encryptedcard%5Btrack_method%5D=swipe', 'encryptedcard%5Btrack%5D=' + encodeURIComponent(data.track.replace(/^\s+|\s+$/g, '')), 'encryptedcard%5Btrack_number%5D=' + encodeURIComponent(data.trackNumber.replace(/^\s+|\s+$/g, '')), 'encryptedcard%5Bktb%5D=' + encodeURIComponent(data.ktb.replace(/^\s+|\s+$/g, '')), 'encryptedcard%5Bpin_block%5D=' + encodeURIComponent(data.pinBlock.replace(/^\s+|\s+$/g, '')));
                     break;
                 default:
                     Heartland.Util.throwError(data, 'unknown params type');
@@ -821,10 +929,15 @@ var Heartland;
             return '?' + params.join('&');
         }
         Util.getParams = getParams;
-        // Heartland.Util.getUrlByEnv
-        //
-        // Selects the appropriate tokenization service URL for the
-        // active `publicKey`.
+        /**
+         * Heartland.Util.getUrlByEnv
+         *
+         * Selects the appropriate tokenization service URL for the
+         * active `publicKey`.
+         *
+         * @param {Heartland.Options} options
+         * @returns {string}
+         */
         function getUrlByEnv(options) {
             options.env = options.publicKey.split('_')[1];
             if (options.env === 'cert') {
@@ -836,10 +949,15 @@ var Heartland;
             return options;
         }
         Util.getUrlByEnv = getUrlByEnv;
-        // Heartland.Util.addFormHandler
-        //
-        // Creates and adds an event handler function for the submission for a given
-        // form (`options.form_id`).
+        /**
+         * Heartland.Util.addFormHandler
+         *
+         * Creates and adds an event handler function for the submission for a given
+         * form (`options.form_id`).
+         *
+         * @param {Heartland.Options} options
+         * @listens submit
+         */
         function addFormHandler(options) {
             var payment_form = document.getElementById(options.formId);
             var code = function (e) {
@@ -862,11 +980,16 @@ var Heartland;
             Heartland.DOM.addField(options.formId, 'hidden', 'publicKey', options.publicKey);
         }
         Util.addFormHandler = addFormHandler;
-        // Heartland.Util.getFields
-        //
-        // Extracts card information from the fields with names `card_number`,
-        // `card_expiration_month`, `card_expiration_year`, and `card_cvc` and
-        // expects them to be present as children of `formParent`.
+        /**
+         * Heartland.Util.getFields
+         *
+         * Extracts card information from the fields with names `card_number`,
+         * `card_expiration_month`, `card_expiration_year`, and `card_cvc` and
+         * expects them to be present as children of `formParent`.
+         *
+         * @param {string} formParent
+         * @returns {Heartland.CardData}
+         */
         function getFields(formParent) {
             var form = document.getElementById(formParent);
             var fields = {};
@@ -897,15 +1020,23 @@ var Heartland;
 /// <reference path="Util.ts" />
 var Heartland;
 (function (Heartland) {
+    /**
+     * @namespace Heartland.Ajax
+     */
     var Ajax;
     (function (Ajax) {
-        // Heartland.Ajax.call
-        //
-        // Sets up a request to be passed to `Heartland.Ajax.jsonp`. On successful tokenization,
-        // `options.success` will be called with the tokenization data as the only
-        // argument passed.
+        /**
+         * Heartland.Ajax.call
+         *
+         * Sets up a request to be passed to `Heartland.Ajax.jsonp`. On successful tokenization,
+         * `options.success` will be called with the tokenization data as the only
+         * argument passed.
+         *
+         * @param {string} type
+         * @param {Heartland.Options} options
+         */
         function call(type, options) {
-            var number = options.cardNumber.trim();
+            var number = options.cardNumber.replace(/^\s+|\s+$/g, '');
             var lastfour = number.slice(-4);
             var cardType = Heartland.Util.getCardType(number);
             var params = Heartland.Util.getParams(type, options);
@@ -930,10 +1061,15 @@ var Heartland;
             });
         }
         Ajax.call = call;
-        // Heartland.Ajax.jsonp
-        //
-        // Creates a new DOM node containing a created JSONP callback handler for an
-        // impending Ajax JSONP request. Removes need for `XMLHttpRequest`.
+        /**
+         * Heartland.Ajax.jsonp
+         *
+         * Creates a new DOM node containing a created JSONP callback handler for an
+         * impending Ajax JSONP request. Removes need for `XMLHttpRequest`.
+         *
+         * @param {string} url
+         * @param {function} callback
+         */
         function jsonp(url, callback) {
             var callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
             window[callbackName] = function (data) {
@@ -959,22 +1095,36 @@ var Heartland;
 /// <reference path="HPS.ts" />
 var Heartland;
 (function (Heartland) {
-    // Heartland.Messages (constructor)
-    //
-    // Initializes a new object for wrapping `window.postMessage` and a fallback
-    // method for legacy browsers.
+    /**
+     * Heartland.Messages
+     *
+     * Initializes a new object for wrapping `window.postMessage` and a fallback
+     * method for legacy browsers.
+     */
     var Messages = (function () {
+        /**
+         * Heartland.Messages (constructor)
+         *
+         * @constructor
+         * @param {Heartland.HPS} hps
+         * @returns {Heartland.Messages}
+         */
         function Messages(hps) {
             this.hps = hps;
             this.intervalId = null;
             this.lastHash = '';
             this.pushIntervalStarted = false;
         }
-        // Heartland.Messages.pushMessages
-        //
-        // For legacy browsers, a mailbox (buffer) must be used to ensure all messages
-        // are sent between parent and child windows. When ready, this function builds
-        // the final message, encodes it, sends it, and resets the mailbox to `[]`.
+        /**
+         * Heartland.Messages.pushMessages
+         *
+         * For legacy browsers, a mailbox (buffer) must be used to ensure all messages
+         * are sent between parent and child windows. When ready, this function builds
+         * the final message, encodes it, sends it, and resets the mailbox to `[]`.
+         *
+         * @param {Heartland.HPS} hps
+         * @returns {function}
+         */
         Messages.prototype.pushMessages = function (hps) {
             return function () {
                 var data = [];
@@ -1021,11 +1171,16 @@ var Heartland;
                 hps.mailbox.length = 0;
             };
         };
-        // Heartland.Messages.post
-        //
-        // When present, wraps the built-in `window.postMessage`. When not present,
-        // pushes the message onto the mailbox for eventual sending, and on first use,
-        // starts the interval for `Messages.pushMessages`.
+        /**
+         * Heartland.Messages.post
+         *
+         * When present, wraps the built-in `window.postMessage`. When not present,
+         * pushes the message onto the mailbox for eventual sending, and on first use,
+         * starts the interval for `Messages.pushMessages`.
+         *
+         * @param {Object | string} message
+         * @param {string} target
+         */
         Messages.prototype.post = function (message, target) {
             var frame;
             var targetNode;
@@ -1062,12 +1217,17 @@ var Heartland;
                 }
             }
         };
-        // Heartland.Messages.receive
-        //
-        // When present, wraps the built-in `window.postMesage`'s `message` or
-        // `onmessage` window events. When not present, uses a single interval to
-        // check for changes to `window.location.hash` when the other window sends a
-        // message and will decode the JSON and URI encoded hash.
+        /**
+         * Heartland.Messages.receive
+         *
+         * When present, wraps the built-in `window.postMesage`'s `message` or
+         * `onmessage` window events. When not present, uses a single interval to
+         * check for changes to `window.location.hash` when the other window sends a
+         * message and will decode the JSON and URI encoded hash.
+         *
+         * @param {Function} callback
+         * @param {string} sourceOrigin
+         */
         Messages.prototype.receive = function (callback, sourceOrigin) {
             if (window.postMessage) {
                 if (window.addEventListener) {
@@ -1113,13 +1273,19 @@ var Heartland;
 })(Heartland || (Heartland = {}));
 var Heartland;
 (function (Heartland) {
+    /**
+     * @namespace Heartland.Styles
+     */
     var Styles;
     (function (Styles) {
-        // Heartland.Styles.Defaults
-        //
-        // Collection of helper functions for applying default styles to a child
-        // window's fields. Serves as an example of these methods' use in merchant
-        // modifications.
+        /**
+         * Heartland.Styles.Defaults
+         *
+         * Collection of helper functions for applying default styles to a child
+         * window's fields. Serves as an example of these methods' use in merchant
+         * modifications. Each function expects a `Heartland.HPS` object to be passed
+         * as an argument.
+         */
         Styles.Defaults = {
             body: function (hps) {
                 hps.setStyle('heartland-body', 'margin: 0;' +
@@ -1232,11 +1398,20 @@ var Heartland;
 /// <reference path="Styles.ts" />
 var Heartland;
 (function (Heartland) {
+    /**
+     * @namespace Heartland.Frames
+     */
     var Frames;
     (function (Frames) {
-        // Heartland.Frames.configureIframe
-        //
-        // Prepares the pages iFrames for communication with the parent window.
+        /**
+         * Heartland.Frames.configureIframe
+         *
+         * Prepares the pages iFrames for communication with the parent window.
+         *
+         * @param {Heartland.HPS} hps
+         * @listens click
+         * @listens message
+         */
         function configureIframe(hps) {
             var frame;
             var options = hps.options;
@@ -1253,7 +1428,7 @@ var Heartland;
                 Heartland.Frames.makeFieldAndLink(hps);
             }
             if (options.iframeTarget) {
-                frame = document.getElementById(options.iframeTarget);
+                target = document.getElementById(options.iframeTarget);
                 if (options.targetType === 'myframe') {
                     frame = target;
                     hps.iframe_url = frame.src;
@@ -1356,14 +1531,18 @@ var Heartland;
             // monitorFieldEvents(hps, )
         }
         Frames.configureIframe = configureIframe;
-        // Heartland.Frames.makeFieldAndLink
-        //
-        // Creates a set of single field iFrames and stores a reference to
-        // them in the parent window's state.
+        /**
+         * Heartland.Frames.makeFieldAndLink
+         *
+         * Creates a set of single field iFrames and stores a reference to
+         * them in the parent window's state.
+         *
+         * @param {Heartland.HPS} hps
+         */
         function makeFieldAndLink(hps) {
-            var fieldsLength = Heartland.fields.length;
-            var baseUrl = hps.iframe_url.replace('index.html', '') + 'field.html';
             var options = hps.options;
+            var fieldsLength = options.fields.length;
+            var baseUrl = hps.iframe_url.replace('index.html', '') + 'field.html';
             for (var i = 0; i < fieldsLength; i++) {
                 var field = Heartland.fields[i];
                 var fieldOptions = options.fields[field];
@@ -1384,6 +1563,12 @@ var Heartland;
             }
         }
         Frames.makeFieldAndLink = makeFieldAndLink;
+        /**
+         * Heartland.Frames.monitorFieldEvents
+         *
+         * @param {Heartland.HPS} hps
+         * @param {string | EventTarget} target
+         */
         function monitorFieldEvents(hps, target) {
             var events = ['click', 'blur', 'focus', 'change', 'keypress', 'keydown', 'keyup'];
             var i = 0, length = events.length;
@@ -1412,12 +1597,21 @@ var Heartland;
 /// <reference path="Util.ts" />
 var Heartland;
 (function (Heartland) {
-    // Heartland.HPS (constructor)
-    //
-    // Initializes options and adds the default form handler if a `form_id` is
-    // passed as an option. This expects the default fields (see `getFields`) to
-    // be present as children of `form_id`.
+    /**
+     * Heartland.HPS
+     *
+     * Initializes options and adds the default form handler if a `formId` is
+     * passed as an option. This expects the default fields (see `getFields`) to
+     * be present as children of `formId`.
+     */
     var HPS = (function () {
+        /**
+         * Heartland.HPS (constructor)
+         *
+         * @constructor
+         * @param {Heartland.Options} options [optional]
+         * @returns {Heartland.HPS}
+         */
         function HPS(options) {
             if (!options && window.parent) {
                 return;
@@ -1437,11 +1631,15 @@ var Heartland;
             }
             return this;
         }
-        // Heartland.HPS.tokenize
-        //
-        // Tokenizes card data. Used in manual integrations where the merchant's
-        // credit card fields cannot/do not match the names expected in the default
-        // form handler (see `getFields`).
+        /**
+         * Heartland.HPS.tokenize
+         *
+         * Tokenizes card data. Used in manual integrations where the merchant's
+         * credit card fields cannot/do not match the names expected in the default
+         * form handler (see `getFields`).
+         *
+         * @param {Heartland.Options} options [optional]
+         */
         HPS.prototype.tokenize = function (options) {
             options = options || {};
             if (options) {
@@ -1455,10 +1653,14 @@ var Heartland;
             Heartland.Ajax.call(this.options.type, this.options);
         };
         ;
-        // Heartland.HPS.configureInternalIframe
-        //
-        // Sets up a child iframe window to prepare it for communication with the
-        // parent and for tokenization.
+        /**
+         * Heartland.HPS.configureInternalIframe
+         *
+         * Sets up a child iframe window to prepare it for communication with the
+         * parent and for tokenization.
+         *
+         * @param {Heartland.Options} options
+         */
         HPS.prototype.configureInternalIframe = function (options) {
             var win = window.parent;
             this.Messages = new Heartland.Messages(this);
@@ -1482,10 +1684,14 @@ var Heartland;
             this.Messages.receive(Heartland.Events.frameHandleWith(this), '*');
         };
         ;
-        // Heartland.HPS.configureFieldIframe
-        //
-        // Sets up a child iframe window to prepare it for communication with the
-        // parent and for tokenization.
+        /**
+         * Heartland.HPS.configureFieldIframe
+         *
+         * Sets up a child iframe window to prepare it for communication with the
+         * parent and for tokenization.
+         *
+         * @param {Heartland.Options} options
+         */
         HPS.prototype.configureFieldIframe = function (options) {
             var win = window;
             var hash = document.location.hash.replace(/^#/, '');
@@ -1513,31 +1719,51 @@ var Heartland;
             this.Messages.receive(Heartland.Events.frameHandleWith(this), '*');
         };
         ;
-        // Heartland.HPS.resizeIFrame
-        //
-        // Called automatically when the child iframe window alerts the parent to
-        // resize.
+        /**
+         * Heartland.HPS.resizeIFrame
+         *
+         * Called automatically when the child iframe window alerts the parent to
+         * resize.
+         *
+         * @param {HTMLIFrameElement} frame
+         * @param {string} height
+         */
         HPS.prototype.resizeIFrame = function (frame, height) {
             frame.style.height = (parseInt(height, 10)) + 'px';
         };
         ;
-        // Heartland.HPS.setText
-        //
-        // Public API for setting an element's inner text.
+        /**
+         * Heartland.HPS.setText
+         *
+         * Public API for setting an element's inner text.
+         *
+         * @param {string} elementid
+         * @param {string} elementtext
+         */
         HPS.prototype.setText = function (elementid, elementtext) {
             this.Messages.post({ action: 'setText', id: elementid, text: elementtext }, 'child');
         };
         ;
-        // Heartland.HPS.setStyle
-        //
-        // Public API for setting an element's style.
+        /**
+         * Heartland.HPS.setStyle
+         *
+         * Public API for setting an element's style.
+         *
+         * @param {string} elementid
+         * @param {string} elementstyle
+         */
         HPS.prototype.setStyle = function (elementid, elementstyle) {
             this.Messages.post({ action: 'setStyle', id: elementid, style: elementstyle }, 'child');
         };
         ;
-        // Heartland.HPS.appendStyle
-        //
-        // Public API for appending to an element's style.
+        /**
+         * Heartland.HPS.appendStyle
+         *
+         * Public API for appending to an element's style.
+         *
+         * @param {string} elementid
+         * @param {string} elementstyle
+         */
         HPS.prototype.appendStyle = function (elementid, elementstyle) {
             this.Messages.post({ action: 'appendStyle', id: elementid, style: elementstyle }, 'child');
         };

@@ -1,9 +1,9 @@
 {
-    "compilerOptions": {
-        "target": "es5",
-        "out": "dist/securesubmit.js",
-        "sourceMap": true,
-        "noImplicitAny": true
-    },
-    "files": [ "src/SecureSubmit" ]
+  "compilerOptions": {
+    "target": "es5",
+    "out": "dist/securesubmit.js",
+    "sourceMap": true,
+    "noImplicitAny": true
+  },
+  "files": [ "src/SecureSubmit" ]
 }
