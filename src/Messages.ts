@@ -40,7 +40,7 @@ module Heartland {
      */
     pushMessages(hps: HPS): () => void {
       return function() {
-        var data: Array<any> = []
+        var data: Array<any> = [];
         var messageArr: Array<any> = [];
         var message = '';
         var i = 0, length = 0;
@@ -64,15 +64,14 @@ module Heartland {
         }
 
         current = null;
-        console.log(window.location.hash)
         if (re.test(window.location.hash)) {
           current = JSON.parse(decodeURIComponent(window.location.hash.replace(re, '')));
           data.concat(current);
         }
 
         if (messageArr !== []) {
-          hps.cacheBust = hps.cacheBust || 1
-          data.push({source: {name: hps.field || 'parent'}, data: messageArr});
+          hps.cacheBust = hps.cacheBust || 1;
+          data.push({data: messageArr, source: {name: hps.field || 'parent'}});
           message = JSON.stringify(data);
           url = targetUrl.replace(/#.*$/, '') + '#' +
               (+new Date()) + (hps.cacheBust++) + '&' +
@@ -119,7 +118,7 @@ module Heartland {
       if (typeof frame.targetNode !== 'undefined') {
         targetNode = frame.targetNode;
       } else if (typeof frame.frame !== 'undefined') {
-        targetNode = frame.frame
+        targetNode = frame.frame;
       } else {
         targetNode = frame;
       }
@@ -128,13 +127,13 @@ module Heartland {
         targetNode.postMessage(
           message,
           targetUrl
-          );
+        );
       } else {
         this.hps.mailbox = this.hps.mailbox || [];
         this.hps.mailbox.push({
           message: message,
-          targetUrl: targetUrl,
-          targetNode: targetNode
+          targetNode: targetNode,
+          targetUrl: targetUrl
         });
         if (!this.pushIntervalStarted) {
           setInterval(this.pushMessages(this.hps), 10);
@@ -171,7 +170,7 @@ module Heartland {
             var hash = document.location.hash,
               re = /^#?\d+&/;
             if (hash !== this.lastHash && re.test(hash)) {
-              var data = JSON.parse(decodeURIComponent(hash.replace(re, '')));;
+              var data = JSON.parse(decodeURIComponent(hash.replace(re, '')));
               var i: any, j: any;
               var m: any;
               this.lastHash = hash;
@@ -184,7 +183,7 @@ module Heartland {
                 }
 
                 for (j in m.data) {
-                  callback({ source: m.source, data: m.data[j] });
+                  callback({ data: m.data[j], source: m.source });
                 }
               }
             }

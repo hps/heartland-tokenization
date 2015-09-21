@@ -5,27 +5,39 @@ module Heartland {
     export var types: CardType[] = [
       {
         code: 'visa',
-        regex: /^4[0-9]{12}(?:[0-9]{3})?$/
+        format: /(\d{1,4})/g,
+        length: 16,
+        regex: /^4/
       },
       {
         code: 'mastercard',
-        regex: /^5[1-5][0-9]{14}$/
+        format: /(\d{1,4})/g,
+        length: 16,
+        regex: /^(5[1-5]|2[2-7])/
       },
       {
         code: 'amex',
-        regex: /^3[47][0-9]{13}$/
+        format: /(\d{1,4})(\d{1,6})?(\d{1,5})?/,
+        length: 15,
+        regex: /^3[47]/
       },
       {
         code: 'diners',
-        regex: /^3(?:0[0-5]|[68][0-9])[0-9]{11}$/
+        format: /(\d{1,4})(\d{1,6})?(\d{1,4})?/,
+        length: 14,
+        regex: /^3[0689]/
       },
       {
         code: 'discover',
-        regex: /^6(?:011|5[0-9]{2})[0-9]{12}$/
+        format: /(\d{1,4})/g,
+        length: 16,
+        regex: /^6([045]|22)/
       },
       {
         code: 'jcb',
-        regex: /^(?:2131|1800|35\d{3})\d{11}$/
+        format: /(\d{1,4})/g,
+        length: 16,
+        regex: /^35/
       }
     ];
   }

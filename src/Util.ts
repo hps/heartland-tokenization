@@ -1,8 +1,8 @@
 /// <reference path="types/CardData.ts" />
-/// <reference path="types/CardType.ts" />
 /// <reference path="types/Options.ts" />
 /// <reference path="vars/cardTypes.ts" />
 /// <reference path="vars/urls.ts" />
+/// <reference path="Card.ts" />
 /// <reference path="Events.ts" />
 
 module Heartland {
@@ -18,13 +18,12 @@ module Heartland {
      * @param {string} number
      */
     export function getCardType(number: string) {
-      var cardType: CardType;
-      var i: any;
-
-      for (i in Card.types) {
-        cardType = Card.types[i];
-        if (cardType.regex.test(number)) return cardType.code;
+      var cardType = Card.typeByNumber(number);
+      var type = '';
+      if (cardType) {
+        type = cardType.code;
       }
+      return type;
     }
 
     /**

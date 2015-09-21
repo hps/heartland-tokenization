@@ -61,7 +61,7 @@ module Heartland {
     export function frameHandleWith(hps: HPS) : (m: any) => void {
       return function(m) {
         switch (m.data.action) {
-          case 'tokenize': {
+          case 'tokenize':
             if (m.data.accumulateData) {
               hps.Messages.post(
                 {
@@ -80,27 +80,22 @@ module Heartland {
               tokenizeIframe(hps, m.data.message);
             }
             break;
-          }
-          case 'setStyle': {
+          case 'setStyle':
             Heartland.DOM.setStyle(m.data.id, m.data.style);
             Heartland.DOM.resizeFrame(hps);
             break;
-          }
-          case 'appendStyle': {
+          case 'appendStyle':
             Heartland.DOM.appendStyle(m.data.id, m.data.style);
             Heartland.DOM.resizeFrame(hps);
             break;
-          }
-          case 'setText': {
+          case 'setText':
             Heartland.DOM.setText(m.data.id, m.data.text);
             Heartland.DOM.resizeFrame(hps);
             break;
-          }
-          case 'setPlaceholder': {
+          case 'setPlaceholder':
             Heartland.DOM.setPlaceholder(m.data.id, m.data.text);
             break;
-          }
-          case 'setFieldData': {
+          case 'setFieldData':
             Heartland.DOM.setFieldData(m.data.id, m.data.value);
             if (document.getElementById('heartland-field') &&
               document.getElementById('cardCvv') &&
@@ -108,11 +103,9 @@ module Heartland {
               tokenizeIframe(hps, document.getElementById('publicKey').getAttribute('value'));
             }
             break;
-          }
-          case 'getFieldData': {
+          case 'getFieldData':
             Heartland.DOM.getFieldData(hps, m.data.id);
             break;
-          }
         }
       };
     }
@@ -128,9 +121,16 @@ module Heartland {
      */
     function tokenizeIframe(hps: HPS, publicKey: string) {
       var card: CardData = {};
+      var tokenResponse = (action: string) => {
+        return (response: TokenizationResponse) => {
+          hps.Messages.post({action: action, response: response}, 'parent');
+        };
+      };
 
-      card.number = (<HTMLInputElement>(document.getElementById('heartland-field') || document.getElementById('heartland-card-number'))).value;
-      card.cvv = (<HTMLInputElement>(document.getElementById('cardCvv') || document.getElementById('heartland-cvv'))).value;
+      card.number = (<HTMLInputElement>(document.getElementById('heartland-field')
+        || document.getElementById('heartland-card-number'))).value;
+      card.cvv = (<HTMLInputElement>(document.getElementById('cardCvv')
+        || document.getElementById('heartland-cvv'))).value;
       card.exp = document.getElementById('cardExpiration');
 
       if (card.exp) {
@@ -144,18 +144,14 @@ module Heartland {
       }
 
       hps.tokenize({
-        publicKey: publicKey,
-        cardNumber: card.number,
         cardCvv: card.cvv,
         cardExpMonth: card.expMonth,
         cardExpYear: card.expYear,
-        type: 'pan',
-        success: function (response: TokenizationResponse) {
-          hps.Messages.post({action: 'onTokenSuccess', response: response}, 'parent');
-        },
-        error: function (response: TokenizationResponse) {
-          hps.Messages.post({action: 'onTokenError', response: response}, 'parent');
-        }
+        cardNumber: card.number,
+        error: tokenResponse('onTokenError'),
+        publicKey: publicKey,
+        success: tokenResponse('onTokenSuccess'),
+        type: 'pan'
       });
     }
   }

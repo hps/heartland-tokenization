@@ -50,8 +50,8 @@ module Heartland {
         frame.src = hps.iframe_url;
 
         hps.frames.child = {
-          name: 'child',
           frame: window.postMessage ? frame.contentWindow : frame,
+          name: 'child',
           url: hps.iframe_url
         };
       }
@@ -65,9 +65,9 @@ module Heartland {
           e.preventDefault();
           hps.Messages.post(
             {
+              accumulateData: !!hps.frames.cardNumber,
               action: 'tokenize',
-              message: options.publicKey,
-              accumulateData: !!hps.frames.cardNumber
+              message: options.publicKey
             },
             hps.frames.cardNumber ? 'cardNumber' : 'child'
             );
@@ -127,7 +127,9 @@ module Heartland {
             var field: any;
 
             for (i in hps.frames) {
-              if (i === 'cardNumber') continue;
+              if (i === 'cardNumber') {
+                continue;
+              }
               field = hps.frames[i];
               hps.Messages.post(
                 {
@@ -185,8 +187,8 @@ module Heartland {
           .appendChild(frame);
 
         hps.frames[field] = {
-          name: field,
           frame: frame,
+          name: field,
           options: fieldOptions,
           target: fieldOptions.target,
           targetNode: window.postMessage ? frame.contentWindow : frame,
@@ -201,7 +203,7 @@ module Heartland {
      * @param {Heartland.HPS} hps
      * @param {string | EventTarget} target
      */
-    function monitorFieldEvents(hps: HPS, target: string | EventTarget) {
+    export function monitorFieldEvents(hps: HPS, target: string | EventTarget) {
       var events = ['click', 'blur', 'focus', 'change', 'keypress', 'keydown', 'keyup'];
       var i = 0, length = events.length;
       var event: string;
@@ -216,7 +218,7 @@ module Heartland {
               eventData: e
             },
             'parent'
-          )
+          );
         });
       }
     }

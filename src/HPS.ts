@@ -95,8 +95,8 @@ module Heartland {
       this.parent = window.postMessage ? win.parent.contentWindow : window.parent;
       this.frames = this.frames || {};
       this.frames.parent = {
-        name: 'parent',
         frame: window.parent,
+        name: 'parent',
         url: decodeURIComponent(document.location.hash.replace(/^#/, ''))
       };
 
@@ -132,8 +132,8 @@ module Heartland {
       this.parent = window.postMessage ? win.parent.contentWindow : window.parent;
       this.frames = this.frames || {};
       this.frames.parent = {
-        name: 'parent',
         frame: window.parent,
+        name: 'parent',
         url: decodeURIComponent(split.join(':').replace(/^:/, ''))
       };
 

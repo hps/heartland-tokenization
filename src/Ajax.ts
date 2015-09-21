@@ -55,6 +55,7 @@ module Heartland {
      * @param {function} callback
      */
     function jsonp(url: string, callback: (data: TokenizationResponse) => void) {
+      var script = document.createElement('script');
       var callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
       (<any>window)[callbackName] = function(data: TokenizationResponse) : void {
         delete (<any>window)[callbackName];
@@ -62,7 +63,6 @@ module Heartland {
         callback(data);
       };
 
-      var script = document.createElement('script');
       script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
       document.body.appendChild(script);
     }

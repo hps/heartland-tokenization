@@ -7,10 +7,11 @@
     "test": "test"
   },
   "scripts": {
-    "build": "npm run clean && npm run build-ts && npm run minify && npm run cp-html",
+    "build": "npm run clean && npm run build-ts && npm run lint && npm run minify && npm run cp-html",
     "build-ts": "node_modules/.bin/tsc",
     "clean": "rm -rf dist",
     "cp-html": "cp field.html index.html dist",
+    "lint": "node_modules/.bin/tslint -t verbose -c tslint.json src/*.ts src/Formatter/*.ts src/Validator/*.ts src/types/*.ts src/vars/*.ts",
     "minify": "node_modules/.bin/uglifyjs -c -m -o dist/securesubmit.min.js --source-map-root ./src  --source-map-url /dist/securesubmit.min.js.map --source-map dist/securesubmit.min.js.map --in-source-map dist/securesubmit.js.map --enclose -- dist/securesubmit.js",
     "install": "npm run build",
     "test": "open 'test/index.html'",
@@ -36,6 +37,7 @@
   },
   "homepage": "https://github.com/hps/heartland-tokenization#readme",
   "devDependencies": {
+    "tslint": "^2.5.0",
     "typescript": "^1.6.2",
     "uglify-js": "^2.4.24"
   }

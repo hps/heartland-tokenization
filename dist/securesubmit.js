@@ -2,32 +2,32 @@
 var Heartland;
 (function (Heartland) {
     Heartland.defaults = {
-        publicKey: '',
-        success: null,
-        error: null,
-        object: 'token',
-        tokenType: 'supt',
         _method: 'post',
-        cardNumber: '',
+        buttonTarget: '',
         cardCvv: '',
         cardExpMonth: '',
         cardExpYear: '',
+        cardNumber: '',
         cardType: '',
+        env: 'prod',
+        error: null,
+        fields: [],
         formId: '',
+        gatewayUrl: '',
+        iframeTarget: '',
+        ktb: '',
+        object: 'token',
+        onTokenError: null,
+        onTokenSuccess: null,
+        pinBlock: '',
+        publicKey: '',
+        success: null,
+        targetType: '',
+        tokenType: 'supt',
         track: '',
         trackNumber: '',
-        ktb: '',
-        pinBlock: '',
         type: 'pan',
-        useDefaultStyles: true,
-        gatewayUrl: '',
-        env: 'prod',
-        iframeTarget: '',
-        targetType: '',
-        fields: [],
-        buttonTarget: '',
-        onTokenSuccess: null,
-        onTokenError: null
+        useDefaultStyles: true
     };
 })(Heartland || (Heartland = {}));
 /* -----------------------------------------------------------------------------
@@ -613,27 +613,39 @@ var Heartland;
         Card.types = [
             {
                 code: 'visa',
-                regex: /^4[0-9]{12}(?:[0-9]{3})?$/
+                format: /(\d{1,4})/g,
+                length: 16,
+                regex: /^4/
             },
             {
                 code: 'mastercard',
-                regex: /^5[1-5][0-9]{14}$/
+                format: /(\d{1,4})/g,
+                length: 16,
+                regex: /^(5[1-5]|2[2-7])/
             },
             {
                 code: 'amex',
-                regex: /^3[47][0-9]{13}$/
+                format: /(\d{1,4})(\d{1,6})?(\d{1,5})?/,
+                length: 15,
+                regex: /^3[47]/
             },
             {
                 code: 'diners',
-                regex: /^3(?:0[0-5]|[68][0-9])[0-9]{11}$/
+                format: /(\d{1,4})(\d{1,6})?(\d{1,4})?/,
+                length: 14,
+                regex: /^3[0689]/
             },
             {
                 code: 'discover',
-                regex: /^6(?:011|5[0-9]{2})[0-9]{12}$/
+                format: /(\d{1,4})/g,
+                length: 16,
+                regex: /^6([045]|22)/
             },
             {
                 code: 'jcb',
-                regex: /^(?:2131|1800|35\d{3})\d{11}$/
+                format: /(\d{1,4})/g,
+                length: 16,
+                regex: /^35/
             }
         ];
     })(Card = Heartland.Card || (Heartland.Card = {}));
@@ -646,6 +658,289 @@ var Heartland;
         iframeCERT: 'http://localhost:8889/',
         iframePROD: 'https://api2.heartlandportico.com/SecureSubmit.v1/token/2.0/'
     };
+})(Heartland || (Heartland = {}));
+/// <reference path="../types/CardType.ts" />
+/// <reference path="../types/Formatter.ts" />
+/// <reference path="../Card.ts" />
+var Heartland;
+(function (Heartland) {
+    var Formatter;
+    (function (Formatter) {
+        var CardNumber = (function () {
+            function CardNumber() {
+            }
+            CardNumber.prototype.format = function (number) {
+                var type;
+                var matches;
+                number = number.replace(/\D/g, '');
+                type = Heartland.Card.typeByNumber(number);
+                matches = number.match(type.format);
+                if (!type.format.global) {
+                    matches.shift();
+                }
+                return matches.join(' ');
+            };
+            return CardNumber;
+        })();
+        Formatter.CardNumber = CardNumber;
+    })(Formatter = Heartland.Formatter || (Heartland.Formatter = {}));
+})(Heartland || (Heartland = {}));
+/// <reference path="../types/Formatter.ts" />
+var Heartland;
+(function (Heartland) {
+    var Formatter;
+    (function (Formatter) {
+        var Expiration = (function () {
+            function Expiration() {
+            }
+            Expiration.prototype.format = function (exp) {
+                var pat = /^\D*(\d{1,2})(\D+)?(\d{1,4})?/;
+                var groups = exp.match(pat);
+                var month;
+                var del;
+                var year;
+                if (!groups) {
+                    return '';
+                }
+                month = groups[1] || '';
+                del = groups[2] || '';
+                year = groups[3] || '';
+                if (year.length > 0) {
+                    del = ' / ';
+                }
+                else if (month.length === 2 || del.length > 0) {
+                    del = ' / ';
+                }
+                else if (month.length === 1 && (month !== '0' && month !== '1')) {
+                    del = ' / ';
+                }
+                if (month.length === 1 && del !== '') {
+                    month = '0' + month;
+                }
+                if (year.length === 2) {
+                    year = (new Date).getFullYear().toString().slice(0, 2) + year;
+                }
+                return month + del + year;
+            };
+            return Expiration;
+        })();
+        Formatter.Expiration = Expiration;
+    })(Formatter = Heartland.Formatter || (Heartland.Formatter = {}));
+})(Heartland || (Heartland = {}));
+/// <reference path="../types/CardType.ts" />
+/// <reference path="../types/Validator.ts" />
+/// <reference path="../Card.ts" />
+var Heartland;
+(function (Heartland) {
+    var Validator;
+    (function (Validator) {
+        var CardNumber = (function () {
+            function CardNumber() {
+            }
+            CardNumber.prototype.validate = function (number) {
+                var type;
+                if (!number) {
+                    return false;
+                }
+                number = number.replace(/[-\s]/g, '');
+                type = Heartland.Card.typeByNumber(number);
+                if (!type) {
+                    return false;
+                }
+                return Heartland.Card.luhnCheck(number)
+                    && number.length === type.length;
+            };
+            return CardNumber;
+        })();
+        Validator.CardNumber = CardNumber;
+    })(Validator = Heartland.Validator || (Heartland.Validator = {}));
+})(Heartland || (Heartland = {}));
+/// <reference path="../types/Validator.ts" />
+var Heartland;
+(function (Heartland) {
+    var Validator;
+    (function (Validator) {
+        var Cvv = (function () {
+            function Cvv() {
+            }
+            Cvv.prototype.validate = function (cvv) {
+                if (!cvv) {
+                    return false;
+                }
+                cvv = cvv.replace(/^\s+|\s+$/g, '');
+                if (!/^\d+$/.test(cvv)) {
+                    return false;
+                }
+                return 3 <= cvv.length && cvv.length <= 4;
+            };
+            return Cvv;
+        })();
+        Validator.Cvv = Cvv;
+    })(Validator = Heartland.Validator || (Heartland.Validator = {}));
+})(Heartland || (Heartland = {}));
+/// <reference path="../types/Validator.ts" />
+var Heartland;
+(function (Heartland) {
+    var Validator;
+    (function (Validator) {
+        var Expiration = (function () {
+            function Expiration() {
+            }
+            Expiration.prototype.validate = function (exp) {
+                var month;
+                var year;
+                var split;
+                var m, y;
+                if (!exp) {
+                    return false;
+                }
+                split = exp.split('/');
+                m = split[0], y = split[1];
+                if (!m || !y) {
+                    return false;
+                }
+                m = m.replace(/^\s+|\s+$/g, '');
+                y = y.replace(/^\s+|\s+$/g, '');
+                if (!/^\d+$/.test(m)) {
+                    return false;
+                }
+                if (!/^\d+$/.test(y)) {
+                    return false;
+                }
+                month = parseInt(m, 10);
+                year = parseInt(y, 10);
+                if (!(1 <= month && month <= 12)) {
+                    return false;
+                }
+                // creates date as 1 day past end of
+                // expiration month since JS months
+                // are 0 indexed
+                return (new Date(year, month, 1)) > (new Date);
+            };
+            return Expiration;
+        })();
+        Validator.Expiration = Expiration;
+    })(Validator = Heartland.Validator || (Heartland.Validator = {}));
+})(Heartland || (Heartland = {}));
+/// <reference path="types/CardType.ts" />
+/// <reference path="vars/cardTypes.ts" />
+/// <reference path="Formatter/CardNumber.ts" />
+/// <reference path="Formatter/Expiration.ts" />
+/// <reference path="Validator/CardNumber.ts" />
+/// <reference path="Validator/Cvv.ts" />
+/// <reference path="Validator/Expiration.ts" />
+var Heartland;
+(function (Heartland) {
+    /**
+     * @namespace Heartland.Card
+     */
+    var Card;
+    (function (Card) {
+        /**
+         * Heartland.Card.typeByNumber
+         *
+         * Helper function to grab the CardType for a given card number.
+         *
+         * @param {string} number - The card number
+         * @returns {Heartland.CardType}
+         */
+        function typeByNumber(number) {
+            var cardType;
+            var i;
+            for (i in Card.types) {
+                cardType = Card.types[i];
+                if (cardType.regex.test(number)) {
+                    break;
+                }
+            }
+            return cardType;
+        }
+        Card.typeByNumber = typeByNumber;
+        /**
+         * Heartland.Card.luhnCheck
+         *
+         * @param {string} number - The card number
+         * @returns {boolean}
+         */
+        function luhnCheck(number) {
+            var odd = true;
+            var sum = 0;
+            var digits;
+            var i = 0;
+            var length = 0;
+            var digit;
+            if (!number) {
+                return false;
+            }
+            digits = number.split('').reverse();
+            length = digits.length;
+            for (i; i < length; i++) {
+                digit = parseInt(digits[i], 10);
+                if (odd = !odd) {
+                    digit *= 2;
+                }
+                if (digit > 9) {
+                    digit -= 9;
+                }
+                sum += digit;
+            }
+            return sum % 10 === 0;
+        }
+        Card.luhnCheck = luhnCheck;
+        function formatNumber(e) {
+            var target = e.currentTarget;
+            var value = target.value;
+            value = (new Heartland.Formatter.CardNumber).format(value);
+            target.value = value;
+        }
+        Card.formatNumber = formatNumber;
+        function formatExpiration(e) {
+            var target = e.currentTarget;
+            var value = target.value;
+            value = (new Heartland.Formatter.Expiration).format(value);
+            target.value = value;
+        }
+        Card.formatExpiration = formatExpiration;
+        function validateNumber(e) {
+            var target = e.currentTarget;
+            var value = target.value;
+            if ((new Heartland.Validator.CardNumber).validate(value)) {
+                target.classList.remove('invalid');
+                target.classList.add('valid');
+            }
+            else {
+                target.classList.add('invalid');
+                target.classList.remove('valid');
+            }
+        }
+        Card.validateNumber = validateNumber;
+        function validateCvv(e) {
+            var target = e.currentTarget;
+            var value = target.value;
+            if ((new Heartland.Validator.Cvv).validate(value)) {
+                target.classList.remove('invalid');
+                target.classList.add('valid');
+            }
+            else {
+                target.classList.add('invalid');
+                target.classList.remove('valid');
+            }
+        }
+        Card.validateCvv = validateCvv;
+        function validateExpiration(e) {
+            var target = e.currentTarget;
+            var value = target.value;
+            if ((new Heartland.Validator.Expiration).validate(value)) {
+                target.classList.remove('invalid');
+                target.classList.add('valid');
+            }
+            else {
+                target.classList.add('invalid');
+                target.classList.remove('valid');
+            }
+        }
+        Card.validateExpiration = validateExpiration;
+    })(Card = Heartland.Card || (Heartland.Card = {}));
 })(Heartland || (Heartland = {}));
 /// <reference path="types/CardData.ts" />
 /// <reference path="DOM.ts" />
@@ -711,7 +1006,7 @@ var Heartland;
         function frameHandleWith(hps) {
             return function (m) {
                 switch (m.data.action) {
-                    case 'tokenize': {
+                    case 'tokenize':
                         if (m.data.accumulateData) {
                             hps.Messages.post({
                                 action: 'accumulateData'
@@ -728,27 +1023,22 @@ var Heartland;
                             tokenizeIframe(hps, m.data.message);
                         }
                         break;
-                    }
-                    case 'setStyle': {
+                    case 'setStyle':
                         Heartland.DOM.setStyle(m.data.id, m.data.style);
                         Heartland.DOM.resizeFrame(hps);
                         break;
-                    }
-                    case 'appendStyle': {
+                    case 'appendStyle':
                         Heartland.DOM.appendStyle(m.data.id, m.data.style);
                         Heartland.DOM.resizeFrame(hps);
                         break;
-                    }
-                    case 'setText': {
+                    case 'setText':
                         Heartland.DOM.setText(m.data.id, m.data.text);
                         Heartland.DOM.resizeFrame(hps);
                         break;
-                    }
-                    case 'setPlaceholder': {
+                    case 'setPlaceholder':
                         Heartland.DOM.setPlaceholder(m.data.id, m.data.text);
                         break;
-                    }
-                    case 'setFieldData': {
+                    case 'setFieldData':
                         Heartland.DOM.setFieldData(m.data.id, m.data.value);
                         if (document.getElementById('heartland-field') &&
                             document.getElementById('cardCvv') &&
@@ -756,11 +1046,9 @@ var Heartland;
                             tokenizeIframe(hps, document.getElementById('publicKey').getAttribute('value'));
                         }
                         break;
-                    }
-                    case 'getFieldData': {
+                    case 'getFieldData':
                         Heartland.DOM.getFieldData(hps, m.data.id);
                         break;
-                    }
                 }
             };
         }
@@ -776,8 +1064,15 @@ var Heartland;
          */
         function tokenizeIframe(hps, publicKey) {
             var card = {};
-            card.number = (document.getElementById('heartland-field') || document.getElementById('heartland-card-number')).value;
-            card.cvv = (document.getElementById('cardCvv') || document.getElementById('heartland-cvv')).value;
+            var tokenResponse = function (action) {
+                return function (response) {
+                    hps.Messages.post({ action: action, response: response }, 'parent');
+                };
+            };
+            card.number = (document.getElementById('heartland-field')
+                || document.getElementById('heartland-card-number')).value;
+            card.cvv = (document.getElementById('cardCvv')
+                || document.getElementById('heartland-cvv')).value;
             card.exp = document.getElementById('cardExpiration');
             if (card.exp) {
                 var cardExpSplit = card.exp.value.split('/');
@@ -790,27 +1085,23 @@ var Heartland;
                 card.expYear = document.getElementById('heartland-expiration-year').value;
             }
             hps.tokenize({
-                publicKey: publicKey,
-                cardNumber: card.number,
                 cardCvv: card.cvv,
                 cardExpMonth: card.expMonth,
                 cardExpYear: card.expYear,
-                type: 'pan',
-                success: function (response) {
-                    hps.Messages.post({ action: 'onTokenSuccess', response: response }, 'parent');
-                },
-                error: function (response) {
-                    hps.Messages.post({ action: 'onTokenError', response: response }, 'parent');
-                }
+                cardNumber: card.number,
+                error: tokenResponse('onTokenError'),
+                publicKey: publicKey,
+                success: tokenResponse('onTokenSuccess'),
+                type: 'pan'
             });
         }
     })(Events = Heartland.Events || (Heartland.Events = {}));
 })(Heartland || (Heartland = {}));
 /// <reference path="types/CardData.ts" />
-/// <reference path="types/CardType.ts" />
 /// <reference path="types/Options.ts" />
 /// <reference path="vars/cardTypes.ts" />
 /// <reference path="vars/urls.ts" />
+/// <reference path="Card.ts" />
 /// <reference path="Events.ts" />
 var Heartland;
 (function (Heartland) {
@@ -827,13 +1118,12 @@ var Heartland;
          * @param {string} number
          */
         function getCardType(number) {
-            var cardType;
-            var i;
-            for (i in Heartland.Card.types) {
-                cardType = Heartland.Card.types[i];
-                if (cardType.regex.test(number))
-                    return cardType.code;
+            var cardType = Heartland.Card.typeByNumber(number);
+            var type = '';
+            if (cardType) {
+                type = cardType.code;
             }
+            return type;
         }
         Util.getCardType = getCardType;
         /**
@@ -1071,13 +1361,13 @@ var Heartland;
          * @param {function} callback
          */
         function jsonp(url, callback) {
+            var script = document.createElement('script');
             var callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
             window[callbackName] = function (data) {
                 delete window[callbackName];
                 document.body.removeChild(script);
                 callback(data);
             };
-            var script = document.createElement('script');
             script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
             document.body.appendChild(script);
         }
@@ -1148,14 +1438,13 @@ var Heartland;
                     messageArr.push(current.message);
                 }
                 current = null;
-                console.log(window.location.hash);
                 if (re.test(window.location.hash)) {
                     current = JSON.parse(decodeURIComponent(window.location.hash.replace(re, '')));
                     data.concat(current);
                 }
                 if (messageArr !== []) {
                     hps.cacheBust = hps.cacheBust || 1;
-                    data.push({ source: { name: hps.field || 'parent' }, data: messageArr });
+                    data.push({ data: messageArr, source: { name: hps.field || 'parent' } });
                     message = JSON.stringify(data);
                     url = targetUrl.replace(/#.*$/, '') + '#' +
                         (+new Date()) + (hps.cacheBust++) + '&' +
@@ -1209,8 +1498,8 @@ var Heartland;
                 this.hps.mailbox = this.hps.mailbox || [];
                 this.hps.mailbox.push({
                     message: message,
-                    targetUrl: targetUrl,
-                    targetNode: targetNode
+                    targetNode: targetNode,
+                    targetUrl: targetUrl
                 });
                 if (!this.pushIntervalStarted) {
                     setInterval(this.pushMessages(this.hps), 10);
@@ -1247,7 +1536,6 @@ var Heartland;
                         var hash = document.location.hash, re = /^#?\d+&/;
                         if (hash !== this.lastHash && re.test(hash)) {
                             var data = JSON.parse(decodeURIComponent(hash.replace(re, '')));
-                            ;
                             var i, j;
                             var m;
                             this.lastHash = hash;
@@ -1258,7 +1546,7 @@ var Heartland;
                                     continue;
                                 }
                                 for (j in m.data) {
-                                    callback({ source: m.source, data: m.data[j] });
+                                    callback({ data: m.data[j], source: m.source });
                                 }
                             }
                         }
@@ -1292,23 +1580,21 @@ var Heartland;
                     'font-family: Arial, \'Helvetica Neue\', Helvetica, sans-serif;' +
                     'color: #666;');
             },
-            labelsAndLegend: function (hps) {
-                var ids = [
-                    'heartland-card-number-label',
-                    'heartland-expiration-date-legend',
-                    'heartland-expiration-month-label',
-                    'heartland-expiration-year-label',
-                    'heartland-cvv-label'
-                ];
-                var i = 0, length = ids.length;
-                for (i; i < length; i++) {
-                    hps.setStyle(ids[i], 'font-size: 13px;' +
-                        'text-transform: uppercase;' +
-                        'font-weight: bold;' +
-                        'display: block;' +
-                        'width: 100%;' +
-                        'clear: both;');
-                }
+            cvv: function (hps) {
+                hps.appendStyle('heartland-cvv', 'width: 110px;');
+            },
+            cvvContainer: function (hps) {
+                hps.setStyle('heartland-cvv-container', 'width: 110px;' +
+                    'display: inline-block;' +
+                    'float: left;');
+            },
+            fieldset: function (hps) {
+                hps.setStyle('heartland-expiration-date-container', 'border: 0;' +
+                    'margin: 0 25px 0px 1px;' +
+                    'padding: 0;' +
+                    'width: 173px;' +
+                    'display: inline-block;' +
+                    'float:  left;');
             },
             inputsAndSelects: function (hps) {
                 var ids = [
@@ -1338,31 +1624,22 @@ var Heartland;
                         'background-image: linear-gradient(to top, #F7F7F7 0%, #EFEFEF 100%);');
                 }
             },
-            fieldset: function (hps) {
-                hps.setStyle('heartland-expiration-date-container', 'border: 0;' +
-                    'margin: 0 25px 0px 1px;' +
-                    'padding: 0;' +
-                    'width: 173px;' +
-                    'display: inline-block;' +
-                    'float:  left;');
-            },
-            selects: function (hps) {
-                var ids = ['heartland-expiration-month', 'heartland-expiration-year'];
+            labelsAndLegend: function (hps) {
+                var ids = [
+                    'heartland-card-number-label',
+                    'heartland-expiration-date-legend',
+                    'heartland-expiration-month-label',
+                    'heartland-expiration-year-label',
+                    'heartland-cvv-label'
+                ];
                 var i = 0, length = ids.length;
                 for (i; i < length; i++) {
-                    hps.appendStyle(ids[i], 'border: 0;' +
-                        'outline: 1px solid #ccc;' +
-                        'height: 28px;' +
-                        'width: 80px;' +
-                        '-webkit-appearance: none;' +
-                        '-moz-appearance: none;' +
-                        '-webkit-border-radius: 0px;' +
-                        'background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAGCAYAAAD68A/GAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyhpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMDE0IDc5LjE1Njc5NywgMjAxNC8wOC8yMC0wOTo1MzowMiAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTQgKE1hY2ludG9zaCkiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6QzA5MTZFN0RFMDY2MTFFNEIyODZFMURFRTA3REUxMjciIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6QzA5MTZFN0VFMDY2MTFFNEIyODZFMURFRTA3REUxMjciPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpDMDkxNkU3QkUwNjYxMUU0QjI4NkUxREVFMDdERTEyNyIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpDMDkxNkU3Q0UwNjYxMUU0QjI4NkUxREVFMDdERTEyNyIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PvMrdUAAAABiSURBVHjaYkxLS3vNwMAgwoAfvGUCEjkMhEE285kzZ65u2bLlJ5DjgkNRxUwgYPz//z+Yl56ePhNIpaEpAqnJADGYkASzgHgnEn8HyEoYB24i1FReILUPynUEmvYFJgcQYACYah+uDhpKGAAAAABJRU5ErkJggg==);' +
-                        'background-position: 65px 12px;' +
-                        'background-repeat: no-repeat;' +
-                        'background-color:  #F7F7F7;' +
-                        'float: left;' +
-                        'margin-right: 6px');
+                    hps.setStyle(ids[i], 'font-size: 13px;' +
+                        'text-transform: uppercase;' +
+                        'font-weight: bold;' +
+                        'display: block;' +
+                        'width: 100%;' +
+                        'clear: both;');
                 }
             },
             selectLabels: function (hps) {
@@ -1379,13 +1656,26 @@ var Heartland;
                         'border:0;');
                 }
             },
-            cvvContainer: function (hps) {
-                hps.setStyle('heartland-cvv-container', 'width: 110px;' +
-                    'display: inline-block;' +
-                    'float: left;');
-            },
-            cvv: function (hps) {
-                hps.appendStyle('heartland-cvv', 'width: 110px;');
+            selects: function (hps) {
+                var ids = ['heartland-expiration-month', 'heartland-expiration-year'];
+                var i = 0, length = ids.length;
+                for (i; i < length; i++) {
+                    hps.appendStyle(ids[i], 'border: 0;' +
+                        'outline: 1px solid #ccc;' +
+                        'height: 28px;' +
+                        'width: 80px;' +
+                        '-webkit-appearance: none;' +
+                        '-moz-appearance: none;' +
+                        '-webkit-border-radius: 0px;' +
+                        /* tslint:disable:max-line-length */
+                        'background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAGCAYAAAD68A/GAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyhpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMDE0IDc5LjE1Njc5NywgMjAxNC8wOC8yMC0wOTo1MzowMiAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTQgKE1hY2ludG9zaCkiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6QzA5MTZFN0RFMDY2MTFFNEIyODZFMURFRTA3REUxMjciIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6QzA5MTZFN0VFMDY2MTFFNEIyODZFMURFRTA3REUxMjciPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpDMDkxNkU3QkUwNjYxMUU0QjI4NkUxREVFMDdERTEyNyIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpDMDkxNkU3Q0UwNjYxMUU0QjI4NkUxREVFMDdERTEyNyIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PvMrdUAAAABiSURBVHjaYkxLS3vNwMAgwoAfvGUCEjkMhEE285kzZ65u2bLlJ5DjgkNRxUwgYPz//z+Yl56ePhNIpaEpAqnJADGYkASzgHgnEn8HyEoYB24i1FReILUPynUEmvYFJgcQYACYah+uDhpKGAAAAABJRU5ErkJggg==);' +
+                        /* tslint:enable:max-line-length */
+                        'background-position: 65px 12px;' +
+                        'background-repeat: no-repeat;' +
+                        'background-color:  #F7F7F7;' +
+                        'float: left;' +
+                        'margin-right: 6px');
+                }
             }
         };
     })(Styles = Heartland.Styles || (Heartland.Styles = {}));
@@ -1440,8 +1730,8 @@ var Heartland;
                 hps.iframe_url = hps.iframe_url + '#' + encodeURIComponent(document.location.href.split('#')[0]);
                 frame.src = hps.iframe_url;
                 hps.frames.child = {
-                    name: 'child',
                     frame: window.postMessage ? frame.contentWindow : frame,
+                    name: 'child',
                     url: hps.iframe_url
                 };
             }
@@ -1452,9 +1742,9 @@ var Heartland;
                 Heartland.Events.addHandler(options.buttonTarget, 'click', function (e) {
                     e.preventDefault();
                     hps.Messages.post({
+                        accumulateData: !!hps.frames.cardNumber,
                         action: 'tokenize',
-                        message: options.publicKey,
-                        accumulateData: !!hps.frames.cardNumber
+                        message: options.publicKey
                     }, hps.frames.cardNumber ? 'cardNumber' : 'child');
                     return false;
                 });
@@ -1506,8 +1796,9 @@ var Heartland;
                         var i;
                         var field;
                         for (i in hps.frames) {
-                            if (i === 'cardNumber')
+                            if (i === 'cardNumber') {
                                 continue;
+                            }
                             field = hps.frames[i];
                             hps.Messages.post({
                                 action: 'getFieldData',
@@ -1553,8 +1844,8 @@ var Heartland;
                     .getElementById(fieldOptions.target)
                     .appendChild(frame);
                 hps.frames[field] = {
-                    name: field,
                     frame: frame,
+                    name: field,
                     options: fieldOptions,
                     target: fieldOptions.target,
                     targetNode: window.postMessage ? frame.contentWindow : frame,
@@ -1584,6 +1875,7 @@ var Heartland;
                 });
             }
         }
+        Frames.monitorFieldEvents = monitorFieldEvents;
     })(Frames = Heartland.Frames || (Heartland.Frames = {}));
 })(Heartland || (Heartland = {}));
 /// <reference path="vars/defaults.ts" />
@@ -1667,8 +1959,8 @@ var Heartland;
             this.parent = window.postMessage ? win.parent.contentWindow : window.parent;
             this.frames = this.frames || {};
             this.frames.parent = {
-                name: 'parent',
                 frame: window.parent,
+                name: 'parent',
                 url: decodeURIComponent(document.location.hash.replace(/^#/, ''))
             };
             Heartland.Events.addHandler(window, 'load', (function (hps) {
@@ -1701,8 +1993,8 @@ var Heartland;
             this.parent = window.postMessage ? win.parent.contentWindow : window.parent;
             this.frames = this.frames || {};
             this.frames.parent = {
-                name: 'parent',
                 frame: window.parent,
+                name: 'parent',
                 url: decodeURIComponent(split.join(':').replace(/^:/, ''))
             };
             Heartland.Events.addHandler(window, 'load', (function (hps) {
