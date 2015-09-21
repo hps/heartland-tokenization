@@ -1,19 +1,3 @@
-var public_key = 'pkapi_cert_jDLChE5RlZJj9Y7aq9';
-
-// global success handler
-var check_for_token = function (response) {
-  start();
-  ok(response.token_value, 'token_value');
-  ok(response.token_type, 'token_type');
-  ok(response.token_expire, 'token_expire');
-};
-
-// global error handler
-var default_error = function (response) {
-  start();
-  ok(false, response.error.message);
-};
-
 QUnit.module('tokenize swipe');
 
 asyncTest('Valid card swipe should return token', function () {
