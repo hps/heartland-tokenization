@@ -2,39 +2,39 @@ QUnit.module('tokenize');
 
 asyncTest('Valid card should return token', function () {
   var hps = new HPS({
-    publicKey: public_key,
+    publicKey: Heartland.Test.public_key,
     cardNumber: '4242424242424242',
     cardCvv: '123',
     cardExpMonth: '12',
     cardExpYear: '2015',
-    success: check_for_token,
-    error: default_error
+    success: Heartland.Test.check_for_token,
+    error: Heartland.Test.default_error
   });
   hps.tokenize();
 });
 
 asyncTest('Valid error should be null', function () {
   var hps = new HPS({
-    publicKey: public_key,
+    publicKey: Heartland.Test.public_key,
     cardNumber: '4242424242424242',
     cardCvv: '123',
     cardExpMonth: '12',
     cardExpYear: '2015',
     success: function (response) {
-    start();
+      start();
       ok(response.token_value);
       ok(!response.error);
     },
-    error: default_error
+    error: Heartland.Test.default_error
   });
   hps.tokenize();
 });
 
 asyncTest('Invalid number returns error', function (assert) {
   var hps = new HPS({
-    publicKey: public_key,
+    publicKey: Heartland.Test.public_key,
     cardNumber: '0',
-    success: check_for_token,
+    success: Heartland.Test.check_for_token,
     error: function (response) {
       start();
       assert.equal(response.error.code, '2', 'code');
@@ -47,22 +47,22 @@ asyncTest('Invalid number returns error', function (assert) {
 
 asyncTest('Valid number with whitespace should get trimmed', function () {
   var hps = new HPS({
-    publicKey: public_key,
+    publicKey: Heartland.Test.public_key,
     cardNumber: '   	  4242424242424242 ',
     cardCvv: '123',
     cardExpMonth: '12',
     cardExpYear: '2015',
-    success: check_for_token,
-    error: default_error
+    success: Heartland.Test.check_for_token,
+    error: Heartland.Test.default_error
   });
   hps.tokenize();
 });
 
 asyncTest('Invalid long number returns error', function (assert) {
   var hps = new HPS({
-    publicKey: public_key,
+    publicKey: Heartland.Test.public_key,
     cardNumber: '11111111111111111111111111111111111',
-    success: check_for_token,
+    success: Heartland.Test.check_for_token,
     error: function (response) {
       start();
       assert.equal(response.error.code, '2', 'code');
@@ -75,10 +75,10 @@ asyncTest('Invalid long number returns error', function (assert) {
 
 asyncTest('Invalid exp month (low) returns error', function (assert) {
   var hps = new HPS({
-    publicKey: public_key,
+    publicKey: Heartland.Test.public_key,
     cardNumber: '4242424242424242',
     cardExpMonth: '0',
-    success: check_for_token,
+    success: Heartland.Test.check_for_token,
     error: function (response) {
       start();
       assert.equal(response.error.code, '2', 'code');
@@ -91,10 +91,10 @@ asyncTest('Invalid exp month (low) returns error', function (assert) {
 
 asyncTest('Invalid exp month (high) returns error', function (assert) {
   var hps = new HPS({
-    publicKey: public_key,
+    publicKey: Heartland.Test.public_key,
     cardNumber: '4242424242424242',
     cardExpMonth: '13',
-    success: check_for_token,
+    success: Heartland.Test.check_for_token,
     error: function (response) {
       start();
       assert.equal(response.error.code, '2', 'code');
@@ -107,11 +107,11 @@ asyncTest('Invalid exp month (high) returns error', function (assert) {
 
 asyncTest('Invalid exp year returns error', function (assert) {
   var hps = new HPS({
-    publicKey: public_key,
+    publicKey: Heartland.Test.public_key,
     cardNumber: '4242424242424242',
     cardExpMonth: '12',
     cardExpYear: '9999',
-    success: check_for_token,
+    success: Heartland.Test.check_for_token,
     error: function (response) {
       start();
       assert.equal(response.error.code, '2', 'code');
@@ -124,11 +124,11 @@ asyncTest('Invalid exp year returns error', function (assert) {
 
 asyncTest('Previous year expiration returns error', function (assert) {
   var hps = new HPS({
-    publicKey: public_key,
+    publicKey: Heartland.Test.public_key,
     cardNumber: '4242424242424242',
     cardExpMonth: '12',
     cardExpYear: '2013',
-    success: check_for_token,
+    success: Heartland.Test.check_for_token,
     error: function (response) {
       start();
       assert.equal(response.error.message, 'The expiration year is in the past.', 'message');

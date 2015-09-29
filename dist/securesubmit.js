@@ -389,7 +389,7 @@ var JSON2 = {};
                                 value[k] = v;
                             }
                             else {
-                                delete value[k];
+                                value[k] = undefined;
                             }
                         }
                     }
@@ -655,7 +655,7 @@ var Heartland;
     Heartland.urls = {
         CERT: 'https://posgateway.cert.secureexchange.net/Hps.Exchange.PosGateway.Hpf.v1/api/token',
         PROD: 'https://api2.heartlandportico.com/SecureSubmit.v1/api/token',
-        iframeCERT: 'http://localhost:8889/',
+        iframeCERT: 'http://192.168.39.1:8889/',
         iframePROD: 'https://api2.heartlandportico.com/SecureSubmit.v1/token/2.0/'
     };
 })(Heartland || (Heartland = {}));
@@ -969,17 +969,51 @@ var Heartland;
             else {
                 node = target;
             }
+            console.log('adding handler for ' + event);
+            // if (node.addEventListener) {
+            //   node.addEventListener(event, callback, false);
+            // } else {
+            //   // create a custom property  and set t to 0
+            //   (<any>node)[event] = 0;
+            //   // since IE8 does not allow to listen to custom events,
+            //   // just listen to onpropertychange
+            //   (<any>node).attachEvent("onpropertychange", function (e: Event) {
+            //     // if the property changed is the custom property
+            //     if ((<any>e).propertyName === event) {
+            //       callback(e);
+            //       // remove listener, since it's only used once
+            //       // (<any>node).detachEvent("onpropertychange", arguments.callee);
+            //     }
+            //   });
+            // }
+            // if (document.addEventListener) {
+            //   node.addEventListener(event, callback, false);
+            // } else {
+            //   console.log(target);
+            //   console.log(node);
+            //   (<any>node).attachEvent(event, callback);
+            //   (<any>node).attachEvent('onpropertychange', function (e: Event) {
+            //     if((<any>e).propertyName === event) {
+            //       callback(e);
+            //     }
+            //   });
+            // }
             if (node.addEventListener) {
                 node.addEventListener(event, callback, false);
             }
             else if (node.attachEvent) {
-                if (event === 'submit') {
-                    event = 'on' + event;
+                if (!node[event]) {
+                    node[event] = 0;
                 }
-                node.attachEvent(event, callback);
+                node.attachEvent("onpropertychange", function (e) {
+                    if (e.propertyName == event) {
+                        callback(e);
+                    }
+                });
             }
         }
         Events.addHandler = addHandler;
+        // }
         /**
          * Heartland.Events.trigger
          *
@@ -989,10 +1023,46 @@ var Heartland;
          * @param {any} target
          * @param {any} data [optional]
          */
-        function trigger(name, target, data) {
-            var event = target.createEvent('Event');
-            event.initEvent(name, true, true);
-            target.dispatchEvent(event);
+        function trigger(name, target, data, bubble) {
+            if (bubble === void 0) { bubble = false; }
+            var event;
+            console.log('trigget event ' + name);
+            // if (document.createEvent) {
+            //   event = document.createEvent('Event');
+            //   event.initEvent(name, true, true);
+            //   target.dispatchEvent(event);
+            // } else if ((<any>document).createEventObject) {
+            //   console.log(target);
+            //   if ((<any>target)[name]) {
+            //     (<any>target)[name]++;
+            //   }
+            // }
+            // if (document.createEvent) {
+            //   event = document.createEvent('Event');
+            //   event.initEvent(name, true, true);
+            // } else {
+            //   event = target[name];
+            //   event += 1;
+            // }
+            // if (document.dispatchEvent) {
+            //   target.dispatchEvent(event);
+            // }
+            if (document.createEvent) {
+                // dispatch for firefox + others
+                event = document.createEvent("HTMLEvents");
+                event.initEvent(name, true, true); // event type,bubbling,cancelable
+                target.dispatchEvent(event);
+            }
+            else {
+                // dispatch for IE
+                bubble = !bubble ? false : true;
+                if (target.nodeType === 1 && target[name] >= 0) {
+                    target[name]++;
+                }
+                if (bubble && target !== document) {
+                    trigger(target.parentNode, name, bubble);
+                }
+            }
         }
         Events.trigger = trigger;
         /**
@@ -1078,7 +1148,7 @@ var Heartland;
                 var cardExpSplit = card.exp.value.split('/');
                 card.expMonth = cardExpSplit[0];
                 card.expYear = cardExpSplit[1];
-                delete card.exp;
+                card.exp = undefined;
             }
             else {
                 card.expMonth = document.getElementById('heartland-expiration-month').value;
@@ -1364,7 +1434,7 @@ var Heartland;
             var script = document.createElement('script');
             var callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
             window[callbackName] = function (data) {
-                delete window[callbackName];
+                window[callbackName] = undefined;
                 document.body.removeChild(script);
                 callback(data);
             };

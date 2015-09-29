@@ -19,21 +19,57 @@ module Heartland {
     export function addHandler(target: string | EventTarget, event: string, callback: EventListener) {
       var node: EventTarget;
       if (typeof target === 'string') {
-        node = document.getElementById(<string> target);
+        node = document.getElementById(<string>target);
       } else {
         node = target;
       }
 
-      if (node.addEventListener) {
-        node.addEventListener(event, callback, false);
-      } else if ((<any>node).attachEvent) {
-        if (event === 'submit') {
-          event = 'on' + event;
-        }
+      console.log('adding handler for ' + event);
 
-        (<any>node).attachEvent(event, callback);
+      // if (node.addEventListener) {
+      //   node.addEventListener(event, callback, false);
+      // } else {
+      //   // create a custom property  and set t to 0
+      //   (<any>node)[event] = 0;
+      //   // since IE8 does not allow to listen to custom events,
+      //   // just listen to onpropertychange
+      //   (<any>node).attachEvent("onpropertychange", function (e: Event) {
+      //     // if the property changed is the custom property
+      //     if ((<any>e).propertyName === event) {
+      //       callback(e);
+      //       // remove listener, since it's only used once
+      //       // (<any>node).detachEvent("onpropertychange", arguments.callee);
+      //     }
+      //   });
+      // }
+
+      // if (document.addEventListener) {
+      //   node.addEventListener(event, callback, false);
+      // } else {
+      //   console.log(target);
+      //   console.log(node);
+      //   (<any>node).attachEvent(event, callback);
+      //   (<any>node).attachEvent('onpropertychange', function (e: Event) {
+      //     if((<any>e).propertyName === event) {
+      //       callback(e);
+      //     }
+      //   });
+      // }
+
+      if (node.addEventListener) { // W3C DOM
+        node.addEventListener(event, callback, false);
+      } else if ((<any>node).attachEvent) { // IE DOM
+        if (!(<any>node)[event]) {
+          (<any>node)[event] = 0;
+        }
+        (<any>node).attachEvent("onpropertychange", function (e: Event) {
+          if ((<any>e).propertyName == event) {
+            callback(e);
+          }
+        });
       }
     }
+    // }
 
     /**
      * Heartland.Events.trigger
@@ -44,10 +80,45 @@ module Heartland {
      * @param {any} target
      * @param {any} data [optional]
      */
-    export function trigger(name: string, target: any, data?: any) {
-      var event = target.createEvent('Event');
-      event.initEvent(name, true, true);
-      target.dispatchEvent(event);
+    export function trigger(name: string, target: any, data?: any, bubble = false) {
+      var event: any;
+      console.log('trigget event ' + name);
+
+      // if (document.createEvent) {
+      //   event = document.createEvent('Event');
+      //   event.initEvent(name, true, true);
+      //   target.dispatchEvent(event);
+      // } else if ((<any>document).createEventObject) {
+      //   console.log(target);
+      //   if ((<any>target)[name]) {
+      //     (<any>target)[name]++;
+      //   }
+      // }
+      // if (document.createEvent) {
+      //   event = document.createEvent('Event');
+      //   event.initEvent(name, true, true);
+      // } else {
+      //   event = target[name];
+      //   event += 1;
+      // }
+      // if (document.dispatchEvent) {
+      //   target.dispatchEvent(event);
+      // }
+      if (document.createEvent) {
+        // dispatch for firefox + others
+        event = document.createEvent("HTMLEvents");
+        event.initEvent(name, true, true ); // event type,bubbling,cancelable
+        target.dispatchEvent(event);
+      } else {
+        // dispatch for IE
+        bubble = !bubble ? false : true;
+        if (target.nodeType === 1 && target[name] >= 0) {
+          target[name]++;
+        }
+        if (bubble && target !== document) {
+          trigger(target.parentNode, name, bubble);
+        }
+      }
     }
 
     /**
@@ -137,7 +208,7 @@ module Heartland {
         var cardExpSplit = (<HTMLInputElement>card.exp).value.split('/');
         card.expMonth = cardExpSplit[0];
         card.expYear = cardExpSplit[1];
-        delete card.exp;
+        card.exp = undefined;
       } else {
         card.expMonth = (<HTMLInputElement>document.getElementById('heartland-expiration-month')).value;
         card.expYear = (<HTMLInputElement>document.getElementById('heartland-expiration-year')).value;

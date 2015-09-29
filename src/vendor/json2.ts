@@ -1,13 +1,13 @@
 /* -----------------------------------------------------------------------------
-This file is based on or incorporates material from the projects listed below 
-(collectively, "Third Party Code"). Microsoft is not the original author of the 
-Third Party Code. The original copyright notice and the license, under which 
-Microsoft received such Third Party Code, are set forth below. Such licenses 
-and notices are provided for informational purposes only. Microsoft, not the 
-third party, licenses the Third Party Code to you under the terms of the 
-Apache License, Version 2.0. See License.txt in the project root for complete 
-license information. Microsoft reserves all rights not expressly granted under 
-the Apache 2.0 License, whether by implication, estoppel or otherwise. 
+This file is based on or incorporates material from the projects listed below
+(collectively, "Third Party Code"). Microsoft is not the original author of the
+Third Party Code. The original copyright notice and the license, under which
+Microsoft received such Third Party Code, are set forth below. Such licenses
+and notices are provided for informational purposes only. Microsoft, not the
+third party, licenses the Third Party Code to you under the terms of the
+Apache License, Version 2.0. See License.txt in the project root for complete
+license information. Microsoft reserves all rights not expressly granted under
+the Apache 2.0 License, whether by implication, estoppel or otherwise.
 ----------------------------------------------------------------------------- */
 
 /*
@@ -198,7 +198,7 @@ declare var IO: any;
 
         var strProto: any = String.prototype;
         var numProto: any = Number.prototype;
-        numProto.JSON = strProto.JSON = 
+        numProto.JSON = strProto.JSON =
             (<any>Boolean).prototype.toJSON = function (key?: any) {
                 return this.valueOf();
             };
@@ -435,7 +435,7 @@ declare var IO: any;
                             if (v !== undefined) {
                                 value[k] = v;
                             } else {
-                                delete value[k];
+                                value[k] = undefined;
                             }
                         }
                     }
