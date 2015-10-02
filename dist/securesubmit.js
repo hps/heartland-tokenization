@@ -655,7 +655,7 @@ var Heartland;
     Heartland.urls = {
         CERT: 'https://posgateway.cert.secureexchange.net/Hps.Exchange.PosGateway.Hpf.v1/api/token',
         PROD: 'https://api2.heartlandportico.com/SecureSubmit.v1/api/token',
-        iframeCERT: 'http://192.168.39.1:8889/',
+        iframeCERT: 'http://localhost:8889/',
         iframePROD: 'https://api2.heartlandportico.com/SecureSubmit.v1/token/2.0/'
     };
 })(Heartland || (Heartland = {}));
@@ -674,7 +674,13 @@ var Heartland;
                 var matches;
                 number = number.replace(/\D/g, '');
                 type = Heartland.Card.typeByNumber(number);
+                if (!type) {
+                    return number;
+                }
                 matches = number.match(type.format);
+                if (!matches) {
+                    return number;
+                }
                 if (!type.format.global) {
                     matches.shift();
                 }
@@ -717,9 +723,9 @@ var Heartland;
                 if (month.length === 1 && del !== '') {
                     month = '0' + month;
                 }
-                if (year.length === 2) {
-                    year = (new Date).getFullYear().toString().slice(0, 2) + year;
-                }
+                // if (year.length === 2) {
+                //   year = (new Date).getFullYear().toString().slice(0, 2) + year;
+                // }
                 return month + del + year;
             };
             return Expiration;
@@ -847,6 +853,9 @@ var Heartland;
         function typeByNumber(number) {
             var cardType;
             var i;
+            if (!number) {
+                return null;
+            }
             for (i in Card.types) {
                 cardType = Card.types[i];
                 if (cardType.regex.test(number)) {
@@ -887,6 +896,23 @@ var Heartland;
             return sum % 10 === 0;
         }
         Card.luhnCheck = luhnCheck;
+        function addType(e) {
+            var target = e.currentTarget;
+            var type = typeByNumber(target.value);
+            var length = target.classList.length;
+            var i = 0;
+            var c = '';
+            for (i; i < length; i++) {
+                c = target.classList.item(i);
+                if (c && c.indexOf('card-type-') === 0) {
+                    target.classList.remove(c);
+                }
+            }
+            if (type) {
+                target.classList.add('card-type-' + type.code);
+            }
+        }
+        Card.addType = addType;
         function formatNumber(e) {
             var target = e.currentTarget;
             var value = target.value;
@@ -901,6 +927,22 @@ var Heartland;
             target.value = value;
         }
         Card.formatExpiration = formatExpiration;
+        function restrictNumeric(e) {
+            // allow: backspace, delete, tab, escape and enter
+            if ([46, 8, 9, 27, 13, 110].indexOf(e.keyCode) !== -1 ||
+                // allow: Ctrl+A
+                (e.keyCode === 65 && e.ctrlKey === true) ||
+                // allow: home, end, left, right
+                (e.keyCode >= 35 && e.keyCode <= 39)) {
+                // let it happen, don't do anything
+                return;
+            }
+            // ensure that it is a number and stop the keypress
+            if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+                e.preventDefault();
+            }
+        }
+        Card.restrictNumeric = restrictNumeric;
         function validateNumber(e) {
             var target = e.currentTarget;
             var value = target.value;
@@ -952,6 +994,33 @@ var Heartland;
      */
     var Events;
     (function (Events) {
+        var Ev = (function () {
+            function Ev() {
+            }
+            Ev.listen = function (eventName, callback) {
+                if (document.addEventListener) {
+                    document.addEventListener(eventName, callback, false);
+                }
+                else {
+                    document.documentElement.attachEvent('onpropertychange', function (e) {
+                        if (e.propertyName === eventName) {
+                            callback(e);
+                        }
+                    });
+                }
+            };
+            Ev.trigger = function (eventName) {
+                if (document.createEvent) {
+                    var event = document.createEvent('Event');
+                    event.initEvent(eventName, true, true);
+                    document.dispatchEvent(event);
+                }
+                else {
+                    document.documentElement[eventName]++;
+                }
+            };
+            return Ev;
+        })();
         /**
          * Heartland.Events.addHandler
          *
@@ -969,47 +1038,11 @@ var Heartland;
             else {
                 node = target;
             }
-            console.log('adding handler for ' + event);
-            // if (node.addEventListener) {
-            //   node.addEventListener(event, callback, false);
-            // } else {
-            //   // create a custom property  and set t to 0
-            //   (<any>node)[event] = 0;
-            //   // since IE8 does not allow to listen to custom events,
-            //   // just listen to onpropertychange
-            //   (<any>node).attachEvent("onpropertychange", function (e: Event) {
-            //     // if the property changed is the custom property
-            //     if ((<any>e).propertyName === event) {
-            //       callback(e);
-            //       // remove listener, since it's only used once
-            //       // (<any>node).detachEvent("onpropertychange", arguments.callee);
-            //     }
-            //   });
-            // }
-            // if (document.addEventListener) {
-            //   node.addEventListener(event, callback, false);
-            // } else {
-            //   console.log(target);
-            //   console.log(node);
-            //   (<any>node).attachEvent(event, callback);
-            //   (<any>node).attachEvent('onpropertychange', function (e: Event) {
-            //     if((<any>e).propertyName === event) {
-            //       callback(e);
-            //     }
-            //   });
-            // }
-            if (node.addEventListener) {
+            if (document.addEventListener) {
                 node.addEventListener(event, callback, false);
             }
-            else if (node.attachEvent) {
-                if (!node[event]) {
-                    node[event] = 0;
-                }
-                node.attachEvent("onpropertychange", function (e) {
-                    if (e.propertyName == event) {
-                        callback(e);
-                    }
-                });
+            else {
+                Ev.listen(event, callback);
             }
         }
         Events.addHandler = addHandler;
@@ -1026,42 +1059,13 @@ var Heartland;
         function trigger(name, target, data, bubble) {
             if (bubble === void 0) { bubble = false; }
             var event;
-            console.log('trigget event ' + name);
-            // if (document.createEvent) {
-            //   event = document.createEvent('Event');
-            //   event.initEvent(name, true, true);
-            //   target.dispatchEvent(event);
-            // } else if ((<any>document).createEventObject) {
-            //   console.log(target);
-            //   if ((<any>target)[name]) {
-            //     (<any>target)[name]++;
-            //   }
-            // }
-            // if (document.createEvent) {
-            //   event = document.createEvent('Event');
-            //   event.initEvent(name, true, true);
-            // } else {
-            //   event = target[name];
-            //   event += 1;
-            // }
-            // if (document.dispatchEvent) {
-            //   target.dispatchEvent(event);
-            // }
             if (document.createEvent) {
-                // dispatch for firefox + others
-                event = document.createEvent("HTMLEvents");
-                event.initEvent(name, true, true); // event type,bubbling,cancelable
+                event = document.createEvent('Event');
+                event.initEvent(name, true, true);
                 target.dispatchEvent(event);
             }
             else {
-                // dispatch for IE
-                bubble = !bubble ? false : true;
-                if (target.nodeType === 1 && target[name] >= 0) {
-                    target[name]++;
-                }
-                if (bubble && target !== document) {
-                    trigger(target.parentNode, name, bubble);
-                }
+                Ev.trigger(name);
             }
         }
         Events.trigger = trigger;
@@ -1075,41 +1079,42 @@ var Heartland;
          */
         function frameHandleWith(hps) {
             return function (m) {
-                switch (m.data.action) {
+                var data = JSON.parse(m.data);
+                switch (data.action) {
                     case 'tokenize':
-                        if (m.data.accumulateData) {
+                        if (data.accumulateData) {
                             hps.Messages.post({
                                 action: 'accumulateData'
                             }, 'parent');
                             var el = document.createElement('input');
                             el.id = 'publicKey';
                             el.type = 'hidden';
-                            el.value = m.data.message;
+                            el.value = data.message;
                             document
                                 .getElementById('heartland-field-wrapper')
                                 .appendChild(el);
                         }
                         else {
-                            tokenizeIframe(hps, m.data.message);
+                            tokenizeIframe(hps, data.message);
                         }
                         break;
                     case 'setStyle':
-                        Heartland.DOM.setStyle(m.data.id, m.data.style);
+                        Heartland.DOM.setStyle(data.id, data.style);
                         Heartland.DOM.resizeFrame(hps);
                         break;
                     case 'appendStyle':
-                        Heartland.DOM.appendStyle(m.data.id, m.data.style);
+                        Heartland.DOM.appendStyle(data.id, data.style);
                         Heartland.DOM.resizeFrame(hps);
                         break;
                     case 'setText':
-                        Heartland.DOM.setText(m.data.id, m.data.text);
+                        Heartland.DOM.setText(data.id, data.text);
                         Heartland.DOM.resizeFrame(hps);
                         break;
                     case 'setPlaceholder':
-                        Heartland.DOM.setPlaceholder(m.data.id, m.data.text);
+                        Heartland.DOM.setPlaceholder(data.id, data.text);
                         break;
                     case 'setFieldData':
-                        Heartland.DOM.setFieldData(m.data.id, m.data.value);
+                        Heartland.DOM.setFieldData(data.id, data.value);
                         if (document.getElementById('heartland-field') &&
                             document.getElementById('cardCvv') &&
                             document.getElementById('cardExpiration')) {
@@ -1117,7 +1122,7 @@ var Heartland;
                         }
                         break;
                     case 'getFieldData':
-                        Heartland.DOM.getFieldData(hps, m.data.id);
+                        Heartland.DOM.getFieldData(hps, data.id);
                         break;
                 }
             };
@@ -1562,7 +1567,7 @@ var Heartland;
                 targetNode = frame;
             }
             if (window.postMessage) {
-                targetNode.postMessage(message, targetUrl);
+                targetNode.postMessage(JSON.stringify(message), targetUrl);
             }
             else {
                 this.hps.mailbox = this.hps.mailbox || [];
@@ -1589,11 +1594,15 @@ var Heartland;
          */
         Messages.prototype.receive = function (callback, sourceOrigin) {
             if (window.postMessage) {
+                var cb = function (m) {
+                    // m.data = JSON.parse(m.data);
+                    callback(m);
+                };
                 if (window.addEventListener) {
-                    window[callback ? 'addEventListener' : 'removeEventListener']('message', callback, !1);
+                    window[callback ? 'addEventListener' : 'removeEventListener']('message', cb, !1);
                 }
                 else {
-                    window[callback ? 'attachEvent' : 'detachEvent']('onmessage', callback);
+                    window[callback ? 'attachEvent' : 'detachEvent']('onmessage', cb);
                 }
             }
             else {
@@ -1820,6 +1829,7 @@ var Heartland;
                 });
             }
             hps.Messages.receive(function (m) {
+                var data = JSON.parse(m.data);
                 var fieldFrame;
                 try {
                     fieldFrame = hps.frames[m.source.name];
@@ -1827,19 +1837,19 @@ var Heartland;
                 catch (e) {
                     return;
                 }
-                switch (m.data.action) {
+                switch (data.action) {
                     case 'onTokenSuccess':
-                        options.onTokenSuccess(m.data.response);
+                        options.onTokenSuccess(data.response);
                         break;
                     case 'onTokenError':
-                        options.onTokenError(m.data.response);
+                        options.onTokenError(data.response);
                         break;
                     case 'resize':
                         if (fieldFrame) {
-                            hps.resizeIFrame(fieldFrame.frame, m.data.height);
+                            hps.resizeIFrame(fieldFrame.frame, data.height);
                         }
                         else {
-                            hps.resizeIFrame(frame, m.data.height);
+                            hps.resizeIFrame(frame, data.height);
                         }
                         break;
                     case 'receiveMessageHandlerAdded':
@@ -1884,7 +1894,7 @@ var Heartland;
                         hps.Messages.post({
                             action: 'setFieldData',
                             id: fieldFrame.name,
-                            value: m.data.value
+                            value: data.value
                         }, cardNumberFieldFrame.name);
                         break;
                 }

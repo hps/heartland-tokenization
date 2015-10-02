@@ -7,6 +7,28 @@ module Heartland {
    * @namespace Heartland.Events
    */
   export module Events {
+    class Ev {
+      static listen(eventName: string, callback: EventListener) {
+        if (document.addEventListener) {
+          document.addEventListener(eventName, callback, false);
+        } else {
+          (<any>document.documentElement).attachEvent('onpropertychange', function (e: Event) {
+            if ((<any>e).propertyName === eventName) {
+              callback(e);
+            }
+          });
+        }
+      }
+      static trigger(eventName: string) {
+        if (document.createEvent) {
+          var event = document.createEvent('Event');
+          event.initEvent(eventName, true, true);
+          document.dispatchEvent(event);
+        } else {
+          (<any>document.documentElement)[eventName]++;
+        }
+      }
+    }
     /**
      * Heartland.Events.addHandler
      *
@@ -24,49 +46,10 @@ module Heartland {
         node = target;
       }
 
-      console.log('adding handler for ' + event);
-
-      // if (node.addEventListener) {
-      //   node.addEventListener(event, callback, false);
-      // } else {
-      //   // create a custom property  and set t to 0
-      //   (<any>node)[event] = 0;
-      //   // since IE8 does not allow to listen to custom events,
-      //   // just listen to onpropertychange
-      //   (<any>node).attachEvent("onpropertychange", function (e: Event) {
-      //     // if the property changed is the custom property
-      //     if ((<any>e).propertyName === event) {
-      //       callback(e);
-      //       // remove listener, since it's only used once
-      //       // (<any>node).detachEvent("onpropertychange", arguments.callee);
-      //     }
-      //   });
-      // }
-
-      // if (document.addEventListener) {
-      //   node.addEventListener(event, callback, false);
-      // } else {
-      //   console.log(target);
-      //   console.log(node);
-      //   (<any>node).attachEvent(event, callback);
-      //   (<any>node).attachEvent('onpropertychange', function (e: Event) {
-      //     if((<any>e).propertyName === event) {
-      //       callback(e);
-      //     }
-      //   });
-      // }
-
-      if (node.addEventListener) { // W3C DOM
+      if (document.addEventListener) {
         node.addEventListener(event, callback, false);
-      } else if ((<any>node).attachEvent) { // IE DOM
-        if (!(<any>node)[event]) {
-          (<any>node)[event] = 0;
-        }
-        (<any>node).attachEvent("onpropertychange", function (e: Event) {
-          if ((<any>e).propertyName == event) {
-            callback(e);
-          }
-        });
+      } else {
+        Ev.listen(event, callback);
       }
     }
     // }
@@ -82,42 +65,13 @@ module Heartland {
      */
     export function trigger(name: string, target: any, data?: any, bubble = false) {
       var event: any;
-      console.log('trigget event ' + name);
 
-      // if (document.createEvent) {
-      //   event = document.createEvent('Event');
-      //   event.initEvent(name, true, true);
-      //   target.dispatchEvent(event);
-      // } else if ((<any>document).createEventObject) {
-      //   console.log(target);
-      //   if ((<any>target)[name]) {
-      //     (<any>target)[name]++;
-      //   }
-      // }
-      // if (document.createEvent) {
-      //   event = document.createEvent('Event');
-      //   event.initEvent(name, true, true);
-      // } else {
-      //   event = target[name];
-      //   event += 1;
-      // }
-      // if (document.dispatchEvent) {
-      //   target.dispatchEvent(event);
-      // }
       if (document.createEvent) {
-        // dispatch for firefox + others
-        event = document.createEvent("HTMLEvents");
-        event.initEvent(name, true, true ); // event type,bubbling,cancelable
+        event = document.createEvent('Event');
+        event.initEvent(name, true, true);
         target.dispatchEvent(event);
       } else {
-        // dispatch for IE
-        bubble = !bubble ? false : true;
-        if (target.nodeType === 1 && target[name] >= 0) {
-          target[name]++;
-        }
-        if (bubble && target !== document) {
-          trigger(target.parentNode, name, bubble);
-        }
+        Ev.trigger(name);
       }
     }
 
@@ -131,9 +85,10 @@ module Heartland {
      */
     export function frameHandleWith(hps: HPS) : (m: any) => void {
       return function(m) {
-        switch (m.data.action) {
+        var data = JSON.parse(m.data);
+        switch (data.action) {
           case 'tokenize':
-            if (m.data.accumulateData) {
+            if (data.accumulateData) {
               hps.Messages.post(
                 {
                   action: 'accumulateData'
@@ -143,31 +98,31 @@ module Heartland {
               var el = document.createElement('input');
               el.id = 'publicKey';
               el.type = 'hidden';
-              el.value = m.data.message;
+              el.value = data.message;
               document
                 .getElementById('heartland-field-wrapper')
                 .appendChild(el);
             } else {
-              tokenizeIframe(hps, m.data.message);
+              tokenizeIframe(hps, data.message);
             }
             break;
           case 'setStyle':
-            Heartland.DOM.setStyle(m.data.id, m.data.style);
+            Heartland.DOM.setStyle(data.id, data.style);
             Heartland.DOM.resizeFrame(hps);
             break;
           case 'appendStyle':
-            Heartland.DOM.appendStyle(m.data.id, m.data.style);
+            Heartland.DOM.appendStyle(data.id, data.style);
             Heartland.DOM.resizeFrame(hps);
             break;
           case 'setText':
-            Heartland.DOM.setText(m.data.id, m.data.text);
+            Heartland.DOM.setText(data.id, data.text);
             Heartland.DOM.resizeFrame(hps);
             break;
           case 'setPlaceholder':
-            Heartland.DOM.setPlaceholder(m.data.id, m.data.text);
+            Heartland.DOM.setPlaceholder(data.id, data.text);
             break;
           case 'setFieldData':
-            Heartland.DOM.setFieldData(m.data.id, m.data.value);
+            Heartland.DOM.setFieldData(data.id, data.value);
             if (document.getElementById('heartland-field') &&
               document.getElementById('cardCvv') &&
               document.getElementById('cardExpiration')) {
@@ -175,7 +130,7 @@ module Heartland {
             }
             break;
           case 'getFieldData':
-            Heartland.DOM.getFieldData(hps, m.data.id);
+            Heartland.DOM.getFieldData(hps, data.id);
             break;
         }
       };
@@ -227,3 +182,4 @@ module Heartland {
     }
   }
 }
+

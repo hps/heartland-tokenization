@@ -11,7 +11,12 @@ module Heartland {
 
         number = number.replace(/\D/g, '');
         type = Card.typeByNumber(number);
+
+        if (!type) { return number; }
+
         matches = number.match(type.format);
+
+        if (!matches) { return number; }
 
         if (!type.format.global) {
           matches.shift();

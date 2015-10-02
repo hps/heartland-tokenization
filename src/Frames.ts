@@ -76,24 +76,25 @@ module Heartland {
       }
 
       hps.Messages.receive(function(m: MessageEvent) {
+        var data = JSON.parse(m.data);
         var fieldFrame: any;
 
         try {
           fieldFrame = hps.frames[m.source.name];
         } catch (e) { return; }
 
-        switch (m.data.action) {
+        switch (data.action) {
           case 'onTokenSuccess':
-            options.onTokenSuccess(m.data.response);
+            options.onTokenSuccess(data.response);
             break;
           case 'onTokenError':
-            options.onTokenError(m.data.response);
+            options.onTokenError(data.response);
             break;
           case 'resize':
             if (fieldFrame) {
-              hps.resizeIFrame(fieldFrame.frame, m.data.height);
+              hps.resizeIFrame(fieldFrame.frame, data.height);
             } else {
-              hps.resizeIFrame(frame, m.data.height);
+              hps.resizeIFrame(frame, data.height);
             }
 
             break;
@@ -150,7 +151,7 @@ module Heartland {
               {
                 action: 'setFieldData',
                 id: fieldFrame.name,
-                value: m.data.value
+                value: data.value
               },
               cardNumberFieldFrame.name
               );

@@ -48,7 +48,7 @@ Heartland.Test = {
   makeDiv: function (id) {
     var div = document.createElement('div');
     div.id = id;
-    // div.style.display = 'none';
+    div.style.display = 'none';
     document.body.appendChild(div);
   }
 };

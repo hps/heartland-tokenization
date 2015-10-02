@@ -125,7 +125,7 @@ module Heartland {
 
       if (window.postMessage) {
         targetNode.postMessage(
-          message,
+          JSON.stringify(message),
           targetUrl
         );
       } else {
@@ -154,10 +154,14 @@ module Heartland {
      */
     receive(callback: Function, sourceOrigin: string): void {
       if (window.postMessage) {
+        var cb = function (m: any) {
+          // m.data = JSON.parse(m.data);
+          callback(m);
+        };
         if (window.addEventListener) {
-          (<any>window)[callback ? 'addEventListener' : 'removeEventListener']('message', callback, !1);
+          (<any>window)[callback ? 'addEventListener' : 'removeEventListener']('message', cb, !1);
         } else {
-          (<any>window)[callback ? 'attachEvent' : 'detachEvent']('onmessage', callback);
+          (<any>window)[callback ? 'attachEvent' : 'detachEvent']('onmessage', cb);
         }
       } else {
         if (this.intervalId) {

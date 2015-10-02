@@ -30,9 +30,9 @@ module Heartland {
           month = '0' + month;
         }
 
-        if (year.length === 2) {
-          year = (new Date).getFullYear().toString().slice(0, 2) + year;
-        }
+        // if (year.length === 2) {
+        //   year = (new Date).getFullYear().toString().slice(0, 2) + year;
+        // }
 
         return month + del + year;
       }

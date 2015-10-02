@@ -23,6 +23,8 @@ module Heartland {
       var cardType: CardType;
       var i: any;
 
+      if (!number) { return null; }
+
       for (i in Card.types) {
         cardType = Card.types[i];
         if (cardType.regex.test(number)) {
@@ -68,6 +70,25 @@ module Heartland {
       return sum % 10 === 0;
     }
 
+    export function addType(e: Event) {
+      var target = <HTMLInputElement>e.currentTarget;
+      var type = typeByNumber(target.value);
+      var length = target.classList.length;
+      var i = 0;
+      var c = '';
+
+      for (i; i < length; i++) {
+        c = target.classList.item(i);
+        if (c && c.indexOf('card-type-') === 0) {
+          target.classList.remove(c);
+        }
+      }
+
+      if (type) {
+        target.classList.add('card-type-' + type.code);
+      }
+    }
+
     export function formatNumber(e: Event) {
       var target = <HTMLInputElement>e.currentTarget;
       var value = target.value;
@@ -80,6 +101,22 @@ module Heartland {
       var value = target.value;
       value = (new Formatter.Expiration).format(value);
       target.value = value;
+    }
+
+    export function restrictNumeric(e: KeyboardEvent) {
+      // allow: backspace, delete, tab, escape and enter
+      if ([46, 8, 9, 27, 13, 110].indexOf(e.keyCode) !== -1 ||
+          // allow: Ctrl+A
+          (e.keyCode === 65 && e.ctrlKey === true) ||
+          // allow: home, end, left, right
+          (e.keyCode >= 35 && e.keyCode <= 39)) {
+        // let it happen, don't do anything
+        return;
+      }
+      // ensure that it is a number and stop the keypress
+      if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+        e.preventDefault();
+      }
     }
 
     export function validateNumber(e: Event) {
