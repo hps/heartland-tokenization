@@ -39,18 +39,25 @@ module Heartland {
      */
     export function applyOptions(source: Options, properties: Options) {
       var property: string;
+      var destination: Options = {};
 
       if (!source) {
         source = {};
       }
 
-      for (property in properties) {
-        if (properties.hasOwnProperty(property)) {
-          (<any>source)[property] = (<any>properties)[property];
+      for (property in source) {
+        if (source.hasOwnProperty(property)) {
+          (<any>destination)[property] = (<any>source)[property];
         }
       }
 
-      return source;
+      for (property in properties) {
+        if (properties.hasOwnProperty(property)) {
+          (<any>destination)[property] = (<any>properties)[property];
+        }
+      }
+
+      return destination;
     }
 
     /**
