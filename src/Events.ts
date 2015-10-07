@@ -52,7 +52,6 @@ module Heartland {
         Ev.listen(event, callback);
       }
     }
-    // }
 
     /**
      * Heartland.Events.trigger

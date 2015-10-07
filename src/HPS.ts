@@ -10,6 +10,21 @@
 /// <reference path="Util.ts" />
 
 module Heartland {
+  interface Frame {
+    frame?: Window;
+    name?: string;
+    options?: any;
+    target?: string;
+    targetNode?: EventTarget;
+    url?: string;
+  }
+  interface Frames {
+    cardNumber?: Frame;
+    cardExpiration?: Frame;
+    cardCvv?: Frame;
+    child?: Frame;
+    parent?: Frame;
+  }
   /**
    * Heartland.HPS
    *
@@ -19,7 +34,7 @@ module Heartland {
    */
   export class HPS {
     options: Options;
-    frames: any;
+    frames: Frames;
     iframe_url: string;
     Messages: Messages;
     mailbox: any; // [];
@@ -90,9 +105,8 @@ module Heartland {
      * @param {Heartland.Options} options
      */
     configureInternalIframe(options: Options): void {
-      var win: any = window.parent;
       this.Messages = new Heartland.Messages(this);
-      this.parent = window.postMessage ? win.parent.contentWindow : window.parent;
+      this.parent = window.parent;
       this.frames = this.frames || {};
       this.frames.parent = {
         frame: window.parent,
@@ -124,12 +138,11 @@ module Heartland {
      * @param {Heartland.Options} options
      */
     configureFieldIframe(options: Options): void {
-      var win: any = window;
       var hash = document.location.hash.replace(/^#/, '');
       var split = hash.split(':');
       this.Messages = new Heartland.Messages(this);
       this.field = split.shift();
-      this.parent = window.postMessage ? win.parent.contentWindow : window.parent;
+      this.parent = window.parent;
       this.frames = this.frames || {};
       this.frames.parent = {
         frame: window.parent,

@@ -80,7 +80,7 @@ module Heartland {
         var fieldFrame: any;
 
         try {
-          fieldFrame = hps.frames[m.source.name];
+          fieldFrame = (<any>hps.frames)[data.source.name === 'heartland-frame-securesubmit' ? 'parent' : data.source.name];
         } catch (e) { return; }
 
         switch (data.action) {
@@ -131,7 +131,7 @@ module Heartland {
               if (i === 'cardNumber') {
                 continue;
               }
-              field = hps.frames[i];
+              field = (<any>hps.frames)[i];
               hps.Messages.post(
                 {
                   action: 'getFieldData',
@@ -187,7 +187,7 @@ module Heartland {
           .getElementById(fieldOptions.target)
           .appendChild(frame);
 
-        hps.frames[field] = {
+        (<any>hps.frames)[field] = {
           frame: frame,
           name: field,
           options: fieldOptions,

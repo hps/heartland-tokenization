@@ -655,7 +655,7 @@ var Heartland;
     Heartland.urls = {
         CERT: 'https://posgateway.cert.secureexchange.net/Hps.Exchange.PosGateway.Hpf.v1/api/token',
         PROD: 'https://api2.heartlandportico.com/SecureSubmit.v1/api/token',
-        iframeCERT: 'http://localhost:8889/',
+        iframeCERT: 'http://192.168.39.1:8889/',
         iframePROD: 'https://api2.heartlandportico.com/SecureSubmit.v1/token/2.0/'
     };
 })(Heartland || (Heartland = {}));
@@ -1046,7 +1046,6 @@ var Heartland;
             }
         }
         Events.addHandler = addHandler;
-        // }
         /**
          * Heartland.Events.trigger
          *
@@ -1549,21 +1548,25 @@ var Heartland;
             var frame;
             var targetNode;
             var targetUrl;
+            message.source = message.source || {};
+            message.source.name = window.name;
             if (!this.hps.frames) {
                 return;
             }
-            frame = this.hps[target] || this.hps.frames[target];
+            frame = this.hps.frames[target] || this.hps[target];
             if (!frame) {
                 return;
             }
             targetUrl = this.hps.frames[target].url;
-            if (typeof frame.targetNode !== 'undefined') {
-                targetNode = frame.targetNode;
+            try {
+                if (typeof frame.targetNode !== 'undefined') {
+                    targetNode = frame.targetNode;
+                }
+                else if (typeof frame.frame !== 'undefined') {
+                    targetNode = frame.frame;
+                }
             }
-            else if (typeof frame.frame !== 'undefined') {
-                targetNode = frame.frame;
-            }
-            else {
+            catch (e) {
                 targetNode = frame;
             }
             if (window.postMessage) {
@@ -1832,7 +1835,7 @@ var Heartland;
                 var data = JSON.parse(m.data);
                 var fieldFrame;
                 try {
-                    fieldFrame = hps.frames[m.source.name];
+                    fieldFrame = hps.frames[data.source.name === 'heartland-frame-securesubmit' ? 'parent' : data.source.name];
                 }
                 catch (e) {
                     return;
@@ -2034,9 +2037,8 @@ var Heartland;
          * @param {Heartland.Options} options
          */
         HPS.prototype.configureInternalIframe = function (options) {
-            var win = window.parent;
             this.Messages = new Heartland.Messages(this);
-            this.parent = window.postMessage ? win.parent.contentWindow : window.parent;
+            this.parent = window.parent;
             this.frames = this.frames || {};
             this.frames.parent = {
                 frame: window.parent,
@@ -2065,12 +2067,11 @@ var Heartland;
          * @param {Heartland.Options} options
          */
         HPS.prototype.configureFieldIframe = function (options) {
-            var win = window;
             var hash = document.location.hash.replace(/^#/, '');
             var split = hash.split(':');
             this.Messages = new Heartland.Messages(this);
             this.field = split.shift();
-            this.parent = window.postMessage ? win.parent.contentWindow : window.parent;
+            this.parent = window.parent;
             this.frames = this.frames || {};
             this.frames.parent = {
                 frame: window.parent,

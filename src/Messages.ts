@@ -103,23 +103,28 @@ module Heartland {
       var targetNode: Window;
       var targetUrl: string;
 
+      (<any>message).source = (<any>message).source || {};
+      (<any>message).source.name = window.name;
+
       if (!this.hps.frames) {
         return;
       }
 
-      frame = (<any>this.hps)[target] || this.hps.frames[target];
+      frame = (<any>this.hps.frames)[target] || (<any>this.hps)[target];
 
       if (!frame) {
         return;
       }
 
-      targetUrl = this.hps.frames[target].url;
+      targetUrl = (<any>this.hps.frames)[target].url;
 
-      if (typeof frame.targetNode !== 'undefined') {
-        targetNode = frame.targetNode;
-      } else if (typeof frame.frame !== 'undefined') {
-        targetNode = frame.frame;
-      } else {
+      try {
+        if (typeof frame.targetNode !== 'undefined') {
+          targetNode = frame.targetNode;
+        } else if (typeof frame.frame !== 'undefined') {
+          targetNode = frame.frame;
+        }
+      } catch (e) {
         targetNode = frame;
       }
 
