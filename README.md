@@ -19,6 +19,14 @@ $ npm install
 $ npm run build
 ```
 
+`npm run build` will perform the following tasks:
+
+1. Clean the `./dist/` directory.
+2. Builds the Typescript files into `./dist/securesubmit.js` using `tsconfig.json`.
+3. Lints the Typescript files according to `tslint.json`.
+4. Minifies `./dist/securesubmit.js` into `./dist/securesubmit.min.js`.
+5. Copies the needed `field.html` and `index.html` files into `./dist/`.
+
 ## Development
 
 The tokenization library is built in Typescript. The Typescript compiler is available as an add-on for Visual Studio, but it can also be installed independently. This library's `package.json` file also pulls down a copy of the Typescript compiler on `npm install`, which allows it to be used by calling `./node_modules/bin/tsc`.
