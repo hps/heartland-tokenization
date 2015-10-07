@@ -12,6 +12,25 @@ Refer to the [Heartland Payment Systems SecureSubmit website](https://developer.
 <script src='https://api.heartlandportico.com/SecureSubmit.v1/token/2.0/securesubmit.js'></script>
 ```
 
+## Building from source
+
+```bash
+$ npm install
+$ npm run build
+```
+
+## Development
+
+The tokenization library is built in Typescript. The Typescript compiler is available as an add-on for Visual Studio, but it can also be installed independently. This library's `package.json` file also pulls down a copy of the Typescript compiler on `npm install`, which allows it to be used by calling `./node_modules/bin/tsc`.
+
+### Watch files during development
+
+This will compile changes to `./dist/securesubmit.js` but will not update the minified `./dist/securesubmit.min.js`.
+
+```bash
+$ npm run watch
+```
+
 ## Contributing
 
 1. Fork it
