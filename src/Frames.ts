@@ -126,7 +126,6 @@ module Heartland {
           case 'accumulateData':
             var i: string;
             var field: any;
-            console.log('should accumulate card data');
 
             for (i in hps.frames) {
               if (i === 'cardNumber') {

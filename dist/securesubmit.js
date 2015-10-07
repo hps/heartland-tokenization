@@ -1081,7 +1081,6 @@ var Heartland;
                 var data = JSON.parse(m.data);
                 switch (data.action) {
                     case 'tokenize':
-                        console.log('should tokenize card');
                         if (data.accumulateData) {
                             hps.Messages.post({
                                 action: 'accumulateData'
@@ -1885,7 +1884,6 @@ var Heartland;
                     case 'accumulateData':
                         var i;
                         var field;
-                        console.log('should accumulate card data');
                         for (i in hps.frames) {
                             if (i === 'cardNumber') {
                                 continue;
