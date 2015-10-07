@@ -2,16 +2,31 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>QUnit basic example</title>
+  <title>heartland-tokenization test suites</title>
   <link rel="stylesheet" href="http://code.jquery.com/qunit/qunit-1.18.0.css">
 </head>
 <body>
   <div id="qunit"></div>
   <div id="qunit-fixture"></div>
   <script src="http://code.jquery.com/qunit/qunit-1.18.0.js"></script>
-  <script src="../securesubmit.js"></script>
-  <script src="./tokenize.js"></script>
-  <script src="./tokenizeSwipe.js"></script>
-  <script src="./tokenizeEncryptedCard.js"></script>
+  <script src="../dist/securesubmit.js"></script>
+  <script src="./_helpers.js"></script>
+
+  <!-- formatting -->
+  <script src="./formatting/cardNumber.js"></script>
+  <script src="./formatting/expiration.js"></script>
+
+  <!-- validation -->
+  <script src="./validation/luhnCheck.js"></script>
+  <script src="./validation/cardNumber.js"></script>
+  <script src="./validation/cvv.js"></script>
+  <script src="./validation/expiration.js"></script>
+
+  <!-- tokenization -->
+  <script src="./tokenization/tokenize.js"></script>
+  <script src="./tokenization/tokenizeSwipe.js"></script>
+  <script src="./tokenization/tokenizeEncryptedCard.js"></script>
+  <script src="./tokenization/tokenizeIFrame.js"></script>
+  <script src="./tokenization/tokenizeIFrameFields.js"></script>
 </body>
 </html>
