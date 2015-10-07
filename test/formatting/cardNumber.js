@@ -2,9 +2,8 @@ var cardFormatter = new Heartland.Formatter.CardNumber;
 
 QUnit.module('formatter card number');
 
-asyncTest('complete card number', function (assert) {
+QUnit.test('complete card number', function (assert) {
   var result;
-  start();
   result = cardFormatter.format('4012002000060016');
   assert.equal(result, '4012 0020 0006 0016', 'complete visa');
 
@@ -21,9 +20,8 @@ asyncTest('complete card number', function (assert) {
   assert.equal(result, '3566 0077 7000 7321', 'jcb');
 });
 
-asyncTest('partial card number', function (assert) {
+QUnit.test('partial card number', function (assert) {
   var result;
-  start();
   result = cardFormatter.format('40120020000600');
   assert.equal(result, '4012 0020 0006 00', 'complete visa');
 

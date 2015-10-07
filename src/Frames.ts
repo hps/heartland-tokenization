@@ -32,11 +32,11 @@ module Heartland {
         hps.iframe_url = urls.iframePROD;
       }
 
-      if (options.fields) {
-        Heartland.Frames.makeFieldAndLink(hps);
+      if (options.fields !== defaults.fields) {
+        Heartland.Frames.makeFieldsAndLink(hps);
       }
 
-      if (options.iframeTarget) {
+      if (options.fields === defaults.fields && options.iframeTarget) {
         target = document.getElementById(options.iframeTarget);
         if (options.targetType === 'myframe') {
           frame = target;
@@ -126,6 +126,7 @@ module Heartland {
           case 'accumulateData':
             var i: string;
             var field: any;
+            console.log('should accumulate card data');
 
             for (i in hps.frames) {
               if (i === 'cardNumber') {
@@ -164,21 +165,24 @@ module Heartland {
     }
 
     /**
-     * Heartland.Frames.makeFieldAndLink
+     * Heartland.Frames.makeFieldsAndLink
      *
      * Creates a set of single field iFrames and stores a reference to
      * them in the parent window's state.
      *
      * @param {Heartland.HPS} hps
      */
-    export function makeFieldAndLink(hps: HPS) {
+    export function makeFieldsAndLink(hps: HPS) {
       var options = hps.options;
-      var fieldsLength = options.fields.length;
+      var fieldsLength = fields.length;
       var baseUrl = hps.iframe_url.replace('index.html', '') + 'field.html';
 
       for (var i = 0; i < fieldsLength; i++) {
         var field = fields[i];
         var fieldOptions = options.fields[field];
+
+        if (!fieldOptions) { return; }
+
         var frame = Heartland.DOM.makeFrame(field);
         var url = baseUrl + '#' + field + ':' + encodeURIComponent(document.location.href.split('#')[0]);
         frame.src = url;

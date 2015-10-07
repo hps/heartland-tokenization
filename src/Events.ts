@@ -87,6 +87,7 @@ module Heartland {
         var data = JSON.parse(m.data);
         switch (data.action) {
           case 'tokenize':
+            console.log('should tokenize card');
             if (data.accumulateData) {
               hps.Messages.post(
                 {

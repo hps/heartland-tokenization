@@ -11,7 +11,7 @@ var Heartland;
         cardType: '',
         env: 'prod',
         error: null,
-        fields: [],
+        fields: {},
         formId: '',
         gatewayUrl: '',
         iframeTarget: '',
@@ -1081,6 +1081,7 @@ var Heartland;
                 var data = JSON.parse(m.data);
                 switch (data.action) {
                     case 'tokenize':
+                        console.log('should tokenize card');
                         if (data.accumulateData) {
                             hps.Messages.post({
                                 action: 'accumulateData'
@@ -1213,15 +1214,21 @@ var Heartland;
          */
         function applyOptions(source, properties) {
             var property;
+            var destination = {};
             if (!source) {
                 source = {};
             }
-            for (property in properties) {
-                if (properties.hasOwnProperty(property)) {
-                    source[property] = properties[property];
+            for (property in source) {
+                if (source.hasOwnProperty(property)) {
+                    destination[property] = source[property];
                 }
             }
-            return source;
+            for (property in properties) {
+                if (properties.hasOwnProperty(property)) {
+                    destination[property] = properties[property];
+                }
+            }
+            return destination;
         }
         Util.applyOptions = applyOptions;
         /**
@@ -1796,10 +1803,10 @@ var Heartland;
             else {
                 hps.iframe_url = Heartland.urls.iframePROD;
             }
-            if (options.fields) {
-                Heartland.Frames.makeFieldAndLink(hps);
+            if (options.fields !== Heartland.defaults.fields) {
+                Heartland.Frames.makeFieldsAndLink(hps);
             }
-            if (options.iframeTarget) {
+            if (options.fields === Heartland.defaults.fields && options.iframeTarget) {
                 target = document.getElementById(options.iframeTarget);
                 if (options.targetType === 'myframe') {
                     frame = target;
@@ -1878,6 +1885,7 @@ var Heartland;
                     case 'accumulateData':
                         var i;
                         var field;
+                        console.log('should accumulate card data');
                         for (i in hps.frames) {
                             if (i === 'cardNumber') {
                                 continue;
@@ -1906,20 +1914,23 @@ var Heartland;
         }
         Frames.configureIframe = configureIframe;
         /**
-         * Heartland.Frames.makeFieldAndLink
+         * Heartland.Frames.makeFieldsAndLink
          *
          * Creates a set of single field iFrames and stores a reference to
          * them in the parent window's state.
          *
          * @param {Heartland.HPS} hps
          */
-        function makeFieldAndLink(hps) {
+        function makeFieldsAndLink(hps) {
             var options = hps.options;
-            var fieldsLength = options.fields.length;
+            var fieldsLength = Heartland.fields.length;
             var baseUrl = hps.iframe_url.replace('index.html', '') + 'field.html';
             for (var i = 0; i < fieldsLength; i++) {
                 var field = Heartland.fields[i];
                 var fieldOptions = options.fields[field];
+                if (!fieldOptions) {
+                    return;
+                }
                 var frame = Heartland.DOM.makeFrame(field);
                 var url = baseUrl + '#' + field + ':' + encodeURIComponent(document.location.href.split('#')[0]);
                 frame.src = url;
@@ -1936,7 +1947,7 @@ var Heartland;
                 };
             }
         }
-        Frames.makeFieldAndLink = makeFieldAndLink;
+        Frames.makeFieldsAndLink = makeFieldsAndLink;
         /**
          * Heartland.Frames.monitorFieldEvents
          *
@@ -2022,7 +2033,10 @@ var Heartland;
                 this.options = Heartland.Util.getUrlByEnv(this.options);
             }
             if (this.options.type === 'iframe') {
-                this.Messages.post({ action: 'tokenize', message: this.options.publicKey }, 'child');
+                this.Messages.post({
+                    action: 'tokenize',
+                    message: this.options.publicKey
+                }, 'child');
                 return;
             }
             Heartland.Ajax.call(this.options.type, this.options);
@@ -2102,6 +2116,9 @@ var Heartland;
          * @param {string} height
          */
         HPS.prototype.resizeIFrame = function (frame, height) {
+            if (!frame) {
+                return;
+            }
             frame.style.height = (parseInt(height, 10)) + 'px';
         };
         ;

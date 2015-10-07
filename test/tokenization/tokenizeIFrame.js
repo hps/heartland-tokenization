@@ -1,6 +1,7 @@
 QUnit.module('tokenize iframe');
 
-asyncTest('valid iframe target', function () {
+QUnit.test('valid iframe target', function (assert) {
+  var done = assert.async();
   var id = 'valid-iframe-target';
   Heartland.Test.makeDiv(id);
 
@@ -8,8 +9,8 @@ asyncTest('valid iframe target', function () {
     publicKey: Heartland.Test.public_key,
     type: 'iframe',
     iframeTarget: id,
-    onTokenSuccess: Heartland.Test.check_for_token,
-    onTokenError: Heartland.Test.default_error
+    onTokenSuccess: Heartland.Test.check_for_token(assert, done),
+    onTokenError: Heartland.Test.default_error(assert, done)
   });
   Heartland.Test.addHandler(document, 'securesubmitIframeReady', function () {
     Heartland.Test.setCardData(hps, true);
@@ -17,12 +18,18 @@ asyncTest('valid iframe target', function () {
   });
 });
 
-asyncTest('invalid iframe target - undefined target', function () {
+QUnit.test('invalid iframe target - undefined target', function (assert) {
+  var done = assert.async();
   var id = undefined;
   var fun = function (response) {
-    ok(false, 'token success/error function ran');
+    assert.ok(false, 'token success/error function ran');
+    done();
   };
-  var timeout = setTimeout(function () {ok(false, 'iframe failed to construct properly');}, 5000);
+  var timeout = setTimeout(function () {
+    assert.ok(false, 'iframe failed to construct properly');
+    done();
+  }, 5000);
+
   var hps = new HPS({
     publicKey: Heartland.Test.public_key,
     type: 'iframe',
@@ -30,17 +37,17 @@ asyncTest('invalid iframe target - undefined target', function () {
     onTokenSuccess: fun,
     onTokenError: fun
   });
-  setTimeout(function () {
-    start();
-    hps.tokenize();
-    ok(true);
-    clearTimeout(timeout);
-  });
+
+  hps.tokenize();
+  assert.ok(true);
+  done();
+  clearTimeout(timeout);
 });
 
-asyncTest('invalid iframe target - myframe does not exist', function () {
+QUnit.test('invalid iframe target - myframe does not exist', function (assert) {
+  var done = assert.async();
   var id = 'invalid-iframe-target-myframe';
-  start();
+
   try {
     var hps = new HPS({
       publicKey: Heartland.Test.public_key,
@@ -48,8 +55,10 @@ asyncTest('invalid iframe target - myframe does not exist', function () {
       iframeTarget: id,
       targetType: 'myframe'
     });
-    ok(false, "you completed something the DOM shouldn't be able to do");
+    assert.ok(false, "you completed something the DOM shouldn't be able to do");
+    done();
   } catch(e) {
-    ok(true);
+    assert.ok(true);
+    done();
   }
 });

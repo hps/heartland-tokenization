@@ -90,7 +90,13 @@ module Heartland {
         this.options = Heartland.Util.getUrlByEnv(this.options);
       }
       if (this.options.type === 'iframe') {
-        this.Messages.post({action: 'tokenize', message: this.options.publicKey}, 'child');
+        this.Messages.post(
+          {
+            action: 'tokenize',
+            message: this.options.publicKey
+          },
+          'child'
+        );
         return;
       }
       Heartland.Ajax.call(this.options.type, this.options);
@@ -176,6 +182,7 @@ module Heartland {
      * @param {string} height
      */
     resizeIFrame(frame: HTMLIFrameElement, height: string): void {
+      if (!frame) { return; }
       frame.style.height = (parseInt(height, 10)) + 'px';
     };
 

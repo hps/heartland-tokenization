@@ -2,9 +2,7 @@ var expFormatter = new Heartland.Formatter.Expiration;
 
 QUnit.module('formatter expiration');
 
-asyncTest('complete expiration', function (assert) {
-  start();
-
+QUnit.test('complete expiration', function (assert) {
   // short
   assert.equal(expFormatter.format('1/16'), '01 / 16');
   assert.equal(expFormatter.format('1 /16'), '01 / 16');
@@ -18,8 +16,7 @@ asyncTest('complete expiration', function (assert) {
   // assert.equal(expFormatter.format('01 / 2016'), '01 / 2016');
 });
 
-asyncTest('partial expiration', function (assert) {
-  start();
+QUnit.test('partial expiration', function (assert) {
   assert.equal(expFormatter.format('1'), '1');
   assert.equal(expFormatter.format('01'), '01 / ');
 

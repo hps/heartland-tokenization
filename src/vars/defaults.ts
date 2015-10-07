@@ -11,7 +11,7 @@ module Heartland {
     cardType: '',
     env: 'prod',
     error: null,
-    fields: [],
+    fields: {},
     formId: '',
     gatewayUrl: '',
     iframeTarget: '',
