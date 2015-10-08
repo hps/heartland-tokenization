@@ -503,7 +503,7 @@ var Heartland;
         function setStyle(elementid, htmlstyle) {
             var el = document.getElementById(elementid);
             if (el) {
-                el.setAttribute('style', htmlstyle);
+                el.setAttribute('style', encodeEntities(htmlstyle));
             }
         }
         DOM.setStyle = setStyle;
@@ -520,7 +520,7 @@ var Heartland;
             if (el) {
                 var currstyle = el.getAttribute('style');
                 var newstyle = (currstyle ? currstyle : '') + htmlstyle;
-                el.setAttribute('style', newstyle);
+                el.setAttribute('style', encodeEntities(newstyle));
             }
         }
         DOM.appendStyle = appendStyle;
@@ -550,7 +550,7 @@ var Heartland;
         function setPlaceholder(elementid, text) {
             var el = document.getElementById(elementid);
             if (el) {
-                el.setAttribute('placeholder', text);
+                el.setAttribute('placeholder', encodeEntities(text));
             }
         }
         DOM.setPlaceholder = setPlaceholder;
@@ -579,12 +579,12 @@ var Heartland;
             var el = document.getElementById(elementid);
             if (!el && document.getElementById('heartland-field')) {
                 el = document.createElement('input');
-                el.setAttribute('id', elementid);
+                el.setAttribute('id', encodeEntities(elementid));
                 el.setAttribute('type', 'hidden');
                 document.getElementById('heartland-field-wrapper').appendChild(el);
             }
             if (el) {
-                el.setAttribute('value', value);
+                el.setAttribute('value', encodeEntities(value));
             }
         }
         DOM.setFieldData = setFieldData;
