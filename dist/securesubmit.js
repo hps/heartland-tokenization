@@ -535,7 +535,7 @@ var Heartland;
         function setText(elementid, text) {
             var el = document.getElementById(elementid);
             if (el) {
-                el.textContent = encodeURI(text);
+                el.textContent = encodeEntities(text);
             }
         }
         DOM.setText = setText;
@@ -603,6 +603,28 @@ var Heartland;
             }
         }
         DOM.getFieldData = getFieldData;
+        /**
+         * Escapes all potentially dangerous characters, so that the
+         * resulting string can be safely inserted into attribute or
+         * element text.
+         *
+         * @param value
+         * @returns {string} escaped text
+         */
+        function encodeEntities(value) {
+            return value.
+                replace(/&/g, '&amp;').
+                replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function (v) {
+                var hi = v.charCodeAt(0);
+                var low = v.charCodeAt(1);
+                return '&#' + (((hi - 0xD800) * 0x400) + (low - 0xDC00) + 0x10000) + ';';
+            }).
+                replace(/([^\#-~| |!])/g, function (v) {
+                return '&#' + v.charCodeAt(0) + ';';
+            }).
+                replace(/</g, '&lt;').
+                replace(/>/g, '&gt;');
+        }
     })(DOM = Heartland.DOM || (Heartland.DOM = {}));
 })(Heartland || (Heartland = {}));
 /// <reference path="../types/CardType.ts" />
