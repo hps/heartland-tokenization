@@ -535,7 +535,7 @@ var Heartland;
         function setText(elementid, text) {
             var el = document.getElementById(elementid);
             if (el) {
-                el.innerHTML = text;
+                el.textContent = encodeURI(text);
             }
         }
         DOM.setText = setText;

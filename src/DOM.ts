@@ -95,7 +95,7 @@ module Heartland {
     export function setText(elementid: string, text: string) {
       var el = document.getElementById(elementid);
       if (el) {
-        el.innerHTML = text;
+        el.textContent = encodeURI(text);
       }
     }
 
