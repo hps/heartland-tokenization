@@ -244,5 +244,41 @@ module Heartland {
         target.classList.remove('valid');
       }
     }
+
+    /**
+     * Heartland.Card.attachNumberEvents
+     *
+     * @param {string} selector
+     */
+    export function attachNumberEvents(selector: string) {
+      Heartland.Events.addHandler(document.querySelector(selector), 'keydown', restrictNumeric);
+      Heartland.Events.addHandler(document.querySelector(selector), 'keydown', restrictLength(19));
+      Heartland.Events.addHandler(document.querySelector(selector), 'input', formatNumber);
+      Heartland.Events.addHandler(document.querySelector(selector), 'input', validateNumber);
+      Heartland.Events.addHandler(document.querySelector(selector), 'input', addType);
+    }
+
+    /**
+     * Heartland.Card.attachExpirationEvents
+     *
+     * @param {string} selector
+     */
+    export function attachExpirationEvents(selector: string) {
+      Heartland.Events.addHandler(document.querySelector(selector), 'keydown', restrictNumeric);
+      Heartland.Events.addHandler(document.querySelector(selector), 'keydown', restrictLength(9));
+      Heartland.Events.addHandler(document.querySelector(selector), 'input', formatExpiration);
+      Heartland.Events.addHandler(document.querySelector(selector), 'input', validateExpiration);
+    }
+
+    /**
+     * Heartland.Card.attachCvvEvents
+     *
+     * @param {string} selector
+     */
+    export function attachCvvEvents(selector: string) {
+      Heartland.Events.addHandler(document.querySelector(selector), 'keydown', restrictNumeric);
+      Heartland.Events.addHandler(document.querySelector(selector), 'keydown', restrictLength(4));
+      Heartland.Events.addHandler(document.querySelector(selector), 'input', validateCvv);
+    }
   }
 }

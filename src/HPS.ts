@@ -160,6 +160,8 @@ module Heartland {
         return function () {
           Heartland.DOM.resizeFrame(hps);
           Heartland.DOM.configureField(hps);
+          var method = 'attach' + window.name.replace('card', '') + 'Events';
+          (<any>Heartland.Card)[method]('#heartland-field');
         };
       }(this)));
 
