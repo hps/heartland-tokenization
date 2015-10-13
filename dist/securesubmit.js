@@ -551,7 +551,12 @@ var Heartland;
         function setPlaceholder(elementid, text) {
             var el = document.getElementById(elementid);
             if (el) {
-                el.setAttribute('placeholder', encodeEntities(text));
+                if (text === '•••• •••• •••• ••••' || text === '••••' || text === '•••') {
+                    el.setAttribute('placeholder', text);
+                }
+                else {
+                    el.setAttribute('placeholder', encodeEntities(text));
+                }
             }
         }
         DOM.setPlaceholder = setPlaceholder;
