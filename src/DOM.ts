@@ -1,3 +1,5 @@
+/// <reference path="HPS.ts" />
+
 module Heartland {
   /**
    * @namespace Heartland.DOM
@@ -123,7 +125,7 @@ module Heartland {
      */
     export function resizeFrame(hps: HPS) {
       var html = document.getElementsByTagName('html')[0];
-      var docHeight = html.offsetHeight;
+      var docHeight = html.offsetHeight + 1; // off by one error
       hps.Messages.post({ action: 'resize', height: docHeight }, 'parent');
     }
 
