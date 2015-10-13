@@ -38,6 +38,8 @@ module Heartland {
     /**
      * Heartland.Card.luhnCheck
      *
+     * Runs a mod 10 check on a given card number.
+     *
      * @param {string} number - The card number
      * @returns {boolean}
      */
@@ -70,6 +72,14 @@ module Heartland {
       return sum % 10 === 0;
     }
 
+    /**
+     * Heartland.Card.addType
+     *
+     * Adds a class to the target element with the card type
+     * inferred from the target's current value.
+     *
+     * @param {Event} e
+     */
     export function addType(e: Event) {
       var target = <HTMLInputElement>e.currentTarget;
       var type = typeByNumber(target.value);
@@ -89,6 +99,14 @@ module Heartland {
       }
     }
 
+    /**
+     * Heartland.Card.formatNumber
+     *
+     * Formats a target element's value based on the
+     * inferred card type's formatting regex.
+     *
+     * @param {Event} e
+     */
     export function formatNumber(e: Event) {
       var target = <HTMLInputElement>e.currentTarget;
       var value = target.value;
@@ -96,6 +114,13 @@ module Heartland {
       target.value = value;
     }
 
+    /**
+     * Heartland.Card.formatExpiration
+     *
+     * Formats a target element's value.
+     *
+     * @param {Event} e
+     */
     export function formatExpiration(e: Event) {
       var target = <HTMLInputElement>e.currentTarget;
       var value = target.value;
@@ -103,6 +128,43 @@ module Heartland {
       target.value = value;
     }
 
+    /**
+     * Heartland.Card.restrictLength
+     *
+     * Restricts input in a target element to a
+     * certain length data.
+     *
+     * @param {number} length
+     *
+     * @returns {(e: KeyboardEvent) => ()}
+     */
+    export function restrictLength(length: number) {
+      return function (e: KeyboardEvent) {
+        var target = <HTMLInputElement>e.currentTarget;
+        var value = target.value;
+        // allow: backspace, delete, tab, escape and enter
+        if ([46, 8, 9, 27, 13, 110].indexOf(e.keyCode) !== -1 ||
+            // allow: Ctrl+A
+            (e.keyCode === 65 && e.ctrlKey === true) ||
+            // allow: home, end, left, right
+            (e.keyCode >= 35 && e.keyCode <= 39)) {
+          // let it happen, don't do anything
+          return;
+        }
+        if (value.length >= length) {
+          e.preventDefault();
+        }
+      };
+    }
+
+    /**
+     * Heartland.Card.restrictNumeric
+     *
+     * Restricts input in a target element to only
+     * numeric data.
+     *
+     * @param {KeyboardEvent} e
+     */
     export function restrictNumeric(e: KeyboardEvent) {
       // allow: backspace, delete, tab, escape and enter
       if ([46, 8, 9, 27, 13, 110].indexOf(e.keyCode) !== -1 ||
@@ -119,6 +181,16 @@ module Heartland {
       }
     }
 
+    /**
+     * Heartland.Card.validateNumber
+     *
+     * Validates a target element's value based on the
+     * inferred card type's validation regex. Adds a
+     * class to the target element to note `valid` or
+     * `invalid`.
+     *
+     * @param {Event} e
+     */
     export function validateNumber(e: Event) {
       var target = <HTMLInputElement>e.currentTarget;
       var value = target.value;
@@ -131,6 +203,15 @@ module Heartland {
       }
     }
 
+    /**
+     * Heartland.Card.validateCvv
+     *
+     * Validates a target element's value based on the
+     * possible CVV lengths. Adds a class to the target
+     * element to note `valid` or `invalid`.
+     *
+     * @param {Event} e
+     */
     export function validateCvv(e: Event) {
       var target = <HTMLInputElement>e.currentTarget;
       var value = target.value;
@@ -143,6 +224,15 @@ module Heartland {
       }
     }
 
+    /**
+     * Heartland.Card.validateExpiration
+     *
+     * Validates a target element's value based on the
+     * current date. Adds a class to the target element
+     * to note `valid` or `invalid`.
+     *
+     * @param {Event} e
+     */
     export function validateExpiration(e: Event) {
       var target = <HTMLInputElement>e.currentTarget;
       var value = target.value;
