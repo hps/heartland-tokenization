@@ -119,7 +119,7 @@ module Heartland {
             'object=token',
             '_method=post',
             'api_key=' + data.publicKey.replace(/^\s+|\s+$/g, ''),
-            'card%5Bnumber%5D=' + data.cardNumber.replace(/^\s+|\s+$/g, ''),
+            'card%5Bnumber%5D=' + data.cardNumber.replace(/\s/g, ''),
             'card%5Bexp_month%5D=' + data.cardExpMonth.replace(/^\s+|\s+$/g, ''),
             'card%5Bexp_year%5D=' + data.cardExpYear.replace(/^\s+|\s+$/g, ''),
             'card%5Bcvc%5D=' + data.cardCvv.replace(/^\s+|\s+$/g, '')
