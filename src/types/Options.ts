@@ -26,5 +26,7 @@ module Heartland {
     buttonTarget?: string;
     onTokenSuccess?: Function;
     onTokenError?: Function;
+    style?: Object;
+    styleString?: string;
   }
 }

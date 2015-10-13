@@ -160,6 +160,8 @@ module Heartland {
         return function () {
           Heartland.DOM.resizeFrame(hps);
           Heartland.DOM.configureField(hps);
+          var method = 'attach' + window.name.replace('card', '') + 'Events';
+          (<any>Heartland.Card)[method]('#heartland-field');
         };
       }(this)));
 
@@ -220,6 +222,17 @@ module Heartland {
      */
     appendStyle(elementid: string, elementstyle: string): void {
       this.Messages.post({action: 'appendStyle', id: elementid, style: elementstyle}, 'child');
+    };
+
+    /**
+     * Heartland.HPS.setFocus
+     *
+     * Public API for appending to an element's style.
+     *
+     * @param {string} elementid
+     */
+    setFocus(elementid: string): void {
+      this.Messages.post({action: 'setFocus'}, elementid);
     };
   }
 }

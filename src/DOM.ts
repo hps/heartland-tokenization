@@ -1,3 +1,5 @@
+/// <reference path="HPS.ts" />
+
 module Heartland {
   /**
    * @namespace Heartland.DOM
@@ -123,7 +125,7 @@ module Heartland {
      */
     export function resizeFrame(hps: HPS) {
       var html = document.getElementsByTagName('html')[0];
-      var docHeight = html.offsetHeight;
+      var docHeight = html.offsetHeight + 1; // off by one error
       hps.Messages.post({ action: 'resize', height: docHeight }, 'parent');
     }
 
@@ -185,6 +187,114 @@ module Heartland {
         }).
         replace(/</g, '&lt;').
         replace(/>/g, '&gt;');
+    }
+
+    /**
+     * Heartland.DOM.addStylesheet
+     *
+     * Creates a `style` node in the DOM with the given `css`.
+     *
+     * @param {Heartland.HPS} hps
+     * @param {string} elementid
+     */
+    export function addStylesheet(css: string) {
+      var el = document.createElement('style');
+      var elements = document.getElementsByTagName('head');
+      el.type = 'text/css';
+      el.appendChild(document.createTextNode(css));
+      if (elements && elements[0]) {
+        elements[0].appendChild(el);
+      }
+    }
+
+    /**
+     * Heartland.DOM.json2css
+     *
+     * Converts a JSON node to text representing CSS.
+     *
+     * @param {string} json
+     * @returns {string}
+     */
+    export function json2css(json: Object): string {
+      var css = '';
+      var attributes: string[];
+      var children: Object[];
+      var i: number, j: number;
+      var key: any, value: any;
+
+      if (attributes = jsonAttributes(json)) {
+        var attributesLength = attributes.length;
+        for (i = 0; i < attributesLength; i++) {
+          key = attributes[i];
+          value = (<any>json)[key];
+          if (isArray(value)) {
+            var arrLength = value.length;
+            for (j = 0; j < arrLength; j++) {
+              css += key + ':' + value[j] + ';';
+            }
+          } else {
+            css += key + ':' + value + ';';
+          }
+        }
+      }
+
+      if (children = jsonChildren(json)) {
+        var childrenLength = children.length;
+        for (i = 0; i < childrenLength; i++) {
+          key = children[i];
+          value = (<any>json)[key];
+          css += key + '{' + json2css(value) + '}';
+        }
+      }
+
+      return css;
+    }
+
+    /**
+     * Heartland.DOM.setFocus
+     *
+     * Sets the focus on an iframe's field.
+     *
+     * @param {Heartland.HPS} hps
+     * @param {string} elementid
+     */
+    export function setFocus() {
+      var el = document.getElementById('heartland-field');
+      if (el) {
+        el.focus();
+      }
+    }
+
+    /***********
+     * Helpers *
+     ***********/
+
+    function isArray(obj: any): boolean {
+      return Object.prototype.toString.call(obj) === '[object Array]';
+    }
+
+    function jsonAttributes(json: Object): string[] {
+      var set: string[] = [];
+      var i: string;
+      for (i in json) {
+        if (json.hasOwnProperty(i)
+            && (typeof (<any>json)[i] === 'string' || isArray((<any>json)[i]))) {
+          set.push(i);
+        }
+      }
+      return set;
+    }
+
+    function jsonChildren(json: Object): Object[] {
+      var set: Object[] = [];
+      var i: string;
+      for (i in json) {
+        if (json.hasOwnProperty(i)
+            && (Object.prototype.toString.call((<any>json)[i]) === '[object Object]')) {
+          set.push(i);
+        }
+      }
+      return set;
     }
   }
 }

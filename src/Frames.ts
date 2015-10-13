@@ -118,7 +118,19 @@ module Heartland {
                   text: fieldFrame.options.placeholder
                 },
                 fieldFrame.name
-                );
+              );
+            }
+
+            if (options.style) {
+              var css = options.styleString
+                || (options.styleString = Heartland.DOM.json2css(options.style));
+              hps.Messages.post(
+                {
+                  action: 'addStylesheet',
+                  data: css
+                },
+                fieldFrame.name
+              );
             }
 
             Heartland.Events.trigger('securesubmitIframeReady', document);

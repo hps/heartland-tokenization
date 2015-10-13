@@ -131,6 +131,13 @@ module Heartland {
           case 'getFieldData':
             Heartland.DOM.getFieldData(hps, data.id);
             break;
+          case 'addStylesheet':
+            Heartland.DOM.addStylesheet(data.data);
+            Heartland.DOM.resizeFrame(hps);
+            break;
+          case 'setFocus':
+            Heartland.DOM.setFocus();
+            break;
         }
       };
     }

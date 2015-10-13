@@ -12,7 +12,7 @@
     "clean": "rm -rf dist",
     "cp-html": "cp field.html index.html dist",
     "lint": "node_modules/.bin/tslint -t verbose -c tslint.json src/*.ts src/Formatter/*.ts src/Validator/*.ts src/types/*.ts src/vars/*.ts",
-    "minify": "node_modules/.bin/uglifyjs -c -m -o dist/securesubmit.min.js --source-map-root ./src  --source-map-url /dist/securesubmit.min.js.map --source-map dist/securesubmit.min.js.map --in-source-map dist/securesubmit.js.map --enclose -- dist/securesubmit.js",
+    "minify": "node_modules/.bin/uglifyjs -c -m -o dist/securesubmit.min.js --source-map-root ./src  --source-map-url /dist/securesubmit.min.js.map --source-map dist/securesubmit.min.js.map --in-source-map dist/securesubmit.js.map -- dist/securesubmit.js",
     "install": "npm run build",
     "test": "open 'test/index.html'",
     "watch": "node_modules/.bin/tsc --watch"
