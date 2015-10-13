@@ -438,6 +438,7 @@ var JSON2 = {};
         };
     }
 }());
+/// <reference path="HPS.ts" />
 var Heartland;
 (function (Heartland) {
     /**
@@ -563,7 +564,7 @@ var Heartland;
          */
         function resizeFrame(hps) {
             var html = document.getElementsByTagName('html')[0];
-            var docHeight = html.offsetHeight;
+            var docHeight = html.offsetHeight + 1; // off by one error
             hps.Messages.post({ action: 'resize', height: docHeight }, 'parent');
         }
         DOM.resizeFrame = resizeFrame;
@@ -624,6 +625,108 @@ var Heartland;
             }).
                 replace(/</g, '&lt;').
                 replace(/>/g, '&gt;');
+        }
+        /**
+         * Heartland.DOM.addStylesheet
+         *
+         * Creates a `style` node in the DOM with the given `css`.
+         *
+         * @param {Heartland.HPS} hps
+         * @param {string} elementid
+         */
+        function addStylesheet(css) {
+            var el = document.createElement('style');
+            var elements = document.getElementsByTagName('head');
+            el.type = 'text/css';
+            el.appendChild(document.createTextNode(css));
+            if (elements && elements[0]) {
+                elements[0].appendChild(el);
+            }
+        }
+        DOM.addStylesheet = addStylesheet;
+        /**
+         * Heartland.DOM.json2css
+         *
+         * Converts a JSON node to text representing CSS.
+         *
+         * @param {string} json
+         * @returns {string}
+         */
+        function json2css(json) {
+            var css = '';
+            var attributes;
+            var children;
+            var i, j;
+            var key, value;
+            if (attributes = jsonAttributes(json)) {
+                var attributesLength = attributes.length;
+                for (i = 0; i < attributesLength; i++) {
+                    key = attributes[i];
+                    value = json[key];
+                    if (isArray(value)) {
+                        var arrLength = value.length;
+                        for (j = 0; j < arrLength; j++) {
+                            css += key + ':' + value[j] + ';';
+                        }
+                    }
+                    else {
+                        css += key + ':' + value + ';';
+                    }
+                }
+            }
+            if (children = jsonChildren(json)) {
+                var childrenLength = children.length;
+                for (i = 0; i < childrenLength; i++) {
+                    key = children[i];
+                    value = json[key];
+                    css += key + '{' + json2css(value) + '}';
+                }
+            }
+            return css;
+        }
+        DOM.json2css = json2css;
+        /**
+         * Heartland.DOM.setFocus
+         *
+         * Sets the focus on an iframe's field.
+         *
+         * @param {Heartland.HPS} hps
+         * @param {string} elementid
+         */
+        function setFocus() {
+            var el = document.getElementById('heartland-field');
+            if (el) {
+                el.focus();
+            }
+        }
+        DOM.setFocus = setFocus;
+        /***********
+         * Helpers *
+         ***********/
+        function isArray(obj) {
+            return Object.prototype.toString.call(obj) === '[object Array]';
+        }
+        function jsonAttributes(json) {
+            var set = [];
+            var i;
+            for (i in json) {
+                if (json.hasOwnProperty(i)
+                    && (typeof json[i] === 'string' || isArray(json[i]))) {
+                    set.push(i);
+                }
+            }
+            return set;
+        }
+        function jsonChildren(json) {
+            var set = [];
+            var i;
+            for (i in json) {
+                if (json.hasOwnProperty(i)
+                    && (Object.prototype.toString.call(json[i]) === '[object Object]')) {
+                    set.push(i);
+                }
+            }
+            return set;
         }
     })(DOM = Heartland.DOM || (Heartland.DOM = {}));
 })(Heartland || (Heartland = {}));
@@ -890,6 +993,8 @@ var Heartland;
         /**
          * Heartland.Card.luhnCheck
          *
+         * Runs a mod 10 check on a given card number.
+         *
          * @param {string} number - The card number
          * @returns {boolean}
          */
@@ -918,6 +1023,14 @@ var Heartland;
             return sum % 10 === 0;
         }
         Card.luhnCheck = luhnCheck;
+        /**
+         * Heartland.Card.addType
+         *
+         * Adds a class to the target element with the card type
+         * inferred from the target's current value.
+         *
+         * @param {Event} e
+         */
         function addType(e) {
             var target = e.currentTarget;
             var type = typeByNumber(target.value);
@@ -935,6 +1048,14 @@ var Heartland;
             }
         }
         Card.addType = addType;
+        /**
+         * Heartland.Card.formatNumber
+         *
+         * Formats a target element's value based on the
+         * inferred card type's formatting regex.
+         *
+         * @param {Event} e
+         */
         function formatNumber(e) {
             var target = e.currentTarget;
             var value = target.value;
@@ -942,6 +1063,13 @@ var Heartland;
             target.value = value;
         }
         Card.formatNumber = formatNumber;
+        /**
+         * Heartland.Card.formatExpiration
+         *
+         * Formats a target element's value.
+         *
+         * @param {Event} e
+         */
         function formatExpiration(e) {
             var target = e.currentTarget;
             var value = target.value;
@@ -949,6 +1077,43 @@ var Heartland;
             target.value = value;
         }
         Card.formatExpiration = formatExpiration;
+        /**
+         * Heartland.Card.restrictLength
+         *
+         * Restricts input in a target element to a
+         * certain length data.
+         *
+         * @param {number} length
+         *
+         * @returns {(e: KeyboardEvent) => ()}
+         */
+        function restrictLength(length) {
+            return function (e) {
+                var target = e.currentTarget;
+                var value = target.value;
+                // allow: backspace, delete, tab, escape and enter
+                if ([46, 8, 9, 27, 13, 110].indexOf(e.keyCode) !== -1 ||
+                    // allow: Ctrl+A
+                    (e.keyCode === 65 && e.ctrlKey === true) ||
+                    // allow: home, end, left, right
+                    (e.keyCode >= 35 && e.keyCode <= 39)) {
+                    // let it happen, don't do anything
+                    return;
+                }
+                if (value.length >= length) {
+                    e.preventDefault();
+                }
+            };
+        }
+        Card.restrictLength = restrictLength;
+        /**
+         * Heartland.Card.restrictNumeric
+         *
+         * Restricts input in a target element to only
+         * numeric data.
+         *
+         * @param {KeyboardEvent} e
+         */
         function restrictNumeric(e) {
             // allow: backspace, delete, tab, escape and enter
             if ([46, 8, 9, 27, 13, 110].indexOf(e.keyCode) !== -1 ||
@@ -965,6 +1130,16 @@ var Heartland;
             }
         }
         Card.restrictNumeric = restrictNumeric;
+        /**
+         * Heartland.Card.validateNumber
+         *
+         * Validates a target element's value based on the
+         * inferred card type's validation regex. Adds a
+         * class to the target element to note `valid` or
+         * `invalid`.
+         *
+         * @param {Event} e
+         */
         function validateNumber(e) {
             var target = e.currentTarget;
             var value = target.value;
@@ -978,6 +1153,15 @@ var Heartland;
             }
         }
         Card.validateNumber = validateNumber;
+        /**
+         * Heartland.Card.validateCvv
+         *
+         * Validates a target element's value based on the
+         * possible CVV lengths. Adds a class to the target
+         * element to note `valid` or `invalid`.
+         *
+         * @param {Event} e
+         */
         function validateCvv(e) {
             var target = e.currentTarget;
             var value = target.value;
@@ -991,6 +1175,15 @@ var Heartland;
             }
         }
         Card.validateCvv = validateCvv;
+        /**
+         * Heartland.Card.validateExpiration
+         *
+         * Validates a target element's value based on the
+         * current date. Adds a class to the target element
+         * to note `valid` or `invalid`.
+         *
+         * @param {Event} e
+         */
         function validateExpiration(e) {
             var target = e.currentTarget;
             var value = target.value;
@@ -1004,6 +1197,42 @@ var Heartland;
             }
         }
         Card.validateExpiration = validateExpiration;
+        /**
+         * Heartland.Card.attachNumberEvents
+         *
+         * @param {string} selector
+         */
+        function attachNumberEvents(selector) {
+            Heartland.Events.addHandler(document.querySelector(selector), 'keydown', restrictNumeric);
+            Heartland.Events.addHandler(document.querySelector(selector), 'keydown', restrictLength(19));
+            Heartland.Events.addHandler(document.querySelector(selector), 'input', formatNumber);
+            Heartland.Events.addHandler(document.querySelector(selector), 'input', validateNumber);
+            Heartland.Events.addHandler(document.querySelector(selector), 'input', addType);
+        }
+        Card.attachNumberEvents = attachNumberEvents;
+        /**
+         * Heartland.Card.attachExpirationEvents
+         *
+         * @param {string} selector
+         */
+        function attachExpirationEvents(selector) {
+            Heartland.Events.addHandler(document.querySelector(selector), 'keydown', restrictNumeric);
+            Heartland.Events.addHandler(document.querySelector(selector), 'keydown', restrictLength(9));
+            Heartland.Events.addHandler(document.querySelector(selector), 'input', formatExpiration);
+            Heartland.Events.addHandler(document.querySelector(selector), 'input', validateExpiration);
+        }
+        Card.attachExpirationEvents = attachExpirationEvents;
+        /**
+         * Heartland.Card.attachCvvEvents
+         *
+         * @param {string} selector
+         */
+        function attachCvvEvents(selector) {
+            Heartland.Events.addHandler(document.querySelector(selector), 'keydown', restrictNumeric);
+            Heartland.Events.addHandler(document.querySelector(selector), 'keydown', restrictLength(4));
+            Heartland.Events.addHandler(document.querySelector(selector), 'input', validateCvv);
+        }
+        Card.attachCvvEvents = attachCvvEvents;
     })(Card = Heartland.Card || (Heartland.Card = {}));
 })(Heartland || (Heartland = {}));
 /// <reference path="types/CardData.ts" />
@@ -1144,6 +1373,13 @@ var Heartland;
                         break;
                     case 'getFieldData':
                         Heartland.DOM.getFieldData(hps, data.id);
+                        break;
+                    case 'addStylesheet':
+                        Heartland.DOM.addStylesheet(data.data);
+                        Heartland.DOM.resizeFrame(hps);
+                        break;
+                    case 'setFocus':
+                        Heartland.DOM.setFocus();
                         break;
                 }
             };
@@ -1306,7 +1542,7 @@ var Heartland;
             var params = [];
             switch (type) {
                 case 'pan':
-                    params.push('token_type=supt', 'object=token', '_method=post', 'api_key=' + data.publicKey.replace(/^\s+|\s+$/g, ''), 'card%5Bnumber%5D=' + data.cardNumber.replace(/^\s+|\s+$/g, ''), 'card%5Bexp_month%5D=' + data.cardExpMonth.replace(/^\s+|\s+$/g, ''), 'card%5Bexp_year%5D=' + data.cardExpYear.replace(/^\s+|\s+$/g, ''), 'card%5Bcvc%5D=' + data.cardCvv.replace(/^\s+|\s+$/g, ''));
+                    params.push('token_type=supt', 'object=token', '_method=post', 'api_key=' + data.publicKey.replace(/^\s+|\s+$/g, ''), 'card%5Bnumber%5D=' + data.cardNumber.replace(/\s/g, ''), 'card%5Bexp_month%5D=' + data.cardExpMonth.replace(/^\s+|\s+$/g, ''), 'card%5Bexp_year%5D=' + data.cardExpYear.replace(/^\s+|\s+$/g, ''), 'card%5Bcvc%5D=' + data.cardCvv.replace(/^\s+|\s+$/g, ''));
                     break;
                 case 'swipe':
                     params.push('token_type=supt', 'object=token', '_method=post', 'api_key=' + data.publicKey.replace(/^\s+|\s+$/g, ''), 'card%5Btrack_method%5D=swipe', 'card%5Btrack%5D=' + encodeURIComponent(data.track.replace(/^\s+|\s+$/g, '')));
@@ -1901,6 +2137,14 @@ var Heartland;
                                 text: fieldFrame.options.placeholder
                             }, fieldFrame.name);
                         }
+                        if (options.style) {
+                            var css = options.styleString
+                                || (options.styleString = Heartland.DOM.json2css(options.style));
+                            hps.Messages.post({
+                                action: 'addStylesheet',
+                                data: css
+                            }, fieldFrame.name);
+                        }
                         Heartland.Events.trigger('securesubmitIframeReady', document);
                         break;
                     case 'accumulateData':
@@ -2116,6 +2360,8 @@ var Heartland;
                 return function () {
                     Heartland.DOM.resizeFrame(hps);
                     Heartland.DOM.configureField(hps);
+                    var method = 'attach' + window.name.replace('card', '') + 'Events';
+                    Heartland.Card[method]('#heartland-field');
                 };
             }(this)));
             Heartland.Events.addHandler(document, 'receiveMessageHandlerAdded', (function (hps) {
@@ -2176,6 +2422,17 @@ var Heartland;
          */
         HPS.prototype.appendStyle = function (elementid, elementstyle) {
             this.Messages.post({ action: 'appendStyle', id: elementid, style: elementstyle }, 'child');
+        };
+        ;
+        /**
+         * Heartland.HPS.setFocus
+         *
+         * Public API for appending to an element's style.
+         *
+         * @param {string} elementid
+         */
+        HPS.prototype.setFocus = function (elementid) {
+            this.Messages.post({ action: 'setFocus' }, elementid);
         };
         ;
         return HPS;
