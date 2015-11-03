@@ -1866,15 +1866,15 @@ var Heartland;
          */
         Messages.prototype.receive = function (callback, sourceOrigin) {
             if (window.postMessage) {
-                var cb = function (m) {
+                this.callback = function (m) {
                     // m.data = JSON.parse(m.data);
                     callback(m);
                 };
                 if (window.addEventListener) {
-                    window[callback ? 'addEventListener' : 'removeEventListener']('message', cb, !1);
+                    window.addEventListener('message', this.callback, !1);
                 }
                 else {
-                    window[callback ? 'attachEvent' : 'detachEvent']('onmessage', cb);
+                    window.attachEvent('onmessage', this.callback);
                 }
             }
             else {
@@ -1905,6 +1905,19 @@ var Heartland;
                 }
             }
             Heartland.Events.trigger('receiveMessageHandlerAdded', document);
+        };
+        /**
+         * Heartland.Messages.removeReceiver
+         *
+         * Removes active `message` event handler function.
+         */
+        Messages.prototype.removeReceiver = function () {
+            if (window.addEventListener) {
+                window.removeEventListener('message', this.callback, !1);
+            }
+            else {
+                window.detachEvent('onmessage', this.callback);
+            }
         };
         return Messages;
     })();

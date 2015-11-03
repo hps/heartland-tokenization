@@ -13,6 +13,7 @@ module Heartland {
     intervalId: number;
     lastHash: string;
     pushIntervalStarted: boolean;
+    private callback: (m: any) => any;
 
     /**
      * Heartland.Messages (constructor)
@@ -159,14 +160,14 @@ module Heartland {
      */
     receive(callback: Function, sourceOrigin: string): void {
       if (window.postMessage) {
-        var cb = function (m: any) {
+        this.callback = function (m) {
           // m.data = JSON.parse(m.data);
           callback(m);
         };
         if (window.addEventListener) {
-          (<any>window)[callback ? 'addEventListener' : 'removeEventListener']('message', cb, !1);
+          window.addEventListener('message', this.callback, !1);
         } else {
-          (<any>window)[callback ? 'attachEvent' : 'detachEvent']('onmessage', cb);
+          (<any>window).attachEvent('onmessage', this.callback);
         }
       } else {
         if (this.intervalId) {
@@ -200,6 +201,19 @@ module Heartland {
         }
       }
       Heartland.Events.trigger('receiveMessageHandlerAdded', document);
+    }
+
+    /**
+     * Heartland.Messages.removeReceiver
+     *
+     * Removes active `message` event handler function.
+     */
+    removeReceiver() {
+      if (window.addEventListener) {
+        window.removeEventListener('message', this.callback, !1);
+      } else {
+        (<any>window).detachEvent('onmessage', this.callback);
+      }
     }
   }
 }
