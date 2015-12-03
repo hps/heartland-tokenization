@@ -9,7 +9,7 @@ Refer to the [Heartland Payment Systems SecureSubmit website](https://developer.
 ## Usage
 
 ```html
-<script src='https://api.heartlandportico.com/SecureSubmit.v1/token/2.0/securesubmit.js'></script>
+<script src='https://api2.heartlandportico.com/SecureSubmit.v1/token/2.0/securesubmit.js'></script>
 ```
 
 ## Building from source
