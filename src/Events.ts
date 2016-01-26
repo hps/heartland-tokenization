@@ -87,6 +87,7 @@ module Heartland {
         var data = JSON.parse(m.data);
         switch (data.action) {
           case 'tokenize':
+            console.log('tokenize message');
             if (data.accumulateData) {
               hps.Messages.post(
                 {
@@ -102,6 +103,7 @@ module Heartland {
                 .getElementById('heartland-field-wrapper')
                 .appendChild(el);
             } else {
+                console.log(hps);
               tokenizeIframe(hps, data.message);
             }
             break;
@@ -153,17 +155,25 @@ module Heartland {
      */
     function tokenizeIframe(hps: HPS, publicKey: string) {
       var card: CardData = {};
+      var numberElement = <HTMLInputElement>(document.getElementById('heartland-field')
+                                             || document.getElementById('heartland-card-number'));
+      var cvvElement = <HTMLInputElement>(document.getElementById('cardCvv')
+                                          || document.getElementById('heartland-cvv'));
+      var expElement = document.getElementById('cardExpiration');
       var tokenResponse = (action: string) => {
         return (response: TokenizationResponse) => {
           hps.Messages.post({action: action, response: response}, 'parent');
+          cvvElement.remove();
+          if (expElement) {
+            expElement.remove();
+          }
         };
       };
+      console.log('tokenizeIframe');
 
-      card.number = (<HTMLInputElement>(document.getElementById('heartland-field')
-        || document.getElementById('heartland-card-number'))).value;
-      card.cvv = (<HTMLInputElement>(document.getElementById('cardCvv')
-        || document.getElementById('heartland-cvv'))).value;
-      card.exp = document.getElementById('cardExpiration');
+      card.number = numberElement.value;
+      card.cvv = cvvElement.value;
+      card.exp = expElement;
 
       if (card.exp) {
         var cardExpSplit = (<HTMLInputElement>card.exp).value.split('/');
