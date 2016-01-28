@@ -61,7 +61,7 @@ module Heartland {
       }
 
       if (options.buttonTarget) {
-        Heartland.Events.addHandler(options.buttonTarget, 'click', function(e) {
+        hps.clickHandler = function(e) {
           e.preventDefault();
           hps.Messages.post(
             {
@@ -72,7 +72,8 @@ module Heartland {
             hps.frames.cardNumber ? 'cardNumber' : 'child'
             );
           return false;
-        });
+        };
+        Heartland.Events.addHandler(options.buttonTarget, 'click', hps.clickHandler);
       }
 
       hps.Messages.receive(function(m: MessageEvent) {

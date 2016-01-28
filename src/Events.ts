@@ -28,7 +28,19 @@ module Heartland {
           (<any>document.documentElement)[eventName]++;
         }
       }
+      static ignore(eventName: string, callback: EventListener) {
+        if (document.removeEventListener) {
+          document.removeEventListener(eventName, callback, false);
+        } else {
+          (<any>document.documentElement).detachEvent('onpropertychange', function (e: Event) {
+            if ((<any>e).propertyName === eventName) {
+              callback(e);
+            }
+          });
+        }
+      }
     }
+
     /**
      * Heartland.Events.addHandler
      *
@@ -50,6 +62,30 @@ module Heartland {
         node.addEventListener(event, callback, false);
       } else {
         Ev.listen(event, callback);
+      }
+    }
+
+    /**
+     * Heartland.Events.removeHandler
+     *
+     * Removes an `event` handler for a given `target` element.
+     *
+     * @param {string | EventTarget} target
+     * @param {string} event
+     * @param {EventListener} callback
+     */
+    export function removeHandler(target: string | EventTarget, event: string, callback: EventListener) {
+      var node: EventTarget;
+      if (typeof target === 'string') {
+        node = document.getElementById(<string>target);
+      } else {
+        node = target;
+      }
+
+      if (document.removeEventListener) {
+        node.removeEventListener(event, callback, false);
+      } else {
+        Ev.ignore(event, callback);
       }
     }
 

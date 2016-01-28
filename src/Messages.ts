@@ -215,5 +215,18 @@ module Heartland {
         (<any>window).detachEvent('onmessage', this.callback);
       }
     }
+
+    /**
+     * Heartland.Messages.dispose
+     *
+     * Removes active `message` event handler function and any
+     * active intervals.
+     */
+    dispose(): void {
+      this.removeReceiver();
+      if (this.intervalId) {
+        clearInterval(this.intervalId);
+      }
+    }
   }
 }
