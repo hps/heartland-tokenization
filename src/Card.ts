@@ -119,12 +119,18 @@ module Heartland {
      *
      * Formats a target element's value.
      *
-     * @param {Event} e
+     * @param {KeyboardEvent} e
      */
-    export function formatExpiration(e: Event) {
+    export function formatExpiration(e: KeyboardEvent) {
       var target = <HTMLInputElement>e.currentTarget;
       var value = target.value;
-      value = (new Formatter.Expiration).format(value);
+      // allow: delete, backspace
+      if ([46, 8].indexOf(e.keyCode) !== -1 ||
+          // allow: home, end, left, right
+          (e.keyCode >= 35 && e.keyCode <= 39)) {
+        return;
+      }
+      value = (new Formatter.Expiration).format(value, e.type === 'blur');
       target.value = value;
     }
 
@@ -266,7 +272,8 @@ module Heartland {
     export function attachExpirationEvents(selector: string) {
       Heartland.Events.addHandler(document.querySelector(selector), 'keydown', restrictNumeric);
       Heartland.Events.addHandler(document.querySelector(selector), 'keydown', restrictLength(9));
-      Heartland.Events.addHandler(document.querySelector(selector), 'input', formatExpiration);
+      Heartland.Events.addHandler(document.querySelector(selector), 'keyup', formatExpiration);
+      Heartland.Events.addHandler(document.querySelector(selector), 'blur', formatExpiration);
       Heartland.Events.addHandler(document.querySelector(selector), 'input', validateExpiration);
     }
 

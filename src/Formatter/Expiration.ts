@@ -3,7 +3,7 @@
 module Heartland {
   export module Formatter {
     export class Expiration implements Formatter {
-      format(exp: string): string {
+        format(exp: string, final = false): string {
         var pat = /^\D*(\d{1,2})(\D+)?(\d{1,4})?/;
         var groups = exp.match(pat);
         var month: string;
@@ -30,9 +30,9 @@ module Heartland {
           month = '0' + month;
         }
 
-        // if (year.length === 2) {
-        //   year = (new Date).getFullYear().toString().slice(0, 2) + year;
-        // }
+        if (final && year.length === 2) {
+          year = (new Date).getFullYear().toString().slice(0, 2) + year;
+        }
 
         return month + del + year;
       }
