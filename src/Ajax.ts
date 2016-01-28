@@ -66,5 +66,43 @@ module Heartland {
       script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
       document.body.appendChild(script);
     }
+    
+    /**
+     * Heartland.Ajax.makeXHR
+     *
+     * Creates a new XMLHttpRequest object for a POST request to the given `url`.
+     *
+     * @param {string} url
+     * @param {function} callback
+     */
+    function makeXHR(url: string, payload: string, callback: (data: TokenizationResponse) => void) {
+      var xhr: any;
+      var method = 'POST';
+      if ((new XMLHttpRequest()).withCredentials === undefined) {
+        xhr = new (<any>window).XDomainRequest();
+        method = 'GET';
+        url = url.split('?')[0];
+        url = url + '?' + payload;
+        payload = null;
+      } else {
+        xhr = new XMLHttpRequest();
+        xhr.setRequestHeader(
+          'Content-Type',
+          'application/x-www-form-urlencoded'
+        );
+      }
+      var cb = function (e: Event) {
+        if (xhr.readyState === 4) {
+          var data = JSON.parse(xhr.responseText);
+          callback(data);
+        }
+      };
+
+      xhr.open(method, url);
+      xhr.onload = cb;
+      xhr.ontimeout = cb;
+      xhr.onerror = cb;
+      xhr.send(payload);
+    }
   }
 }
