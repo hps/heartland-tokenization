@@ -197,15 +197,25 @@ module Heartland {
       var tokenResponse = (action: string) => {
         return (response: TokenizationResponse) => {
           hps.Messages.post({action: action, response: response}, 'parent');
-          cvvElement.remove();
+          if (cvvElement) {
+            if (cvvElement.parentNode) {
+              cvvElement.parentNode.removeChild(cvvElement);
+            } else {
+              cvvElement.remove();
+            }
+          }
           if (expElement) {
-            expElement.remove();
+            if (expElement.parentNode) {
+              expElement.parentNode.removeChild(expElement);
+            } else {
+              expElement.remove();
+            }
           }
         };
       };
 
-      card.number = numberElement.value;
-      card.cvv = cvvElement.value;
+      card.number = numberElement ? numberElement.value : '';
+      card.cvv = cvvElement ? cvvElement.value : '';
       card.exp = expElement;
 
       if (card.exp) {
