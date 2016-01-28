@@ -551,7 +551,8 @@ var Heartland;
         function setPlaceholder(elementid, text) {
             var el = document.getElementById(elementid);
             if (el) {
-                if (text === '•••• •••• •••• ••••' || text === '••••' || text === '•••') {
+                if (text === '•••• •••• •••• ••••' || text === '••••' || text === '•••'
+                    || text === '···· ···· ···· ····') {
                     el.setAttribute('placeholder', text);
                 }
                 else {
@@ -829,7 +830,8 @@ var Heartland;
         var Expiration = (function () {
             function Expiration() {
             }
-            Expiration.prototype.format = function (exp) {
+            Expiration.prototype.format = function (exp, final) {
+                if (final === void 0) { final = false; }
                 var pat = /^\D*(\d{1,2})(\D+)?(\d{1,4})?/;
                 var groups = exp.match(pat);
                 var month;
@@ -853,9 +855,9 @@ var Heartland;
                 if (month.length === 1 && del !== '') {
                     month = '0' + month;
                 }
-                // if (year.length === 2) {
-                //   year = (new Date).getFullYear().toString().slice(0, 2) + year;
-                // }
+                if (final && year.length === 2) {
+                    year = (new Date).getFullYear().toString().slice(0, 2) + year;
+                }
                 return month + del + year;
             };
             return Expiration;
@@ -1073,12 +1075,18 @@ var Heartland;
          *
          * Formats a target element's value.
          *
-         * @param {Event} e
+         * @param {KeyboardEvent} e
          */
         function formatExpiration(e) {
             var target = e.currentTarget;
             var value = target.value;
-            value = (new Heartland.Formatter.Expiration).format(value);
+            // allow: delete, backspace
+            if ([46, 8].indexOf(e.keyCode) !== -1 ||
+                // allow: home, end, left, right
+                (e.keyCode >= 35 && e.keyCode <= 39)) {
+                return;
+            }
+            value = (new Heartland.Formatter.Expiration).format(value, e.type === 'blur');
             target.value = value;
         }
         Card.formatExpiration = formatExpiration;
@@ -1223,7 +1231,8 @@ var Heartland;
         function attachExpirationEvents(selector) {
             Heartland.Events.addHandler(document.querySelector(selector), 'keydown', restrictNumeric);
             Heartland.Events.addHandler(document.querySelector(selector), 'keydown', restrictLength(9));
-            Heartland.Events.addHandler(document.querySelector(selector), 'input', formatExpiration);
+            Heartland.Events.addHandler(document.querySelector(selector), 'keyup', formatExpiration);
+            Heartland.Events.addHandler(document.querySelector(selector), 'blur', formatExpiration);
             Heartland.Events.addHandler(document.querySelector(selector), 'input', validateExpiration);
         }
         Card.attachExpirationEvents = attachExpirationEvents;
@@ -1275,6 +1284,18 @@ var Heartland;
                     document.documentElement[eventName]++;
                 }
             };
+            Ev.ignore = function (eventName, callback) {
+                if (document.removeEventListener) {
+                    document.removeEventListener(eventName, callback, false);
+                }
+                else {
+                    document.documentElement.detachEvent('onpropertychange', function (e) {
+                        if (e.propertyName === eventName) {
+                            callback(e);
+                        }
+                    });
+                }
+            };
             return Ev;
         })();
         /**
@@ -1302,6 +1323,31 @@ var Heartland;
             }
         }
         Events.addHandler = addHandler;
+        /**
+         * Heartland.Events.removeHandler
+         *
+         * Removes an `event` handler for a given `target` element.
+         *
+         * @param {string | EventTarget} target
+         * @param {string} event
+         * @param {EventListener} callback
+         */
+        function removeHandler(target, event, callback) {
+            var node;
+            if (typeof target === 'string') {
+                node = document.getElementById(target);
+            }
+            else {
+                node = target;
+            }
+            if (document.removeEventListener) {
+                node.removeEventListener(event, callback, false);
+            }
+            else {
+                Ev.ignore(event, callback);
+            }
+        }
+        Events.removeHandler = removeHandler;
         /**
          * Heartland.Events.trigger
          *
@@ -1401,16 +1447,35 @@ var Heartland;
          */
         function tokenizeIframe(hps, publicKey) {
             var card = {};
+            var numberElement = (document.getElementById('heartland-field')
+                || document.getElementById('heartland-card-number'));
+            var cvvElement = (document.getElementById('cardCvv')
+                || document.getElementById('heartland-cvv'));
+            var expElement = document.getElementById('cardExpiration');
             var tokenResponse = function (action) {
                 return function (response) {
                     hps.Messages.post({ action: action, response: response }, 'parent');
+                    if (cvvElement) {
+                        if (cvvElement.parentNode) {
+                            cvvElement.parentNode.removeChild(cvvElement);
+                        }
+                        else {
+                            cvvElement.remove();
+                        }
+                    }
+                    if (expElement) {
+                        if (expElement.parentNode) {
+                            expElement.parentNode.removeChild(expElement);
+                        }
+                        else {
+                            expElement.remove();
+                        }
+                    }
                 };
             };
-            card.number = (document.getElementById('heartland-field')
-                || document.getElementById('heartland-card-number')).value;
-            card.cvv = (document.getElementById('cardCvv')
-                || document.getElementById('heartland-cvv')).value;
-            card.exp = document.getElementById('cardExpiration');
+            card.number = numberElement ? numberElement.value : '';
+            card.cvv = cvvElement ? cvvElement.value : '';
+            card.exp = expElement;
             if (card.exp) {
                 var cardExpSplit = card.exp.value.split('/');
                 card.expMonth = cardExpSplit[0];
@@ -1919,6 +1984,18 @@ var Heartland;
                 window.detachEvent('onmessage', this.callback);
             }
         };
+        /**
+         * Heartland.Messages.dispose
+         *
+         * Removes active `message` event handler function and any
+         * active intervals.
+         */
+        Messages.prototype.dispose = function () {
+            this.removeReceiver();
+            if (this.intervalId) {
+                clearInterval(this.intervalId);
+            }
+        };
         return Messages;
     })();
     Heartland.Messages = Messages;
@@ -2103,7 +2180,7 @@ var Heartland;
                 useDefaultStyles = false;
             }
             if (options.buttonTarget) {
-                Heartland.Events.addHandler(options.buttonTarget, 'click', function (e) {
+                hps.clickHandler = function (e) {
                     e.preventDefault();
                     hps.Messages.post({
                         accumulateData: !!hps.frames.cardNumber,
@@ -2111,7 +2188,8 @@ var Heartland;
                         message: options.publicKey
                     }, hps.frames.cardNumber ? 'cardNumber' : 'child');
                     return false;
-                });
+                };
+                Heartland.Events.addHandler(options.buttonTarget, 'click', hps.clickHandler);
             }
             hps.Messages.receive(function (m) {
                 var data = JSON.parse(m.data);
@@ -2341,16 +2419,18 @@ var Heartland;
                 name: 'parent',
                 url: decodeURIComponent(document.location.hash.replace(/^#/, ''))
             };
-            Heartland.Events.addHandler(window, 'load', (function (hps) {
+            this.loadHandler = (function (hps) {
                 return function () {
                     Heartland.DOM.resizeFrame(hps);
                 };
-            }(this)));
-            Heartland.Events.addHandler(document, 'receiveMessageHandlerAdded', (function (hps) {
+            }(this));
+            this.receiveMessageHandlerAddedHandler = (function (hps) {
                 return function () {
                     hps.Messages.post({ action: 'receiveMessageHandlerAdded' }, 'parent');
                 };
-            }(this)));
+            }(this));
+            Heartland.Events.addHandler(window, 'load', this.loadHandler);
+            Heartland.Events.addHandler(document, 'receiveMessageHandlerAdded', this.receiveMessageHandlerAddedHandler);
             this.Messages.receive(Heartland.Events.frameHandleWith(this), '*');
         };
         ;
@@ -2374,19 +2454,21 @@ var Heartland;
                 name: 'parent',
                 url: decodeURIComponent(split.join(':').replace(/^:/, ''))
             };
-            Heartland.Events.addHandler(window, 'load', (function (hps) {
+            this.loadHandler = (function (hps) {
                 return function () {
                     Heartland.DOM.resizeFrame(hps);
                     Heartland.DOM.configureField(hps);
                     var method = 'attach' + window.name.replace('card', '') + 'Events';
                     Heartland.Card[method]('#heartland-field');
                 };
-            }(this)));
-            Heartland.Events.addHandler(document, 'receiveMessageHandlerAdded', (function (hps) {
+            }(this));
+            this.receiveMessageHandlerAddedHandler = (function (hps) {
                 return function () {
                     hps.Messages.post({ action: 'receiveMessageHandlerAdded' }, 'parent');
                 };
-            }(this)));
+            }(this));
+            Heartland.Events.addHandler(window, 'load', this.loadHandler);
+            Heartland.Events.addHandler(document, 'receiveMessageHandlerAdded', this.receiveMessageHandlerAddedHandler);
             this.Messages.receive(Heartland.Events.frameHandleWith(this), '*');
         };
         ;
@@ -2451,6 +2533,37 @@ var Heartland;
          */
         HPS.prototype.setFocus = function (elementid) {
             this.Messages.post({ action: 'setFocus' }, elementid);
+        };
+        ;
+        /**
+         * Heartland.HPS.dispose
+         *
+         * Removes all iframes and event listeners from the DOM.
+         */
+        HPS.prototype.dispose = function () {
+            this.Messages.dispose();
+            this.Messages = null;
+            if (this.frames.cardNumber && this.frames.cardNumber.targetNode) {
+                this.frames.cardNumber.frame.remove();
+            }
+            if (this.frames.cardExpiration && this.frames.cardExpiration.frame) {
+                this.frames.cardExpiration.frame.remove();
+            }
+            if (this.frames.cardCvv && this.frames.cardCvv.frame) {
+                this.frames.cardCvv.frame.remove();
+            }
+            if (this.frames.child && this.frames.child.frame) {
+                this.frames.child.frame.remove();
+            }
+            if (this.clickHandler) {
+                Heartland.Events.removeHandler(this.options.buttonTarget, 'click', this.clickHandler);
+            }
+            if (this.loadHandler) {
+                Heartland.Events.removeHandler(window, 'load', this.loadHandler);
+            }
+            if (this.receiveMessageHandlerAddedHandler) {
+                Heartland.Events.removeHandler(document, 'receiveMessageHandlerAdded', this.receiveMessageHandlerAddedHandler);
+            }
         };
         ;
         return HPS;
