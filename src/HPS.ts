@@ -41,6 +41,9 @@ module Heartland {
     cacheBust: number;
     parent: Window;
     field: string;
+    clickHandler: (e: Event) => void;
+    loadHandler: () => void;
+    receiveMessageHandlerAddedHandler: () => void;
 
     /**
      * Heartland.HPS (constructor)
@@ -120,17 +123,20 @@ module Heartland {
         url: decodeURIComponent(document.location.hash.replace(/^#/, ''))
       };
 
-      Heartland.Events.addHandler(window, 'load', (function (hps: HPS) {
+      this.loadHandler = (function (hps: HPS) {
         return function () {
           Heartland.DOM.resizeFrame(hps);
         };
-      }(this)));
+      }(this));
 
-      Heartland.Events.addHandler(document, 'receiveMessageHandlerAdded', (function (hps: HPS) {
+      this.receiveMessageHandlerAddedHandler = (function (hps: HPS) {
         return function () {
           hps.Messages.post({action: 'receiveMessageHandlerAdded'}, 'parent');
         };
-      }(this)));
+      }(this));
+
+      Heartland.Events.addHandler(window, 'load', this.loadHandler);
+      Heartland.Events.addHandler(document, 'receiveMessageHandlerAdded', this.receiveMessageHandlerAddedHandler);
 
       this.Messages.receive(Heartland.Events.frameHandleWith(this), '*');
     };
@@ -156,20 +162,23 @@ module Heartland {
         url: decodeURIComponent(split.join(':').replace(/^:/, ''))
       };
 
-      Heartland.Events.addHandler(window, 'load', (function (hps: HPS) {
+      this.loadHandler = (function (hps: HPS) {
         return function () {
           Heartland.DOM.resizeFrame(hps);
           Heartland.DOM.configureField(hps);
           var method = 'attach' + window.name.replace('card', '') + 'Events';
           (<any>Heartland.Card)[method]('#heartland-field');
         };
-      }(this)));
+      }(this));
 
-      Heartland.Events.addHandler(document, 'receiveMessageHandlerAdded', (function (hps: HPS) {
+      this.receiveMessageHandlerAddedHandler = (function (hps: HPS) {
         return function () {
           hps.Messages.post({action: 'receiveMessageHandlerAdded'}, 'parent');
         };
-      }(this)));
+      }(this));
+
+      Heartland.Events.addHandler(window, 'load', this.loadHandler);
+      Heartland.Events.addHandler(document, 'receiveMessageHandlerAdded', this.receiveMessageHandlerAddedHandler);
 
       this.Messages.receive(Heartland.Events.frameHandleWith(this), '*');
     };
@@ -233,6 +242,49 @@ module Heartland {
      */
     setFocus(elementid: string): void {
       this.Messages.post({action: 'setFocus'}, elementid);
+    };
+
+    /**
+     * Heartland.HPS.dispose
+     *
+     * Removes all iframes and event listeners from the DOM.
+     */
+    dispose(): void {
+      this.Messages.dispose();
+      this.Messages = null;
+      if (this.frames.cardNumber && this.frames.cardNumber.targetNode) {
+        (<any>this.frames.cardNumber.frame).remove();
+      }
+      if (this.frames.cardExpiration && this.frames.cardExpiration.frame) {
+        (<any>this.frames.cardExpiration.frame).remove();
+      }
+      if (this.frames.cardCvv && this.frames.cardCvv.frame) {
+        (<any>this.frames.cardCvv.frame).remove();
+      }
+      if (this.frames.child && this.frames.child.frame) {
+        (<any>this.frames.child.frame).remove();
+      }
+      if (this.clickHandler) {
+        Heartland.Events.removeHandler(
+          this.options.buttonTarget,
+          'click',
+          this.clickHandler
+        );
+      }
+      if (this.loadHandler) {
+        Heartland.Events.removeHandler(
+          window,
+          'load',
+          this.loadHandler
+        );
+      }
+      if (this.receiveMessageHandlerAddedHandler) {
+        Heartland.Events.removeHandler(
+          document,
+          'receiveMessageHandlerAdded',
+          this.receiveMessageHandlerAddedHandler
+        );
+      }
     };
   }
 }

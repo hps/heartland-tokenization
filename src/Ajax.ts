@@ -23,7 +23,7 @@ module Heartland {
       var cardType = Heartland.Util.getCardType(number);
       var params = Heartland.Util.getParams(type, options);
 
-      jsonp(options.gatewayUrl + params, function(data) {
+      jsonp(options.gatewayUrl + params, function (data) {
         if (data.error) {
           Heartland.Util.throwError(options, data);
         } else {

@@ -28,7 +28,19 @@ module Heartland {
           (<any>document.documentElement)[eventName]++;
         }
       }
+      static ignore(eventName: string, callback: EventListener) {
+        if (document.removeEventListener) {
+          document.removeEventListener(eventName, callback, false);
+        } else {
+          (<any>document.documentElement).detachEvent('onpropertychange', function (e: Event) {
+            if ((<any>e).propertyName === eventName) {
+              callback(e);
+            }
+          });
+        }
+      }
     }
+
     /**
      * Heartland.Events.addHandler
      *
@@ -50,6 +62,30 @@ module Heartland {
         node.addEventListener(event, callback, false);
       } else {
         Ev.listen(event, callback);
+      }
+    }
+
+    /**
+     * Heartland.Events.removeHandler
+     *
+     * Removes an `event` handler for a given `target` element.
+     *
+     * @param {string | EventTarget} target
+     * @param {string} event
+     * @param {EventListener} callback
+     */
+    export function removeHandler(target: string | EventTarget, event: string, callback: EventListener) {
+      var node: EventTarget;
+      if (typeof target === 'string') {
+        node = document.getElementById(<string>target);
+      } else {
+        node = target;
+      }
+
+      if (document.removeEventListener) {
+        node.removeEventListener(event, callback, false);
+      } else {
+        Ev.ignore(event, callback);
       }
     }
 
@@ -153,17 +189,34 @@ module Heartland {
      */
     function tokenizeIframe(hps: HPS, publicKey: string) {
       var card: CardData = {};
+      var numberElement = <HTMLInputElement>(document.getElementById('heartland-field')
+                                             || document.getElementById('heartland-card-number'));
+      var cvvElement = <HTMLInputElement>(document.getElementById('cardCvv')
+                                          || document.getElementById('heartland-cvv'));
+      var expElement = document.getElementById('cardExpiration');
       var tokenResponse = (action: string) => {
         return (response: TokenizationResponse) => {
           hps.Messages.post({action: action, response: response}, 'parent');
+          if (cvvElement) {
+            if (cvvElement.parentNode) {
+              cvvElement.parentNode.removeChild(cvvElement);
+            } else {
+              cvvElement.remove();
+            }
+          }
+          if (expElement) {
+            if (expElement.parentNode) {
+              expElement.parentNode.removeChild(expElement);
+            } else {
+              expElement.remove();
+            }
+          }
         };
       };
 
-      card.number = (<HTMLInputElement>(document.getElementById('heartland-field')
-        || document.getElementById('heartland-card-number'))).value;
-      card.cvv = (<HTMLInputElement>(document.getElementById('cardCvv')
-        || document.getElementById('heartland-cvv'))).value;
-      card.exp = document.getElementById('cardExpiration');
+      card.number = numberElement ? numberElement.value : '';
+      card.cvv = cvvElement ? cvvElement.value : '';
+      card.exp = expElement;
 
       if (card.exp) {
         var cardExpSplit = (<HTMLInputElement>card.exp).value.split('/');
