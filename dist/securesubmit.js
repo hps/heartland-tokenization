@@ -17,6 +17,7 @@ var Heartland;
         iframeTarget: '',
         ktb: '',
         object: 'token',
+        onEvent: null,
         onTokenError: null,
         onTokenSuccess: null,
         pinBlock: '',
@@ -1786,7 +1787,8 @@ var Heartland;
     Heartland.fields = [
         'cardNumber',
         'cardCvv',
-        'cardExpiration'
+        'cardExpiration',
+        'submit'
     ];
 })(Heartland || (Heartland = {}));
 /// <reference path="Events.ts" />
@@ -2201,6 +2203,13 @@ var Heartland;
                     return;
                 }
                 switch (data.action) {
+                    case 'requestTokenize':
+                        hps.Messages.post({
+                            accumulateData: !!hps.frames.cardNumber,
+                            action: 'tokenize',
+                            message: options.publicKey
+                        }, hps.frames.cardNumber ? 'cardNumber' : 'child');
+                        break;
                     case 'onTokenSuccess':
                         options.onTokenSuccess(data.response);
                         break;
@@ -2247,7 +2256,7 @@ var Heartland;
                         var i;
                         var field;
                         for (i in hps.frames) {
-                            if (i === 'cardNumber') {
+                            if (['submit', 'cardNumber'].indexOf(i) !== -1) {
                                 continue;
                             }
                             field = hps.frames[i];
@@ -2268,6 +2277,12 @@ var Heartland;
                             value: data.value
                         }, cardNumberFieldFrame.name);
                         break;
+                    case 'fieldEvent':
+                        if (!options.onEvent) {
+                            break;
+                        }
+                        options.onEvent(data.event);
+                        break;
                 }
             }, '*');
             // monitorFieldEvents(hps, )
@@ -2284,7 +2299,7 @@ var Heartland;
         function makeFieldsAndLink(hps) {
             var options = hps.options;
             var fieldsLength = Heartland.fields.length;
-            var baseUrl = hps.iframe_url.replace('index.html', '') + 'field.html';
+            var baseUrl = hps.iframe_url.replace('index.html', '');
             for (var i = 0; i < fieldsLength; i++) {
                 var field = Heartland.fields[i];
                 var fieldOptions = options.fields[field];
@@ -2292,7 +2307,14 @@ var Heartland;
                     return;
                 }
                 var frame = Heartland.DOM.makeFrame(field);
-                var url = baseUrl + '#' + field + ':' + encodeURIComponent(document.location.href.split('#')[0]);
+                var url = baseUrl;
+                if (field === 'submit') {
+                    url = url + 'button.html';
+                }
+                else {
+                    url = url + 'field.html';
+                }
+                url = url + '#' + field + ':' + encodeURIComponent(document.location.href.split('#')[0]);
                 frame.src = url;
                 document
                     .getElementById(fieldOptions.target)
@@ -2321,10 +2343,18 @@ var Heartland;
             for (i; i < length; i++) {
                 event = events[i];
                 Heartland.Events.addHandler(target, event, function (e) {
+                    var field = document.getElementById('heartland-field');
+                    var classes = [];
+                    if (field.className !== '') {
+                        classes = field.className.split(' ');
+                    }
                     hps.Messages.post({
                         action: 'fieldEvent',
-                        event: event,
-                        eventData: e
+                        event: {
+                            classes: classes,
+                            source: window.name,
+                            type: e.type
+                        }
                     }, 'parent');
                 });
             }
@@ -2435,6 +2465,23 @@ var Heartland;
         };
         ;
         /**
+         * Heartland.HPS.configureButtonFieldIframe
+         *
+         * Same as `Heartland.HPS.configureFieldIframe` excet the added click event
+         * handler for the button.
+         *
+         * @param {Heartland.Options} options
+         */
+        HPS.prototype.configureButtonFieldIframe = function (options) {
+            this.configureFieldIframe(options);
+            Heartland.Events.addHandler('heartland-field', 'click', (function (hps) {
+                return function (e) {
+                    e.preventDefault();
+                    hps.Messages.post({ action: 'requestTokenize' }, 'parent');
+                };
+            }(this)));
+        };
+        /**
          * Heartland.HPS.configureFieldIframe
          *
          * Sets up a child iframe window to prepare it for communication with the
@@ -2459,7 +2506,9 @@ var Heartland;
                     Heartland.DOM.resizeFrame(hps);
                     Heartland.DOM.configureField(hps);
                     var method = 'attach' + window.name.replace('card', '') + 'Events';
-                    Heartland.Card[method]('#heartland-field');
+                    if (Heartland.Card[method]) {
+                        Heartland.Card[method]('#heartland-field');
+                    }
                 };
             }(this));
             this.receiveMessageHandlerAddedHandler = (function (hps) {
@@ -2469,6 +2518,7 @@ var Heartland;
             }(this));
             Heartland.Events.addHandler(window, 'load', this.loadHandler);
             Heartland.Events.addHandler(document, 'receiveMessageHandlerAdded', this.receiveMessageHandlerAddedHandler);
+            Heartland.Frames.monitorFieldEvents(this, 'heartland-field');
             this.Messages.receive(Heartland.Events.frameHandleWith(this), '*');
         };
         ;
