@@ -85,6 +85,16 @@ module Heartland {
         } catch (e) { return; }
 
         switch (data.action) {
+          case 'requestTokenize':
+            hps.Messages.post(
+              {
+                accumulateData: !!hps.frames.cardNumber,
+                action: 'tokenize',
+                message: options.publicKey
+              },
+              hps.frames.cardNumber ? 'cardNumber' : 'child'
+            );
+            break;
           case 'onTokenSuccess':
             options.onTokenSuccess(data.response);
             break;
@@ -141,7 +151,7 @@ module Heartland {
             var field: any;
 
             for (i in hps.frames) {
-              if (i === 'cardNumber') {
+              if (['submit', 'cardNumber'].indexOf(i) !== -1) {
                 continue;
               }
               field = (<any>hps.frames)[i];
@@ -187,7 +197,7 @@ module Heartland {
     export function makeFieldsAndLink(hps: HPS) {
       var options = hps.options;
       var fieldsLength = fields.length;
-      var baseUrl = hps.iframe_url.replace('index.html', '') + 'field.html';
+      var baseUrl = hps.iframe_url.replace('index.html', '');
 
       for (var i = 0; i < fieldsLength; i++) {
         var field = fields[i];
@@ -196,7 +206,13 @@ module Heartland {
         if (!fieldOptions) { return; }
 
         var frame = Heartland.DOM.makeFrame(field);
-        var url = baseUrl + '#' + field + ':' + encodeURIComponent(document.location.href.split('#')[0]);
+        var url = baseUrl;
+        if (field === 'submit') {
+          url = url + 'button.html';
+        } else {
+          url = url + 'field.html';
+        }
+        url = url + '#' + field + ':' + encodeURIComponent(document.location.href.split('#')[0]);
         frame.src = url;
 
         document

@@ -22,6 +22,7 @@ module Heartland {
     cardNumber?: Frame;
     cardExpiration?: Frame;
     cardCvv?: Frame;
+    submit?: Frame;
     child?: Frame;
     parent?: Frame;
   }
@@ -142,6 +143,24 @@ module Heartland {
     };
 
     /**
+     * Heartland.HPS.configure.ButtonFieldIframe
+     *
+     * Same as `Heartland.HPS.configureFieldIframe` excet the added click event
+     * handler for the button.
+     *
+     * @param {Heartland.Options} options
+     */
+    configureButtonFieldIframe(options: Options): void {
+      this.configureFieldIframe(options);
+      Heartland.Events.addHandler('heartland-field', 'click', (function (hps: HPS) {
+        return function (e: Event) {
+          e.preventDefault();
+          hps.Messages.post({action: 'requestTokenize'}, 'parent');
+        };
+      }(this)));
+    }
+
+    /**
      * Heartland.HPS.configureFieldIframe
      *
      * Sets up a child iframe window to prepare it for communication with the
@@ -167,7 +186,9 @@ module Heartland {
           Heartland.DOM.resizeFrame(hps);
           Heartland.DOM.configureField(hps);
           var method = 'attach' + window.name.replace('card', '') + 'Events';
-          (<any>Heartland.Card)[method]('#heartland-field');
+          if ((<any>Heartland.Card)[method]) {
+            (<any>Heartland.Card)[method]('#heartland-field');
+          }
         };
       }(this));
 
