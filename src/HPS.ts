@@ -143,7 +143,7 @@ module Heartland {
     };
 
     /**
-     * Heartland.HPS.configure.ButtonFieldIframe
+     * Heartland.HPS.configureButtonFieldIframe
      *
      * Same as `Heartland.HPS.configureFieldIframe` excet the added click event
      * handler for the button.
@@ -200,6 +200,7 @@ module Heartland {
 
       Heartland.Events.addHandler(window, 'load', this.loadHandler);
       Heartland.Events.addHandler(document, 'receiveMessageHandlerAdded', this.receiveMessageHandlerAddedHandler);
+      Heartland.Frames.monitorFieldEvents(this, 'heartland-field');
 
       this.Messages.receive(Heartland.Events.frameHandleWith(this), '*');
     };

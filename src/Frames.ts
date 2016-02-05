@@ -179,6 +179,12 @@ module Heartland {
               cardNumberFieldFrame.name
               );
             break;
+          case 'fieldEvent':
+            if (!options.onEvent) {
+              break;
+            }
+            options.onEvent(data.event);
+            break;
         }
       }, '*');
 
@@ -243,12 +249,22 @@ module Heartland {
 
       for (i; i < length; i++) {
         event = events[i];
-        Heartland.Events.addHandler(target, event, function(e) {
+        Heartland.Events.addHandler(target, event, function(e: Event) {
+          var field = document.getElementById('heartland-field');
+          var classes: string[] = [];
+
+          if (field.className !== '') {
+            classes = field.className.split(' ');
+          }
+
           hps.Messages.post(
             {
               action: 'fieldEvent',
-              event: event,
-              eventData: e
+              event: {
+                classes: classes,
+                source: window.name,
+                type: e.type
+              }
             },
             'parent'
           );
