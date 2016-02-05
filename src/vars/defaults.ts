@@ -17,6 +17,7 @@ module Heartland {
     iframeTarget: '',
     ktb: '',
     object: 'token',
+    onEvent: null,
     onTokenError: null,
     onTokenSuccess: null,
     pinBlock: '',
