@@ -21,7 +21,7 @@ module Heartland {
         if (!type.format.global) {
           matches.shift();
         }
-        return matches.join(' ');
+        return matches.join(' ').replace(/^\s+|\s+$/gm, '');
       }
     }
   }
