@@ -24,6 +24,7 @@ module Heartland {
       var i: any;
 
       if (!number) { return null; }
+      if (number.replace(/^\s+|\s+$/gm, '').length < 4) { return null; }
 
       for (i in Card.types) {
         cardType = Card.types[i];

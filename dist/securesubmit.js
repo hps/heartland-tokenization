@@ -786,9 +786,9 @@ var Heartland;
 (function (Heartland) {
     Heartland.urls = {
         CERT: 'https://cert.api2.heartlandportico.com/Hps.Exchange.PosGateway.Hpf.v1/api/token',
-        PROD: 'https://api2.heartlandportico.com/SecureSubmit.v1/api/token',
+        PROD: 'https://api.heartlandportico.com/SecureSubmit.v1/api/token',
         iframeCERT: 'https://hps.github.io/token/2.1/',
-        iframePROD: 'https://api2.heartlandportico.com/SecureSubmit.v1/token/2.1/'
+        iframePROD: 'https://api.heartlandportico.com/SecureSubmit.v1/token/2.1/'
     };
 })(Heartland || (Heartland = {}));
 /// <reference path="../types/CardType.ts" />
@@ -816,7 +816,7 @@ var Heartland;
                 if (!type.format.global) {
                     matches.shift();
                 }
-                return matches.join(' ');
+                return matches.join(' ').replace(/^\s+|\s+$/gm, '');
             };
             return CardNumber;
         })();
@@ -987,6 +987,9 @@ var Heartland;
             var cardType;
             var i;
             if (!number) {
+                return null;
+            }
+            if (number.replace(/^\s+|\s+$/gm, '').length < 4) {
                 return null;
             }
             for (i in Card.types) {
