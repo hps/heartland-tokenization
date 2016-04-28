@@ -1,6 +1,6 @@
 module Heartland {
   export interface TokenizationResponse {
-    error?: string;
+    error?: {message?: string};
     last_four?: string;
     card_type?: string;
     exp_month?: string;

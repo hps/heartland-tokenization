@@ -152,7 +152,7 @@ module Heartland {
           Heartland.Util.throwError(data, 'unknown params type');
           break;
       }
-      return '?' + params.join('&');
+      return params.join('&');
     }
 
     /**

@@ -1628,7 +1628,7 @@ var Heartland;
                     Heartland.Util.throwError(data, 'unknown params type');
                     break;
             }
-            return '?' + params.join('&');
+            return params.join('&');
         }
         Util.getParams = getParams;
         /**
@@ -1742,7 +1742,7 @@ var Heartland;
             var lastfour = number.slice(-4);
             var cardType = Heartland.Util.getCardType(number);
             var params = Heartland.Util.getParams(type, options);
-            jsonp(options.gatewayUrl + params, function (data) {
+            makeXHR(options.gatewayUrl + '?api_key=' + options.publicKey, params, function (data) {
                 if (data.error) {
                     Heartland.Util.throwError(options, data);
                 }
@@ -1764,24 +1764,51 @@ var Heartland;
         }
         Ajax.call = call;
         /**
-         * Heartland.Ajax.jsonp
+         * Heartland.Ajax.makeXHR
          *
-         * Creates a new DOM node containing a created JSONP callback handler for an
-         * impending Ajax JSONP request. Removes need for `XMLHttpRequest`.
+         * Creates a new XMLHttpRequest object for a POST request to the given `url`.
          *
          * @param {string} url
          * @param {function} callback
          */
-        function jsonp(url, callback) {
-            var script = document.createElement('script');
-            var callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
-            window[callbackName] = function (data) {
-                window[callbackName] = undefined;
-                document.body.removeChild(script);
-                callback(data);
+        function makeXHR(url, payload, callback) {
+            var xhr;
+            var method = 'POST';
+            var timeout;
+            if ((new XMLHttpRequest()).withCredentials === undefined) {
+                xhr = new window.XDomainRequest();
+                method = 'GET';
+                url = url.split('?')[0];
+                url = url + '?' + payload;
+                payload = null;
+                xhr.open(method, url);
+            }
+            else {
+                xhr = new XMLHttpRequest();
+                xhr.open(method, url);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            }
+            var cb = function (e) {
+                clearTimeout(timeout);
+                if (e.type === 'error') {
+                    callback({ error: { message: 'communication error' } });
+                    return;
+                }
+                if (xhr.readyState === 4 || (xhr.readyState !== 4 && xhr.responseText !== '')) {
+                    var data = JSON.parse(xhr.responseText);
+                    callback(data);
+                }
+                else {
+                    callback({ error: { message: 'no data' } });
+                }
             };
-            script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
-            document.body.appendChild(script);
+            xhr.onload = cb;
+            xhr.onerror = cb;
+            xhr.send(payload);
+            timeout = setTimeout(function () {
+                xhr.abort();
+                callback({ error: { message: 'timeout' } });
+            }, 5000);
         }
     })(Ajax = Heartland.Ajax || (Heartland.Ajax = {}));
 })(Heartland || (Heartland = {}));

@@ -23,7 +23,7 @@ module Heartland {
       var cardType = Heartland.Util.getCardType(number);
       var params = Heartland.Util.getParams(type, options);
 
-      jsonp(options.gatewayUrl + params, function (data) {
+      makeXHR(options.gatewayUrl + '?api_key=' + options.publicKey, params, function (data) {
         if (data.error) {
           Heartland.Util.throwError(options, data);
         } else {
@@ -46,25 +46,56 @@ module Heartland {
     }
 
     /**
-     * Heartland.Ajax.jsonp
+     * Heartland.Ajax.makeXHR
      *
-     * Creates a new DOM node containing a created JSONP callback handler for an
-     * impending Ajax JSONP request. Removes need for `XMLHttpRequest`.
+     * Creates a new XMLHttpRequest object for a POST request to the given `url`.
      *
      * @param {string} url
      * @param {function} callback
      */
-    function jsonp(url: string, callback: (data: TokenizationResponse) => void) {
-      var script = document.createElement('script');
-      var callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
-      (<any>window)[callbackName] = function(data: TokenizationResponse) : void {
-        (<any>window)[callbackName] = undefined;
-        document.body.removeChild(script);
-        callback(data);
+    function makeXHR(url: string, payload: string, callback: (data: TokenizationResponse) => void) {
+      var xhr: any;
+      var method = 'POST';
+      var timeout: number;
+
+      if ((new XMLHttpRequest()).withCredentials === undefined) {
+        xhr = new (<any>window).XDomainRequest();
+        method = 'GET';
+        url = url.split('?')[0];
+        url = url + '?' + payload;
+        payload = null;
+        xhr.open(method, url);
+      } else {
+        xhr = new XMLHttpRequest();
+        xhr.open(method, url);
+        xhr.setRequestHeader(
+          'Content-Type',
+          'application/x-www-form-urlencoded'
+        );
+      }
+      var cb = function (e: Event) {
+        clearTimeout(timeout);
+
+        if (e.type === 'error') {
+          callback({error: {message: 'communication error'}});
+          return;
+        }
+
+        if (xhr.readyState === 4 || (xhr.readyState !== 4 && xhr.responseText !== '')) {
+          var data = JSON.parse(xhr.responseText);
+          callback(data);
+        } else {
+          callback({error: {message: 'no data'}});
+        }
       };
 
-      script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
-      document.body.appendChild(script);
+      xhr.onload = cb;
+      xhr.onerror = cb;
+      xhr.send(payload);
+      timeout = setTimeout(function () {
+        xhr.abort();
+        callback({error: {message: 'timeout'}});
+      }, 5000);
     }
   }
 }
