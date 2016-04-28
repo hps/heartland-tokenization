@@ -8,22 +8,26 @@ module Heartland {
    */
   export module Events {
     class Ev {
-      static listen(eventName: string, callback: EventListener) {
+      static listen(node: EventTarget, eventName: string, callback: EventListener) {
         if (document.addEventListener) {
-          document.addEventListener(eventName, callback, false);
+          node.addEventListener(eventName, callback, false);
         } else {
-          (<any>document.documentElement).attachEvent('onpropertychange', function (e: Event) {
-            if ((<any>e).propertyName === eventName) {
-              callback(e);
-            }
-          });
+          if (node === document) {
+            (<any>document.documentElement).attachEvent('onpropertychange', function (e: Event) {
+              if ((<any>e).propertyName === eventName) {
+                callback(e);
+              }
+            });
+          } else {
+            (<any>node).attachEvent('on' + eventName, callback);
+          }
         }
       }
-      static trigger(eventName: string) {
+      static trigger(node: EventTarget, eventName: string) {
         if (document.createEvent) {
           var event = document.createEvent('Event');
           event.initEvent(eventName, true, true);
-          document.dispatchEvent(event);
+          node.dispatchEvent(event);
         } else {
           (<any>document.documentElement)[eventName]++;
         }
@@ -61,7 +65,7 @@ module Heartland {
       if (document.addEventListener) {
         node.addEventListener(event, callback, false);
       } else {
-        Ev.listen(event, callback);
+        Ev.listen(node, event, callback);
       }
     }
 
@@ -106,7 +110,7 @@ module Heartland {
         event.initEvent(name, true, true);
         target.dispatchEvent(event);
       } else {
-        Ev.trigger(name);
+        Ev.trigger(target, name);
       }
     }
 
@@ -161,7 +165,8 @@ module Heartland {
             if (document.getElementById('heartland-field') &&
               document.getElementById('cardCvv') &&
               document.getElementById('cardExpiration')) {
-              tokenizeIframe(hps, document.getElementById('publicKey').getAttribute('value'));
+              var pkey = document.getElementById('publicKey');
+              tokenizeIframe(hps, (pkey ? pkey.getAttribute('value') : ''));
             }
             break;
           case 'getFieldData':
@@ -229,12 +234,12 @@ module Heartland {
       }
 
       hps.tokenize({
-        cardCvv: card.cvv,
-        cardExpMonth: card.expMonth,
-        cardExpYear: card.expYear,
-        cardNumber: card.number,
+        cardCvv: card.cvv ? card.cvv : '',
+        cardExpMonth: card.expMonth ? card.expMonth : '',
+        cardExpYear: card.expYear ? card.expYear : '',
+        cardNumber: card.number ? card.number : '',
         error: tokenResponse('onTokenError'),
-        publicKey: publicKey,
+        publicKey: publicKey ? publicKey : '',
         success: tokenResponse('onTokenSuccess'),
         type: 'pan'
       });

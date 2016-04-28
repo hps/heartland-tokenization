@@ -151,7 +151,7 @@ module Heartland {
             var field: any;
 
             for (i in hps.frames) {
-              if (['submit', 'cardNumber'].indexOf(i) !== -1) {
+              if ('submit' === i || 'cardNumber' === i) {
                 continue;
               }
               field = (<any>hps.frames)[i];
@@ -184,6 +184,12 @@ module Heartland {
               break;
             }
             options.onEvent(data.event);
+            break;
+          case 'error':
+            if (!options.onError) {
+              break;
+            }
+            options.onError(data);
             break;
         }
       }, '*');

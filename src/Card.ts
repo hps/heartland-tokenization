@@ -28,7 +28,7 @@ module Heartland {
 
       for (i in Card.types) {
         cardType = Card.types[i];
-        if (cardType.regex.test(number)) {
+        if (cardType && cardType.regex && cardType.regex.test(number)) {
           break;
         }
       }
@@ -82,22 +82,25 @@ module Heartland {
      * @param {Event} e
      */
     export function addType(e: Event) {
-      var target = <HTMLInputElement>e.currentTarget;
+      var target = <HTMLInputElement>(e.currentTarget ? e.currentTarget : e.srcElement);
       var type = typeByNumber(target.value);
-      var length = target.classList.length;
+      var classList = target.className.split(' ');
+      var length = classList.length;
       var i = 0;
       var c = '';
 
       for (i; i < length; i++) {
-        c = target.classList.item(i);
-        if (c && c.indexOf('card-type-') === 0) {
-          target.classList.remove(c);
+        c = classList[i];
+        if (c && c.indexOf('card-type-') !== -1) {
+          delete classList[i];
         }
       }
 
       if (type) {
-        target.classList.add('card-type-' + type.code);
+        classList.push('card-type-' + type.code);
       }
+
+      target.className = classList.join(' ').replace(/^\s+|\s+$/gm, '');
     }
 
     /**
@@ -109,7 +112,7 @@ module Heartland {
      * @param {Event} e
      */
     export function formatNumber(e: Event) {
-      var target = <HTMLInputElement>e.currentTarget;
+      var target = <HTMLInputElement>(e.currentTarget ? e.currentTarget : e.srcElement);
       var value = target.value;
       value = (new Formatter.CardNumber).format(value);
       target.value = value;
@@ -123,7 +126,7 @@ module Heartland {
      * @param {KeyboardEvent} e
      */
     export function formatExpiration(e: KeyboardEvent) {
-      var target = <HTMLInputElement>e.currentTarget;
+      var target = <HTMLInputElement>(e.currentTarget ? e.currentTarget : e.srcElement);
       var value = target.value;
       // allow: delete, backspace
       if ([46, 8].indexOf(e.keyCode) !== -1 ||
@@ -147,7 +150,7 @@ module Heartland {
      */
     export function restrictLength(length: number) {
       return function (e: KeyboardEvent) {
-        var target = <HTMLInputElement>e.currentTarget;
+        var target = <HTMLInputElement>(e.currentTarget ? e.currentTarget : e.srcElement);
         var value = target.value;
         // allow: backspace, delete, tab, escape and enter
         if ([46, 8, 9, 27, 13, 110].indexOf(e.keyCode) !== -1 ||
@@ -159,7 +162,7 @@ module Heartland {
           return;
         }
         if (value.length >= length) {
-          e.preventDefault();
+          e.preventDefault ? e.preventDefault() : (e.returnValue = false);
         }
       };
     }
@@ -184,7 +187,7 @@ module Heartland {
       }
       // ensure that it is a number and stop the keypress
       if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
-        e.preventDefault();
+        e.preventDefault ? e.preventDefault() : (e.returnValue = false);
       }
     }
 
@@ -199,15 +202,26 @@ module Heartland {
      * @param {Event} e
      */
     export function validateNumber(e: Event) {
-      var target = <HTMLInputElement>e.currentTarget;
+      var target = <HTMLInputElement>(e.currentTarget ? e.currentTarget : e.srcElement);
       var value = target.value;
-      if ((new Validator.CardNumber).validate(value)) {
-        target.classList.remove('invalid');
-        target.classList.add('valid');
-      } else {
-        target.classList.add('invalid');
-        target.classList.remove('valid');
+      var classList = target.className.split(' ');
+      var length = classList.length;
+      var c = '';
+
+      for (var i = 0; i < length; i++) {
+        c = classList[i];
+        if (c.indexOf('valid') !== -1) {
+          delete classList[i];
+        }
       }
+
+      if ((new Validator.CardNumber).validate(value)) {
+        classList.push('valid');
+      } else {
+        classList.push('invalid');
+      }
+
+      target.className = classList.join(' ').replace(/^\s+|\s+$/gm, '');
     }
 
     /**
@@ -220,15 +234,26 @@ module Heartland {
      * @param {Event} e
      */
     export function validateCvv(e: Event) {
-      var target = <HTMLInputElement>e.currentTarget;
+      var target = <HTMLInputElement>(e.currentTarget ? e.currentTarget : e.srcElement);
       var value = target.value;
-      if ((new Validator.Cvv).validate(value)) {
-        target.classList.remove('invalid');
-        target.classList.add('valid');
-      } else {
-        target.classList.add('invalid');
-        target.classList.remove('valid');
+      var classList = target.className.split(' ');
+      var length = classList.length;
+      var c = '';
+
+      for (var i = 0; i < length; i++) {
+        c = classList[i];
+        if (c.indexOf('valid') !== -1) {
+          delete classList[i];
+        }
       }
+
+      if ((new Validator.Cvv).validate(value)) {
+        classList.push('valid');
+      } else {
+        classList.push('invalid');
+      }
+
+      target.className = classList.join(' ').replace(/^\s+|\s+$/gm, '');
     }
 
     /**
@@ -241,15 +266,26 @@ module Heartland {
      * @param {Event} e
      */
     export function validateExpiration(e: Event) {
-      var target = <HTMLInputElement>e.currentTarget;
+      var target = <HTMLInputElement>(e.currentTarget ? e.currentTarget : e.srcElement);
       var value = target.value;
-      if ((new Validator.Expiration).validate(value)) {
-        target.classList.remove('invalid');
-        target.classList.add('valid');
-      } else {
-        target.classList.add('invalid');
-        target.classList.remove('valid');
+      var classList = target.className.split(' ');
+      var length = classList.length;
+      var c = '';
+
+      for (var i = 0; i < length; i++) {
+        c = classList[i];
+        if (c.indexOf('valid') !== -1) {
+          delete classList[i];
+        }
       }
+
+      if ((new Validator.Expiration).validate(value)) {
+        classList.push('valid');
+      } else {
+        classList.push('invalid');
+      }
+
+      target.className = classList.join(' ').replace(/^\s+|\s+$/gm, '');
     }
 
     /**
@@ -288,5 +324,14 @@ module Heartland {
       Heartland.Events.addHandler(document.querySelector(selector), 'keydown', restrictLength(4));
       Heartland.Events.addHandler(document.querySelector(selector), 'input', validateCvv);
     }
+  }
+
+  if (!Array.prototype.indexOf) {
+    Array.prototype.indexOf = function(obj, start) {
+     for (var i = (start || 0), j = this.length; i < j; i++) {
+         if (this[i] === obj) { return i; }
+     }
+     return -1;
+    };
   }
 }

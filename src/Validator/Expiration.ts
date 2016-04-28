@@ -30,6 +30,10 @@ module Heartland {
           return false;
         }
 
+        if (y.length === 2) {
+          y = (new Date).getFullYear().toString().slice(0, 2) + y;
+        }
+
         month = parseInt(m, 10);
         year = parseInt(y, 10);
 

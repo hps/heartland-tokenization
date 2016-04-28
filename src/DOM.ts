@@ -29,6 +29,7 @@ module Heartland {
       frame.id = 'heartland-frame-' + name;
       frame.name = name;
       frame.style.border = '0';
+      frame.frameBorder = '0';
       frame.scrolling = 'no';
       return frame;
     }
@@ -129,8 +130,7 @@ module Heartland {
      * @param {Heartland.HPS} hps
      */
     export function resizeFrame(hps: HPS) {
-      var html = document.getElementsByTagName('html')[0];
-      var docHeight = html.offsetHeight + 1; // off by one error
+      var docHeight = document.body.offsetHeight + 1; // off by one error
       hps.Messages.post({ action: 'resize', height: docHeight }, 'parent');
     }
 
