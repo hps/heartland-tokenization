@@ -24,6 +24,7 @@ module Heartland {
     targetType?: string;
     fields?: any;
     buttonTarget?: string;
+    onError?: Function;
     onEvent?: Function;
     onTokenSuccess?: Function;
     onTokenError?: Function;

@@ -154,7 +154,7 @@ module Heartland {
       this.configureFieldIframe(options);
       Heartland.Events.addHandler('heartland-field', 'click', (function (hps: HPS) {
         return function (e: Event) {
-          e.preventDefault();
+          e.preventDefault ? e.preventDefault() : (e.returnValue = false);
           hps.Messages.post({action: 'requestTokenize'}, 'parent');
         };
       }(this)));
@@ -180,6 +180,21 @@ module Heartland {
         name: 'parent',
         url: decodeURIComponent(split.join(':').replace(/^:/, ''))
       };
+
+      window.onerror = (function (hps: HPS) {
+        return function (errorMsg: string, url: string, lineNumber: number, column: number, errorObj: any) {
+          hps.Messages.post({
+            action: 'error',
+            data: {
+              column: column,
+              errorMsg: errorMsg,
+              lineNumber: lineNumber,
+              url: url
+            }
+          }, 'parent');
+          return true;
+        };
+      }(this));
 
       this.loadHandler = (function (hps: HPS) {
         return function () {
