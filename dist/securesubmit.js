@@ -471,6 +471,7 @@ var Heartland;
             frame.id = 'heartland-frame-' + name;
             frame.name = name;
             frame.style.border = '0';
+            frame.frameBorder = '0';
             frame.scrolling = 'no';
             return frame;
         }
@@ -570,8 +571,7 @@ var Heartland;
          * @param {Heartland.HPS} hps
          */
         function resizeFrame(hps) {
-            var html = document.getElementsByTagName('html')[0];
-            var docHeight = html.offsetHeight + 1; // off by one error
+            var docHeight = document.body.offsetHeight + 1; // off by one error
             hps.Messages.post({ action: 'resize', height: docHeight }, 'parent');
         }
         DOM.resizeFrame = resizeFrame;
@@ -946,6 +946,9 @@ var Heartland;
                 if (!/^\d+$/.test(y)) {
                     return false;
                 }
+                if (y.length === 2) {
+                    y = (new Date).getFullYear().toString().slice(0, 2) + y;
+                }
                 month = parseInt(m, 10);
                 year = parseInt(y, 10);
                 if (!(1 <= month && month <= 12)) {
@@ -994,7 +997,7 @@ var Heartland;
             }
             for (i in Card.types) {
                 cardType = Card.types[i];
-                if (cardType.regex.test(number)) {
+                if (cardType && cardType.regex && cardType.regex.test(number)) {
                     break;
                 }
             }
@@ -1043,20 +1046,22 @@ var Heartland;
          * @param {Event} e
          */
         function addType(e) {
-            var target = e.currentTarget;
+            var target = (e.currentTarget ? e.currentTarget : e.srcElement);
             var type = typeByNumber(target.value);
-            var length = target.classList.length;
+            var classList = target.className.split(' ');
+            var length = classList.length;
             var i = 0;
             var c = '';
             for (i; i < length; i++) {
-                c = target.classList.item(i);
-                if (c && c.indexOf('card-type-') === 0) {
-                    target.classList.remove(c);
+                c = classList[i];
+                if (c && c.indexOf('card-type-') !== -1) {
+                    delete classList[i];
                 }
             }
             if (type) {
-                target.classList.add('card-type-' + type.code);
+                classList.push('card-type-' + type.code);
             }
+            target.className = classList.join(' ').replace(/^\s+|\s+$/gm, '');
         }
         Card.addType = addType;
         /**
@@ -1068,7 +1073,7 @@ var Heartland;
          * @param {Event} e
          */
         function formatNumber(e) {
-            var target = e.currentTarget;
+            var target = (e.currentTarget ? e.currentTarget : e.srcElement);
             var value = target.value;
             value = (new Heartland.Formatter.CardNumber).format(value);
             target.value = value;
@@ -1082,7 +1087,7 @@ var Heartland;
          * @param {KeyboardEvent} e
          */
         function formatExpiration(e) {
-            var target = e.currentTarget;
+            var target = (e.currentTarget ? e.currentTarget : e.srcElement);
             var value = target.value;
             // allow: delete, backspace
             if ([46, 8].indexOf(e.keyCode) !== -1 ||
@@ -1106,7 +1111,7 @@ var Heartland;
          */
         function restrictLength(length) {
             return function (e) {
-                var target = e.currentTarget;
+                var target = (e.currentTarget ? e.currentTarget : e.srcElement);
                 var value = target.value;
                 // allow: backspace, delete, tab, escape and enter
                 if ([46, 8, 9, 27, 13, 110].indexOf(e.keyCode) !== -1 ||
@@ -1118,7 +1123,7 @@ var Heartland;
                     return;
                 }
                 if (value.length >= length) {
-                    e.preventDefault();
+                    e.preventDefault ? e.preventDefault() : (e.returnValue = false);
                 }
             };
         }
@@ -1143,7 +1148,7 @@ var Heartland;
             }
             // ensure that it is a number and stop the keypress
             if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
-                e.preventDefault();
+                e.preventDefault ? e.preventDefault() : (e.returnValue = false);
             }
         }
         Card.restrictNumeric = restrictNumeric;
@@ -1158,16 +1163,24 @@ var Heartland;
          * @param {Event} e
          */
         function validateNumber(e) {
-            var target = e.currentTarget;
+            var target = (e.currentTarget ? e.currentTarget : e.srcElement);
             var value = target.value;
+            var classList = target.className.split(' ');
+            var length = classList.length;
+            var c = '';
+            for (var i = 0; i < length; i++) {
+                c = classList[i];
+                if (c.indexOf('valid') !== -1) {
+                    delete classList[i];
+                }
+            }
             if ((new Heartland.Validator.CardNumber).validate(value)) {
-                target.classList.remove('invalid');
-                target.classList.add('valid');
+                classList.push('valid');
             }
             else {
-                target.classList.add('invalid');
-                target.classList.remove('valid');
+                classList.push('invalid');
             }
+            target.className = classList.join(' ').replace(/^\s+|\s+$/gm, '');
         }
         Card.validateNumber = validateNumber;
         /**
@@ -1180,16 +1193,24 @@ var Heartland;
          * @param {Event} e
          */
         function validateCvv(e) {
-            var target = e.currentTarget;
+            var target = (e.currentTarget ? e.currentTarget : e.srcElement);
             var value = target.value;
+            var classList = target.className.split(' ');
+            var length = classList.length;
+            var c = '';
+            for (var i = 0; i < length; i++) {
+                c = classList[i];
+                if (c.indexOf('valid') !== -1) {
+                    delete classList[i];
+                }
+            }
             if ((new Heartland.Validator.Cvv).validate(value)) {
-                target.classList.remove('invalid');
-                target.classList.add('valid');
+                classList.push('valid');
             }
             else {
-                target.classList.add('invalid');
-                target.classList.remove('valid');
+                classList.push('invalid');
             }
+            target.className = classList.join(' ').replace(/^\s+|\s+$/gm, '');
         }
         Card.validateCvv = validateCvv;
         /**
@@ -1202,16 +1223,24 @@ var Heartland;
          * @param {Event} e
          */
         function validateExpiration(e) {
-            var target = e.currentTarget;
+            var target = (e.currentTarget ? e.currentTarget : e.srcElement);
             var value = target.value;
+            var classList = target.className.split(' ');
+            var length = classList.length;
+            var c = '';
+            for (var i = 0; i < length; i++) {
+                c = classList[i];
+                if (c.indexOf('valid') !== -1) {
+                    delete classList[i];
+                }
+            }
             if ((new Heartland.Validator.Expiration).validate(value)) {
-                target.classList.remove('invalid');
-                target.classList.add('valid');
+                classList.push('valid');
             }
             else {
-                target.classList.add('invalid');
-                target.classList.remove('valid');
+                classList.push('invalid');
             }
+            target.className = classList.join(' ').replace(/^\s+|\s+$/gm, '');
         }
         Card.validateExpiration = validateExpiration;
         /**
@@ -1252,6 +1281,16 @@ var Heartland;
         }
         Card.attachCvvEvents = attachCvvEvents;
     })(Card = Heartland.Card || (Heartland.Card = {}));
+    if (!Array.prototype.indexOf) {
+        Array.prototype.indexOf = function (obj, start) {
+            for (var i = (start || 0), j = this.length; i < j; i++) {
+                if (this[i] === obj) {
+                    return i;
+                }
+            }
+            return -1;
+        };
+    }
 })(Heartland || (Heartland = {}));
 /// <reference path="types/CardData.ts" />
 /// <reference path="DOM.ts" />
@@ -1266,23 +1305,28 @@ var Heartland;
         var Ev = (function () {
             function Ev() {
             }
-            Ev.listen = function (eventName, callback) {
+            Ev.listen = function (node, eventName, callback) {
                 if (document.addEventListener) {
-                    document.addEventListener(eventName, callback, false);
+                    node.addEventListener(eventName, callback, false);
                 }
                 else {
-                    document.documentElement.attachEvent('onpropertychange', function (e) {
-                        if (e.propertyName === eventName) {
-                            callback(e);
-                        }
-                    });
+                    if (node === document) {
+                        document.documentElement.attachEvent('onpropertychange', function (e) {
+                            if (e.propertyName === eventName) {
+                                callback(e);
+                            }
+                        });
+                    }
+                    else {
+                        node.attachEvent('on' + eventName, callback);
+                    }
                 }
             };
-            Ev.trigger = function (eventName) {
+            Ev.trigger = function (node, eventName) {
                 if (document.createEvent) {
                     var event = document.createEvent('Event');
                     event.initEvent(eventName, true, true);
-                    document.dispatchEvent(event);
+                    node.dispatchEvent(event);
                 }
                 else {
                     document.documentElement[eventName]++;
@@ -1323,7 +1367,7 @@ var Heartland;
                 node.addEventListener(event, callback, false);
             }
             else {
-                Ev.listen(event, callback);
+                Ev.listen(node, event, callback);
             }
         }
         Events.addHandler = addHandler;
@@ -1370,7 +1414,7 @@ var Heartland;
                 target.dispatchEvent(event);
             }
             else {
-                Ev.trigger(name);
+                Ev.trigger(target, name);
             }
         }
         Events.trigger = trigger;
@@ -1423,7 +1467,8 @@ var Heartland;
                         if (document.getElementById('heartland-field') &&
                             document.getElementById('cardCvv') &&
                             document.getElementById('cardExpiration')) {
-                            tokenizeIframe(hps, document.getElementById('publicKey').getAttribute('value'));
+                            var pkey = document.getElementById('publicKey');
+                            tokenizeIframe(hps, (pkey ? pkey.getAttribute('value') : ''));
                         }
                         break;
                     case 'getFieldData':
@@ -1491,12 +1536,12 @@ var Heartland;
                 card.expYear = document.getElementById('heartland-expiration-year').value;
             }
             hps.tokenize({
-                cardCvv: card.cvv,
-                cardExpMonth: card.expMonth,
-                cardExpYear: card.expYear,
-                cardNumber: card.number,
+                cardCvv: card.cvv ? card.cvv : '',
+                cardExpMonth: card.expMonth ? card.expMonth : '',
+                cardExpYear: card.expYear ? card.expYear : '',
+                cardNumber: card.number ? card.number : '',
                 error: tokenResponse('onTokenError'),
-                publicKey: publicKey,
+                publicKey: publicKey ? publicKey : '',
                 success: tokenResponse('onTokenSuccess'),
                 type: 'pan'
             });
@@ -2259,7 +2304,7 @@ var Heartland;
                         var i;
                         var field;
                         for (i in hps.frames) {
-                            if (['submit', 'cardNumber'].indexOf(i) !== -1) {
+                            if ('submit' === i || 'cardNumber' === i) {
                                 continue;
                             }
                             field = hps.frames[i];
@@ -2285,6 +2330,12 @@ var Heartland;
                             break;
                         }
                         options.onEvent(data.event);
+                        break;
+                    case 'error':
+                        if (!options.onError) {
+                            break;
+                        }
+                        options.onError(data);
                         break;
                 }
             }, '*');
@@ -2479,7 +2530,7 @@ var Heartland;
             this.configureFieldIframe(options);
             Heartland.Events.addHandler('heartland-field', 'click', (function (hps) {
                 return function (e) {
-                    e.preventDefault();
+                    e.preventDefault ? e.preventDefault() : (e.returnValue = false);
                     hps.Messages.post({ action: 'requestTokenize' }, 'parent');
                 };
             }(this)));
@@ -2504,6 +2555,20 @@ var Heartland;
                 name: 'parent',
                 url: decodeURIComponent(split.join(':').replace(/^:/, ''))
             };
+            window.onerror = (function (hps) {
+                return function (errorMsg, url, lineNumber, column, errorObj) {
+                    hps.Messages.post({
+                        action: 'error',
+                        data: {
+                            column: column,
+                            errorMsg: errorMsg,
+                            lineNumber: lineNumber,
+                            url: url
+                        }
+                    }, 'parent');
+                    return true;
+                };
+            }(this));
             this.loadHandler = (function (hps) {
                 return function () {
                     Heartland.DOM.resizeFrame(hps);
