@@ -819,7 +819,7 @@ var Heartland;
                 return matches.join(' ').replace(/^\s+|\s+$/gm, '');
             };
             return CardNumber;
-        })();
+        }());
         Formatter.CardNumber = CardNumber;
     })(Formatter = Heartland.Formatter || (Heartland.Formatter = {}));
 })(Heartland || (Heartland = {}));
@@ -862,7 +862,7 @@ var Heartland;
                 return month + del + year;
             };
             return Expiration;
-        })();
+        }());
         Formatter.Expiration = Expiration;
     })(Formatter = Heartland.Formatter || (Heartland.Formatter = {}));
 })(Heartland || (Heartland = {}));
@@ -890,7 +890,7 @@ var Heartland;
                     && number.length === type.length;
             };
             return CardNumber;
-        })();
+        }());
         Validator.CardNumber = CardNumber;
     })(Validator = Heartland.Validator || (Heartland.Validator = {}));
 })(Heartland || (Heartland = {}));
@@ -913,7 +913,7 @@ var Heartland;
                 return 3 <= cvv.length && cvv.length <= 4;
             };
             return Cvv;
-        })();
+        }());
         Validator.Cvv = Cvv;
     })(Validator = Heartland.Validator || (Heartland.Validator = {}));
 })(Heartland || (Heartland = {}));
@@ -960,7 +960,7 @@ var Heartland;
                 return (new Date(year, month, 1)) > (new Date);
             };
             return Expiration;
-        })();
+        }());
         Validator.Expiration = Expiration;
     })(Validator = Heartland.Validator || (Heartland.Validator = {}));
 })(Heartland || (Heartland = {}));
@@ -1075,8 +1075,19 @@ var Heartland;
         function formatNumber(e) {
             var target = (e.currentTarget ? e.currentTarget : e.srcElement);
             var value = target.value;
-            value = (new Heartland.Formatter.CardNumber).format(value);
-            target.value = value;
+            var cursor = target.selectionStart;
+            var formatted = (new Heartland.Formatter.CardNumber).format(value);
+            target.value = formatted;
+            // copy and paste, space inserted on formatter
+            if (value.length < formatted.length) {
+                cursor += formatted.length - value.length;
+            }
+            // check if before new inserted digit is a space
+            if (value.charAt(cursor) === ' ' &&
+                formatted.charAt(cursor - 1) === ' ') {
+                cursor += 1;
+            }
+            target.setSelectionRange(cursor, cursor);
         }
         Card.formatNumber = formatNumber;
         /**
@@ -1152,6 +1163,28 @@ var Heartland;
             }
         }
         Card.restrictNumeric = restrictNumeric;
+        /**
+         * Heartland.Card.deleteProperly
+         *
+         * Places cursor on the correct position to
+         * let the browser delete the digit instead
+         * of the space.
+         *
+         * @param {KeyboardEvent} e
+         */
+        function deleteProperly(e) {
+            var target = (e.currentTarget ? e.currentTarget : e.srcElement);
+            var value = target.value;
+            var cursor = target.selectionStart;
+            // allow: delete, backspace
+            if ([46, 8].indexOf(e.keyCode) !== -1 &&
+                // if space to be deleted
+                (value.charAt(cursor - 1) === ' ')) {
+                // placing cursor before space to delete digit instead
+                target.setSelectionRange(cursor - 1, cursor - 1);
+            }
+        }
+        Card.deleteProperly = deleteProperly;
         /**
          * Heartland.Card.validateNumber
          *
@@ -1251,6 +1284,7 @@ var Heartland;
         function attachNumberEvents(selector) {
             Heartland.Events.addHandler(document.querySelector(selector), 'keydown', restrictNumeric);
             Heartland.Events.addHandler(document.querySelector(selector), 'keydown', restrictLength(19));
+            Heartland.Events.addHandler(document.querySelector(selector), 'keydown', deleteProperly);
             Heartland.Events.addHandler(document.querySelector(selector), 'input', formatNumber);
             Heartland.Events.addHandler(document.querySelector(selector), 'input', validateNumber);
             Heartland.Events.addHandler(document.querySelector(selector), 'input', addType);
@@ -1345,7 +1379,7 @@ var Heartland;
                 }
             };
             return Ev;
-        })();
+        }());
         /**
          * Heartland.Events.addHandler
          *
@@ -2047,7 +2081,7 @@ var Heartland;
             }
         };
         return Messages;
-    })();
+    }());
     Heartland.Messages = Messages;
 })(Heartland || (Heartland = {}));
 var Heartland;
@@ -2685,7 +2719,7 @@ var Heartland;
         };
         ;
         return HPS;
-    })();
+    }());
     Heartland.HPS = HPS;
 })(Heartland || (Heartland = {}));
 /// <reference path="HPS.ts" />

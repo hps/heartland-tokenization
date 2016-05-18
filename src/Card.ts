@@ -114,8 +114,23 @@ module Heartland {
     export function formatNumber(e: Event) {
       var target = <HTMLInputElement>(e.currentTarget ? e.currentTarget : e.srcElement);
       var value = target.value;
-      value = (new Formatter.CardNumber).format(value);
-      target.value = value;
+      var cursor = target.selectionStart;
+      var formatted = (new Formatter.CardNumber).format(value);
+
+      target.value = formatted;
+
+      // copy and paste, space inserted on formatter
+      if (value.length < formatted.length) {
+        cursor += formatted.length - value.length;
+      }
+
+      // check if before new inserted digit is a space
+      if (value.charAt(cursor) === ' ' &&
+          formatted.charAt(cursor - 1) === ' ') {
+        cursor += 1;
+      }
+
+      target.setSelectionRange(cursor, cursor);
     }
 
     /**
@@ -188,6 +203,29 @@ module Heartland {
       // ensure that it is a number and stop the keypress
       if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
         e.preventDefault ? e.preventDefault() : (e.returnValue = false);
+      }
+    }
+
+    /**
+     * Heartland.Card.deleteProperly
+     *
+     * Places cursor on the correct position to
+     * let the browser delete the digit instead
+     * of the space.
+     *
+     * @param {KeyboardEvent} e
+     */
+    export function deleteProperly(e: KeyboardEvent) {
+      var target = <HTMLInputElement>(e.currentTarget ? e.currentTarget : e.srcElement);
+      var value = target.value;
+      var cursor = target.selectionStart;
+
+      // allow: delete, backspace
+      if ([46, 8].indexOf(e.keyCode) !== -1 &&
+          // if space to be deleted
+          (value.charAt(cursor - 1) === ' ')) {
+        // placing cursor before space to delete digit instead
+        target.setSelectionRange(cursor - 1, cursor - 1);
       }
     }
 
@@ -296,6 +334,7 @@ module Heartland {
     export function attachNumberEvents(selector: string) {
       Heartland.Events.addHandler(document.querySelector(selector), 'keydown', restrictNumeric);
       Heartland.Events.addHandler(document.querySelector(selector), 'keydown', restrictLength(19));
+      Heartland.Events.addHandler(document.querySelector(selector), 'keydown', deleteProperly);
       Heartland.Events.addHandler(document.querySelector(selector), 'input', formatNumber);
       Heartland.Events.addHandler(document.querySelector(selector), 'input', validateNumber);
       Heartland.Events.addHandler(document.querySelector(selector), 'input', addType);
