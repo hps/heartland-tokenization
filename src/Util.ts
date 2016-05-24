@@ -15,14 +15,33 @@ module Heartland {
      *
      * Parses a credit card number to obtain the card type/brand.
      *
-     * @param {string} number
+     * @param {string} tokenizationType
+     * @param {Heartland.Options} options
      */
-    export function getCardType(number: string) {
-      var cardType = Card.typeByNumber(number);
-      var type = '';
+    export function getCardType(tokenizationType: string, options: Options) {
+      var cardType: CardType;
+      var data = '';
+      var type = 'unknown';
+
+      switch (tokenizationType) {
+        case 'swipe':
+          data = options.track;
+          cardType = Card.typeByTrack(data);
+          break;
+        case 'encrypted':
+          data = options.track;
+          cardType = Card.typeByTrack(data, true, options.trackNumber);
+          break;
+        default:
+          data = options.cardNumber;
+          cardType = Card.typeByNumber(data);
+          break;
+      }
+
       if (cardType) {
         type = cardType.code;
       }
+
       return type;
     }
 
@@ -196,7 +215,7 @@ module Heartland {
         }
 
         var fields = Heartland.Util.getFields(options.formId);
-        var cardType = Heartland.Util.getCardType(fields.number);
+        var cardType = Heartland.Util.getCardType(fields.number, 'pan');
 
         options.cardNumber = fields.number;
         options.cardExpMonth = fields.expMonth;

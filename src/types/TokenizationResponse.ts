@@ -6,5 +6,11 @@ module Heartland {
     exp_month?: string;
     exp_year?: string;
     token_value?: string;
+    card?: {
+      number?: string;
+    };
+    encryptedcard?: {
+      number?: string;
+    };
   }
 }

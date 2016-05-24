@@ -37,6 +37,33 @@ module Heartland {
     }
 
     /**
+     * Heartland.Card.typeByTrack
+     *
+     * @param {string} data - track data
+     * @param {boolean} isEncrypted - (default: false)
+     * @param {string} trackNumber
+     *
+     * @returns CardType
+     */
+    export function typeByTrack(data: string, isEncrypted = false, trackNumber?: string) {
+      var number: string;
+
+      if (isEncrypted && trackNumber && trackNumber === '02') {
+          number = data.split('=')[0];
+      } else {
+        var temp = data.split('%');
+        if (temp[1]) {
+          temp = temp[1].split('^');
+          if (temp[0]) {
+            number = temp[0].toString().substr(1);
+          }
+        }
+      }
+
+      return typeByNumber(number);
+    }
+
+    /**
      * Heartland.Card.luhnCheck
      *
      * Runs a mod 10 check on a given card number.

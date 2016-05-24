@@ -10,6 +10,8 @@ Heartland.Test = {
       assert.ok(response.token_value, 'token_value');
       assert.ok(response.token_type, 'token_type');
       assert.ok(response.token_expire, 'token_expire');
+      assert.ok(response.card_type, 'card_type');
+      assert.ok(response.last_four, 'last_four');
       done();
       called = true;
     };

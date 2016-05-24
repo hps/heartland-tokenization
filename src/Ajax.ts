@@ -18,15 +18,16 @@ module Heartland {
      * @param {Heartland.Options} options
      */
     export function call(type: string, options: Options) {
-      var number = options.cardNumber.replace(/^\s+|\s+$/g, '');
-      var lastfour = number.slice(-4);
-      var cardType = Heartland.Util.getCardType(number);
+      var cardType = Heartland.Util.getCardType(type, options);
       var params = Heartland.Util.getParams(type, options);
 
       jsonp(options.gatewayUrl + params, function (data) {
         if (data.error) {
           Heartland.Util.throwError(options, data);
         } else {
+          var card = data.card || data.encryptedcard;
+          var lastfour = card.number.slice(-4);
+
           data.last_four = lastfour;
           data.card_type = cardType;
           data.exp_month = options.cardExpMonth;
