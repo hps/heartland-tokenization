@@ -258,9 +258,14 @@ module Heartland {
         Heartland.Events.addHandler(target, event, function(e: Event) {
           var field = document.getElementById('heartland-field');
           var classes: string[] = [];
+          var data: any = {};
 
           if (field.className !== '') {
             classes = field.className.split(' ');
+          }
+
+          if ((<any>e).keyCode) {
+            data.keyCode = (<any>e).keyCode;
           }
 
           hps.Messages.post(
@@ -268,6 +273,7 @@ module Heartland {
               action: 'fieldEvent',
               event: {
                 classes: classes,
+                data: data,
                 source: window.name,
                 type: e.type
               }
