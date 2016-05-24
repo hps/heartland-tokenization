@@ -378,6 +378,7 @@ module Heartland {
       Heartland.Events.addHandler(document.querySelector(selector), 'keyup', formatExpiration);
       Heartland.Events.addHandler(document.querySelector(selector), 'blur', formatExpiration);
       Heartland.Events.addHandler(document.querySelector(selector), 'input', validateExpiration);
+      Heartland.Events.addHandler(document.querySelector(selector), 'blur', validateExpiration);
     }
 
     /**
