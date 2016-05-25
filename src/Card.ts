@@ -141,10 +141,13 @@ module Heartland {
     export function formatNumber(e: Event) {
       var target = <HTMLInputElement>(e.currentTarget ? e.currentTarget : e.srcElement);
       var value = target.value;
-      var cursor = target.selectionStart;
       var formatted = (new Formatter.CardNumber).format(value);
 
       target.value = formatted;
+
+      if (!target.setSelectionRange) { return; }
+
+      var cursor = target.selectionStart;
 
       // copy and paste, space inserted on formatter
       if (value.length < formatted.length) {
@@ -245,6 +248,9 @@ module Heartland {
     export function deleteProperly(e: KeyboardEvent) {
       var target = <HTMLInputElement>(e.currentTarget ? e.currentTarget : e.srcElement);
       var value = target.value;
+
+      if (!target.setSelectionRange) { return; }
+
       var cursor = target.selectionStart;
 
       // allow: delete, backspace
