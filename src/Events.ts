@@ -224,7 +224,8 @@ module Heartland {
       card.exp = expElement;
 
       if (card.exp) {
-        var cardExpSplit = (<HTMLInputElement>card.exp).value.split('/');
+        var formatter = new Heartland.Formatter.Expiration();
+        var cardExpSplit = formatter.format((<HTMLInputElement>card.exp).value, true).split('/');
         card.expMonth = cardExpSplit[0];
         card.expYear = cardExpSplit[1];
         card.exp = undefined;
