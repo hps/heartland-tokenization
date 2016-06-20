@@ -1102,6 +1102,9 @@ var Heartland;
         function formatNumber(e) {
             var target = (e.currentTarget ? e.currentTarget : e.srcElement);
             var value = target.value;
+            if (value.length === 0) {
+                return;
+            }
             var formatted = (new Heartland.Formatter.CardNumber).format(value);
             target.value = formatted;
             if (!target.setSelectionRange) {

@@ -141,8 +141,10 @@ module Heartland {
     export function formatNumber(e: Event) {
       var target = <HTMLInputElement>(e.currentTarget ? e.currentTarget : e.srcElement);
       var value = target.value;
-      var formatted = (new Formatter.CardNumber).format(value);
 
+      if (value.length === 0) { return; }
+
+      var formatted = (new Formatter.CardNumber).format(value);
       target.value = formatted;
 
       if (!target.setSelectionRange) { return; }
