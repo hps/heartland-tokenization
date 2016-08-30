@@ -584,6 +584,7 @@ var Heartland;
          * @param {string} value
          */
         function setFieldData(elementid, value) {
+            console.log('calling DOM.setFieldData');
             var el = document.getElementById(elementid);
             if (!el && document.getElementById('heartland-field')) {
                 el = document.createElement('input');
@@ -819,7 +820,7 @@ var Heartland;
                 return matches.join(' ').replace(/^\s+|\s+$/gm, '');
             };
             return CardNumber;
-        })();
+        }());
         Formatter.CardNumber = CardNumber;
     })(Formatter = Heartland.Formatter || (Heartland.Formatter = {}));
 })(Heartland || (Heartland = {}));
@@ -862,7 +863,7 @@ var Heartland;
                 return month + del + year;
             };
             return Expiration;
-        })();
+        }());
         Formatter.Expiration = Expiration;
     })(Formatter = Heartland.Formatter || (Heartland.Formatter = {}));
 })(Heartland || (Heartland = {}));
@@ -890,7 +891,7 @@ var Heartland;
                     && number.length === type.length;
             };
             return CardNumber;
-        })();
+        }());
         Validator.CardNumber = CardNumber;
     })(Validator = Heartland.Validator || (Heartland.Validator = {}));
 })(Heartland || (Heartland = {}));
@@ -913,7 +914,7 @@ var Heartland;
                 return 3 <= cvv.length && cvv.length <= 4;
             };
             return Cvv;
-        })();
+        }());
         Validator.Cvv = Cvv;
     })(Validator = Heartland.Validator || (Heartland.Validator = {}));
 })(Heartland || (Heartland = {}));
@@ -960,7 +961,7 @@ var Heartland;
                 return (new Date(year, month, 1)) > (new Date);
             };
             return Expiration;
-        })();
+        }());
         Validator.Expiration = Expiration;
     })(Validator = Heartland.Validator || (Heartland.Validator = {}));
 })(Heartland || (Heartland = {}));
@@ -1416,7 +1417,7 @@ var Heartland;
                 }
             };
             return Ev;
-        })();
+        }());
         /**
          * Heartland.Events.addHandler
          *
@@ -1534,6 +1535,7 @@ var Heartland;
                         Heartland.DOM.setPlaceholder(data.id, data.text);
                         break;
                     case 'setFieldData':
+                        console.log('receiving setFieldData');
                         Heartland.DOM.setFieldData(data.id, data.value);
                         if (document.getElementById('heartland-field') &&
                             document.getElementById('cardCvv') &&
@@ -2135,7 +2137,7 @@ var Heartland;
             }
         };
         return Messages;
-    })();
+    }());
     Heartland.Messages = Messages;
 })(Heartland || (Heartland = {}));
 var Heartland;
@@ -2778,7 +2780,7 @@ var Heartland;
         };
         ;
         return HPS;
-    })();
+    }());
     Heartland.HPS = HPS;
 })(Heartland || (Heartland = {}));
 /// <reference path="HPS.ts" />

@@ -1,9 +1,9 @@
-var Heartland = Heartland || {};
-Heartland.Test = {
+window.Heartland = window.Heartland || {};
+window.Heartland.Test = {
   public_key: 'pkapi_cert_jDLChE5RlZJj9Y7aq9',
 
   // global success handler
-  check_for_token: function (assert, done) {
+  check_for_token: function (assert, done, callback) {
     var called = false;
     return function (response) {
       if (called) { return; }
@@ -12,6 +12,7 @@ Heartland.Test = {
       assert.ok(response.token_expire, 'token_expire');
       assert.ok(response.card_type, 'card_type');
       assert.ok(response.last_four, 'last_four');
+      if (callback) { callback(); }
       done();
       called = true;
     };
@@ -28,7 +29,7 @@ Heartland.Test = {
     };
   },
 
-  addHandler: Heartland.Events.addHandler,
+  addHandler: window.Heartland.Events.addHandler,
 
   setCardData: function (hps, child) {
     hps.Messages.post(

@@ -1,0 +1,8 @@
+--require chai
+--require test/util/dom.js
+--require test/util/helpers.js
+
+--reporter dot
+--ui tdd
+--slow 1s
+--timeout 5s
