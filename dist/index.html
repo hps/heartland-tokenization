@@ -6,7 +6,7 @@
 <body id="heartland-body">
   <div class="heartland-card-number" id="heartland-card-number-container">
     <label for="heartland-card-number" id="heartland-card-number-label">Card Number</label>
-    <input type="text" id="heartland-card-number" name="h-card-number"  />
+    <input type="tel" id="heartland-card-number" name="h-card-number"  />
   </div>
 
   <fieldset class="heartland-expiration-date" id="heartland-expiration-date-container">
@@ -32,7 +32,7 @@
 
   <div id="heartland-cvv-container">
     <label for="heartland-cvv" id="heartland-cvv-label">CVV</label>
-    <input type="text" id="heartland-cvv" name="h-cvv" />
+    <input type="tel" id="heartland-cvv" name="h-cvv" />
   </div>
 
   <script type="text/javascript">
@@ -46,7 +46,7 @@
     }while(max-->0);}(10);
   </script>
   <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>-->
-  <script src="/dist/securesubmit.js" type="text/javascript"></script>
+  <script src="securesubmit.js" type="text/javascript"></script>
   <script>(new HPS()).configureInternalIframe();</script>
 </body>
 </html>

@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build": "npm run clean && npm run build:browser && npm run test:lint && npm run build:assets",
-    "build:assets": "cp src/assets/* dist",
+    "build:assets": "cp src/assets/* dist && node bin/replace-securesubmit-ref.js",
     "build:browser": "rollup -c rollup.config.browser.js && rollup -c rollup.config.browser.min.js",
     "clean": "rimraf dist",
     "install": "npm run build",
