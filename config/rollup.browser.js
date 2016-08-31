@@ -1,4 +1,4 @@
-import config from "./rollup.config.base.js";
+import config from "./rollup.base.js";
 
 config.format = "umd";
 

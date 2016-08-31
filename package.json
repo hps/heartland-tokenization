@@ -7,16 +7,16 @@
     "test": "test"
   },
   "scripts": {
-    "build": "npm run clean && npm run build:browser && npm run test:lint && npm run build:assets && npm run build:minify-assets",
+    "build": "npm run clean && npm run test:lint && npm run build:browser && npm run build:assets && npm run build:minify-assets",
     "build:assets": "cp src/assets/* dist && node bin/replace-securesubmit-ref.js",
-    "build:browser": "rollup -c rollup.config.browser.js && rollup -c rollup.config.browser.min.js",
-    "build:minify-assets": "html-minifier -c html-minifier.json --input-dir dist --output-dir dist --file-ext html",
+    "build:browser": "rollup -c config/rollup.browser.js && rollup -c config/rollup.browser.min.js",
+    "build:minify-assets": "html-minifier -c config/html-minifier.json --input-dir dist --output-dir dist --file-ext html",
     "clean": "rimraf dist",
     "install": "npm run build",
     "test": "phantomjs --web-security=false node_modules/mocha-phantomjs-core/mocha-phantomjs-core.js test/index.html dot",
-    "test:lint": "tslint -t verbose -c tslint.json src/*.ts src/Formatter/*.ts src/Validator/*.ts src/types/*.ts src/vars/*.ts",
+    "test:lint": "tslint -t verbose -c tslint.json --exclude src/vendor/**/*.ts src/**/*.ts",
     "test:jsdom": "mocha test/**/*.test.js",
-    "watch": "rollup --watch -c rollup.config.browser.js"
+    "watch": "rollup --watch -c rollup.browser.js"
   },
   "repository": {
     "type": "git",
@@ -48,7 +48,7 @@
     "rollup": "^0.34.11",
     "rollup-plugin-typescript": "^0.8.1",
     "rollup-plugin-uglify": "^1.0.1",
-    "tslint": "^2.5.0",
-    "typescript": "^1.6.2"
+    "tslint": "^2.5.1",
+    "typescript": "^1.8.10"
   }
 }
