@@ -170,7 +170,7 @@ the Apache 2.0 License, whether by implication, estoppel or otherwise.
 // create a JSON object only if one does not already exist. We create the
 // methods in a closure to avoid creating global variables.
 
-var JSON2: any = { };
+export var JSON2: any = { };
 
 declare var IO: any;
 

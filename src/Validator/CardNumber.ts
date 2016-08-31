@@ -1,26 +1,22 @@
-/// <reference path="../types/CardType.ts" />
-/// <reference path="../types/Validator.ts" />
-/// <reference path="../Card.ts" />
+import {CardType} from "../types/CardType";
+import {Validator} from "../types/Validator";
+import {Card} from "../Card";
 
-module Heartland {
-  export module Validator {
-    export class CardNumber implements Validator {
-      validate(number: string): boolean {
-        var type: CardType;
+export class CardNumber implements Validator {
+  validate(number: string): boolean {
+    var type: CardType;
 
-        if (!number) {
-          return false;
-        }
-
-        number = number.replace(/[-\s]/g, '');
-        type = Card.typeByNumber(number);
-
-        if (!type) {
-          return false;
-        }
-        return Card.luhnCheck(number)
-          && number.length === type.length;
-      }
+    if (!number) {
+      return false;
     }
+
+    number = number.replace(/[-\s]/g, '');
+    type = Card.typeByNumber(number);
+
+    if (!type) {
+      return false;
+    }
+    return Card.luhnCheck(number)
+      && number.length === type.length;
   }
 }

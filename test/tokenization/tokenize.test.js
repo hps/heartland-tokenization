@@ -3,7 +3,7 @@ if (!assert) { assert = require('chai').assert; }
 
 suite('tokenize', function () {
   test('Valid card should return token', function (done) {
-    var hps = new HPS({
+    var hps = new window.Heartland.HPS({
       publicKey: window.Heartland.Test.public_key,
       cardNumber: '4242424242424242',
       cardCvv: '123',
@@ -16,7 +16,7 @@ suite('tokenize', function () {
   });
 
   test('Valid error should be null', function (done) {
-    var hps = new HPS({
+    var hps = new window.Heartland.HPS({
       publicKey: window.Heartland.Test.public_key,
       cardNumber: '4242424242424242',
       cardCvv: '123',
@@ -33,7 +33,7 @@ suite('tokenize', function () {
   });
 
   test('Invalid number returns error', function (done) {
-    var hps = new HPS({
+    var hps = new window.Heartland.HPS({
       publicKey: window.Heartland.Test.public_key,
       cardNumber: '0',
       success: window.Heartland.Test.check_for_token(assert, done),
@@ -48,7 +48,7 @@ suite('tokenize', function () {
   });
 
   test('Valid number with whitespace should get trimmed', function (done) {
-    var hps = new HPS({
+    var hps = new window.Heartland.HPS({
       publicKey: window.Heartland.Test.public_key,
       cardNumber: '   	  4242424242424242 ',
       cardCvv: '123',
@@ -61,7 +61,7 @@ suite('tokenize', function () {
   });
 
   test('Invalid long number returns error', function (done) {
-    var hps = new HPS({
+    var hps = new window.Heartland.HPS({
       publicKey: window.Heartland.Test.public_key,
       cardNumber: '11111111111111111111111111111111111',
       success: window.Heartland.Test.check_for_token(assert, done),
@@ -76,7 +76,7 @@ suite('tokenize', function () {
   });
 
   test('Invalid exp month (low) returns error', function (done) {
-    var hps = new HPS({
+    var hps = new window.Heartland.HPS({
       publicKey: window.Heartland.Test.public_key,
       cardNumber: '4242424242424242',
       cardExpMonth: '0',
@@ -92,7 +92,7 @@ suite('tokenize', function () {
   });
 
   test('Invalid exp month (high) returns error', function (done) {
-    var hps = new HPS({
+    var hps = new window.Heartland.HPS({
       publicKey: window.Heartland.Test.public_key,
       cardNumber: '4242424242424242',
       cardExpMonth: '13',
@@ -108,7 +108,7 @@ suite('tokenize', function () {
   });
 
   test('Invalid exp year returns error', function (done) {
-    var hps = new HPS({
+    var hps = new window.Heartland.HPS({
       publicKey: window.Heartland.Test.public_key,
       cardNumber: '4242424242424242',
       cardExpMonth: '12',
@@ -125,7 +125,7 @@ suite('tokenize', function () {
   });
 
   test('Previous year expiration returns error', function (done) {
-    var hps = new HPS({
+    var hps = new window.Heartland.HPS({
       publicKey: window.Heartland.Test.public_key,
       cardNumber: '4242424242424242',
       cardExpMonth: '12',

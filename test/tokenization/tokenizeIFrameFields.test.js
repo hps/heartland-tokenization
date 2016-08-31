@@ -21,7 +21,7 @@ suite('tokenize iframe fields', function () {
       clearTimeout(timeout);
     };
 
-    var hps = new HPS({
+    var hps = new window.Heartland.HPS({
       publicKey: window.Heartland.Test.public_key,
       type: 'iframe',
       fields: {

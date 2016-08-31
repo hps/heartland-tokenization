@@ -3,7 +3,7 @@ if (!assert) { assert = require('chai').assert; }
 
 suite('tokenize encrypted card', function () {
   test('Valid Track Data should return token', function (done) {
-    var hps = new HPS({
+    var hps = new window.Heartland.HPS({
       publicKey: window.Heartland.Test.public_key,
       track: '4012007060016=2512101EcWdTERdUpf8PbKa',
       trackNumber: '02',
@@ -15,7 +15,7 @@ suite('tokenize encrypted card', function () {
   });
 
   test('Valid Track error should be null', function (done) {
-    var hps = new HPS({
+    var hps = new window.Heartland.HPS({
       publicKey: window.Heartland.Test.public_key,
       track: '4012007060016=2512101EcWdTERdUpf8PbKa',
       trackNumber: '02',
@@ -31,7 +31,7 @@ suite('tokenize encrypted card', function () {
   });
 
   test('Invalid Track Data returns error', function (done) {
-    var hps = new HPS({
+    var hps = new window.Heartland.HPS({
       publicKey: window.Heartland.Test.public_key,
       track: '9h1XMRQqTB3ymeRjNoggVdMWoL9',
       trackNumber: '02',

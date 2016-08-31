@@ -6,7 +6,7 @@ suite('tokenize iframe', function () {
     var id = 'valid-iframe-target';
     window.Heartland.Test.makeDiv(id);
 
-    var hps = new HPS({
+    var hps = new window.Heartland.HPS({
       publicKey: window.Heartland.Test.public_key,
       type: 'iframe',
       iframeTarget: id,
@@ -34,7 +34,7 @@ suite('tokenize iframe', function () {
 //       done();
 //     }, 5000);
 
-//     var hps = new HPS({
+//     var hps = new window.Heartland.HPS({
 //       publicKey: window.Heartland.Test.public_key,
 //       type: 'iframe',
 //       iframeTarget: id,
@@ -52,7 +52,7 @@ suite('tokenize iframe', function () {
     var id = 'invalid-iframe-target-myframe';
 
     try {
-      var hps = new HPS({
+      var hps = new window.Heartland.HPS({
         publicKey: window.Heartland.Test.public_key,
         type: 'iframe',
         iframeTarget: id,
