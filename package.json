@@ -7,16 +7,15 @@
     "test": "test"
   },
   "scripts": {
-    "build": "npm run clean && npm run build-ts && npm run lint && npm run minify && npm run cp-html",
-    "build-ts": "tsc",
-    "clean": "rm -rf dist",
-    "cp-html": "cp src/field.html src/button.html src/index.html dist",
-    "lint": "tslint -t verbose -c tslint.json src/*.ts src/Formatter/*.ts src/Validator/*.ts src/types/*.ts src/vars/*.ts",
-    "minify": "uglifyjs -c -m -o dist/securesubmit.min.js --source-map-root ./src  --source-map-url /dist/securesubmit.min.js.map --source-map dist/securesubmit.min.js.map --in-source-map dist/securesubmit.js.map -- dist/securesubmit.js",
+    "build": "npm run clean && npm run build:browser && npm run test:lint && npm run build:assets",
+    "build:assets": "cp src/assets/* dist",
+    "build:browser": "rollup -c rollup.config.browser.js && rollup -c rollup.config.browser.min.js",
+    "clean": "rimraf dist",
     "install": "npm run build",
     "test": "phantomjs --web-security=false node_modules/mocha-phantomjs-core/mocha-phantomjs-core.js test/index.html dot",
+    "test:lint": "tslint -t verbose -c tslint.json src/*.ts src/Formatter/*.ts src/Validator/*.ts src/types/*.ts src/vars/*.ts",
     "test:jsdom": "mocha test/**/*.test.js",
-    "watch": "tsc --watch"
+    "watch": "rollup --watch -c rollup.config.browser.js"
   },
   "repository": {
     "type": "git",
@@ -43,8 +42,11 @@
     "mocha": "^3.0.2",
     "mocha-phantomjs-core": "^1.3.1",
     "phantomjs-prebuilt": "^2.1.12",
+    "rimraf": "^2.5.4",
+    "rollup": "^0.34.11",
+    "rollup-plugin-typescript": "^0.8.1",
+    "rollup-plugin-uglify": "^1.0.1",
     "tslint": "^2.5.0",
-    "typescript": "^1.6.2",
-    "uglify-js": "^2.4.24"
+    "typescript": "^1.6.2"
   }
 }
