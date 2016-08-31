@@ -37,15 +37,8 @@
 
   <script type="text/javascript">
     var myselect=document.getElementById("heartland-expiration-year"), year = new Date().getFullYear();
-    var gen = function(max){do{
-      // var option = document.createElement('option');
-      // var y = year++;
-      // option.value = y;
-      // option.text = y;
-      myselect.add(new Option(year++));
-    }while(max-->0);}(10);
+    var gen = function(max){do{myselect.add(new Option(year++));}while(max-->0);}(10);
   </script>
-  <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>-->
   <script src="/dist/securesubmit.js" type="text/javascript"></script>
   <script>(new HPS()).configureInternalIframe();</script>
 </body>
