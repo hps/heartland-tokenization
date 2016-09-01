@@ -1,6 +1,6 @@
 <html>
 <head>
-  <script src="/dist/securesubmit.js"></script>
+  <script src="../dist/securesubmit.js"></script>
 </head>
 <body>
   <h1>testing</h1>
@@ -12,27 +12,27 @@
     <input type="hidden" name="card_exp_year" id="card_exp_year" />
     <input type="hidden" name="card_type" id="card_type" />
 
-    <input type="text" placeholder="Card Number" id="card_number1" value="4111111111111111" />
-    <input type="text" placeholder="Expiration Month" id="card_expiration_month1" value="12" />
-    <input type="text" placeholder="Expiration Year" id="card_expiration_year1" value="2015" />
-    <input type="text" placeholder="CVV" id="card_cvc1" value="123" />
+    <input type="tel" placeholder="Card Number" id="card_number1" value="4111111111111111" />
+    <input type="tel" placeholder="Expiration Month" id="card_expiration_month1" value="12" />
+    <input type="tel" placeholder="Expiration Year" id="card_expiration_year1" value="2015" />
+    <input type="tel" placeholder="CVV" id="card_cvc1" value="123" />
 
     <a href="#" onclick="triggerPayment();">Manual Payment</a>
   </form>
 
   <form id="payment_form" action="charge2.php" method="GET">
-    <input type="text" placeholder="Card Number" id="card_number" value="4111111111111111" />
-    <input type="text" placeholder="Expiration Month" id="card_expiration_month" value="12" />
-    <input type="text" placeholder="Expiration Year" id="card_expiration_year" value="2015" />
-    <input type="text" placeholder="CVV" id="card_cvc" value="123" />
+    <input type="tel" placeholder="Card Number" id="card_number" value="4111111111111111" />
+    <input type="tel" placeholder="Expiration Month" id="card_expiration_month" value="12" />
+    <input type="tel" placeholder="Expiration Year" id="card_expiration_year" value="2015" />
+    <input type="tel" placeholder="CVV" id="card_cvc" value="123" />
     <input type="submit" value="do it" />
   </form>
 
   <form id="payment_form2" action="charge3.php" method="GET">
-    <input type="text" placeholder="Card Number" id="card_number" value="4242424242424242" />
-    <input type="text" placeholder="Expiration Month" id="card_expiration_month" value="01" />
-    <input type="text" placeholder="Expiration Year" id="card_expiration_year" value="2016" />
-    <input type="text" placeholder="CVV" id="card_cvc" value="123" />
+    <input type="tel" placeholder="Card Number" id="card_number" value="4242424242424242" />
+    <input type="tel" placeholder="Expiration Month" id="card_expiration_month" value="01" />
+    <input type="tel" placeholder="Expiration Year" id="card_expiration_year" value="2016" />
+    <input type="tel" placeholder="CVV" id="card_cvc" value="123" />
     <input type="submit" value="do it" />
   </form>
 
@@ -50,7 +50,7 @@
   <script type="text/javascript">
     // js for manual
     function triggerPayment() {
-      var hps = new HPS({
+      var hps = new Heartland.HPS({
         publicKey: "pkapi_cert_MrSafdEKB2dIHQEzDk",
         cardNumber: document.getElementById("card_number1").value,
         cardExpYear: document.getElementById("card_expiration_year1").value,
@@ -79,21 +79,21 @@
       }
     }
 
-    var hps = new HPS({
+    var hps = new Heartland.HPS({
       publicKey: "pkapi_cert_MrSafdEKB2dIHQEzDk",
       formId: "payment_form",
       success: successMethod,
       error: errorMethod
     });
 
-    var hps2 = new HPS({
+    var hps2 = new Heartland.HPS({
       publicKey: "pkapi_cert_MrSafdEKB2dIHQEzDk",
       formId: "payment_form2",
       success: successMethod,
       error: errorMethod
     });
 
-    var hps3 = new HPS({
+    var hps3 = new Heartland.HPS({
       publicKey: "pkapi_cert_MrSafdEKB2dIHQEzDk",
       type: "iframe",
       // target DOM node for iFrame placement.
