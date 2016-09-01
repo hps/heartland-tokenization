@@ -1,8 +1,5 @@
-(function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-    typeof define === 'function' && define.amd ? define(factory) :
-    (global.Heartland = factory());
-}(this, (function () { 'use strict';
+var Heartland = (function () {
+'use strict';
 
 /**
  * @namespace Heartland.DOM
@@ -2301,5 +2298,5 @@ var index = {
 
 return index;
 
-})));
+}());
 //# sourceMappingURL=securesubmit.js.map
