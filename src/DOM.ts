@@ -65,7 +65,7 @@ export class DOM {
   public static setStyle(elementid: string, htmlstyle: string) {
     var el = document.getElementById(elementid);
     if (el) {
-      el.setAttribute('style', this.encodeEntities(htmlstyle));
+      el.setAttribute('style', DOM.encodeEntities(htmlstyle));
     }
   }
 
@@ -82,7 +82,7 @@ export class DOM {
     if (el) {
       var currstyle = el.getAttribute('style');
       var newstyle = (currstyle ? currstyle : '') + htmlstyle;
-      el.setAttribute('style', this.encodeEntities(newstyle));
+      el.setAttribute('style', DOM.encodeEntities(newstyle));
     }
   }
 
@@ -97,7 +97,7 @@ export class DOM {
   public static setText(elementid: string, text: string) {
     var el = document.getElementById(elementid);
     if (el) {
-      el.textContent = this.encodeEntities(text);
+      el.textContent = DOM.encodeEntities(text);
     }
   }
 
@@ -116,7 +116,7 @@ export class DOM {
         || text === '···· ···· ···· ····') {
         el.setAttribute('placeholder', text);
       } else {
-        el.setAttribute('placeholder', this.encodeEntities(text));
+        el.setAttribute('placeholder', DOM.encodeEntities(text));
       }
     }
   }
@@ -145,13 +145,13 @@ export class DOM {
     var el = document.getElementById(elementid);
     if (!el && document.getElementById('heartland-field')) {
       el = document.createElement('input');
-      el.setAttribute('id', this.encodeEntities(elementid));
+      el.setAttribute('id', DOM.encodeEntities(elementid));
       el.setAttribute('type', 'hidden');
       document.getElementById('heartland-field-wrapper').appendChild(el);
     }
 
     if (el) {
-      el.setAttribute('value', this.encodeEntities(value));
+      el.setAttribute('value', DOM.encodeEntities(value));
     }
   }
 
@@ -203,12 +203,12 @@ export class DOM {
     var i: number, j: number;
     var key: any, value: any;
 
-    if (attributes = this.jsonAttributes(json)) {
+    if (attributes = DOM.jsonAttributes(json)) {
       var attributesLength = attributes.length;
       for (i = 0; i < attributesLength; i++) {
         key = attributes[i];
         value = (<any>json)[key];
-        if (this.isArray(value)) {
+        if (DOM.isArray(value)) {
           var arrLength = value.length;
           for (j = 0; j < arrLength; j++) {
             css += key + ':' + value[j] + ';';
@@ -219,12 +219,12 @@ export class DOM {
       }
     }
 
-    if (children = this.jsonChildren(json)) {
+    if (children = DOM.jsonChildren(json)) {
       var childrenLength = children.length;
       for (i = 0; i < childrenLength; i++) {
         key = children[i];
         value = (<any>json)[key];
-        css += key + '{' + this.json2css(value) + '}';
+        css += key + '{' + DOM.json2css(value) + '}';
       }
     }
 
@@ -282,7 +282,7 @@ export class DOM {
     var i: string;
     for (i in json) {
       if (json.hasOwnProperty(i)
-        && (typeof (<any>json)[i] === 'string' || this.isArray((<any>json)[i]))) {
+        && (typeof (<any>json)[i] === 'string' || DOM.isArray((<any>json)[i]))) {
         set.push(i);
       }
     }

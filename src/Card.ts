@@ -61,7 +61,7 @@ export class Card {
       }
     }
 
-    return this.typeByNumber(number);
+    return Card.typeByNumber(number);
   }
 
   /**
@@ -111,7 +111,7 @@ export class Card {
    */
   public static addType(e: Event) {
     var target = <HTMLInputElement>(e.currentTarget ? e.currentTarget : e.srcElement);
-    var type = this.typeByNumber(target.value);
+    var type = Card.typeByNumber(target.value);
     var classList = target.className.split(' ');
     var length = classList.length;
     var i = 0;
@@ -368,12 +368,12 @@ export class Card {
    * @param {string} selector
    */
   public static attachNumberEvents(selector: string) {
-    Events.addHandler(document.querySelector(selector), 'keydown', this.restrictNumeric);
-    Events.addHandler(document.querySelector(selector), 'keydown', this.restrictLength(19));
-    Events.addHandler(document.querySelector(selector), 'keydown', this.deleteProperly);
-    Events.addHandler(document.querySelector(selector), 'input', this.formatNumber);
-    Events.addHandler(document.querySelector(selector), 'input', this.validateNumber);
-    Events.addHandler(document.querySelector(selector), 'input', this.addType);
+    Events.addHandler(document.querySelector(selector), 'keydown', Card.restrictNumeric);
+    Events.addHandler(document.querySelector(selector), 'keydown', Card.restrictLength(19));
+    Events.addHandler(document.querySelector(selector), 'keydown', Card.deleteProperly);
+    Events.addHandler(document.querySelector(selector), 'input', Card.formatNumber);
+    Events.addHandler(document.querySelector(selector), 'input', Card.validateNumber);
+    Events.addHandler(document.querySelector(selector), 'input', Card.addType);
   }
 
   /**
@@ -382,12 +382,12 @@ export class Card {
    * @param {string} selector
    */
   public static attachExpirationEvents(selector: string) {
-    Events.addHandler(document.querySelector(selector), 'keydown', this.restrictNumeric);
-    Events.addHandler(document.querySelector(selector), 'keydown', this.restrictLength(9));
-    Events.addHandler(document.querySelector(selector), 'keyup', this.formatExpiration);
-    Events.addHandler(document.querySelector(selector), 'blur', this.formatExpiration);
-    Events.addHandler(document.querySelector(selector), 'input', this.validateExpiration);
-    Events.addHandler(document.querySelector(selector), 'blur', this.validateExpiration);
+    Events.addHandler(document.querySelector(selector), 'keydown', Card.restrictNumeric);
+    Events.addHandler(document.querySelector(selector), 'keydown', Card.restrictLength(9));
+    Events.addHandler(document.querySelector(selector), 'keyup', Card.formatExpiration);
+    Events.addHandler(document.querySelector(selector), 'blur', Card.formatExpiration);
+    Events.addHandler(document.querySelector(selector), 'input', Card.validateExpiration);
+    Events.addHandler(document.querySelector(selector), 'blur', Card.validateExpiration);
   }
 
   /**
@@ -396,16 +396,16 @@ export class Card {
    * @param {string} selector
    */
   public static attachCvvEvents(selector: string) {
-    Events.addHandler(document.querySelector(selector), 'keydown', this.restrictNumeric);
-    Events.addHandler(document.querySelector(selector), 'keydown', this.restrictLength(4));
-    Events.addHandler(document.querySelector(selector), 'input', this.validateCvv);
+    Events.addHandler(document.querySelector(selector), 'keydown', Card.restrictNumeric);
+    Events.addHandler(document.querySelector(selector), 'keydown', Card.restrictLength(4));
+    Events.addHandler(document.querySelector(selector), 'input', Card.validateCvv);
   }
 }
 
 if (!Array.prototype.indexOf) {
   Array.prototype.indexOf = function (obj, start) {
-    for (var i = (start || 0), j = this.length; i < j; i++) {
-      if (this[i] === obj) { return i; }
+    for (var i = (start || 0), j = Card.length; i < j; i++) {
+      if (Card[i] === obj) { return i; }
     }
     return -1;
   };

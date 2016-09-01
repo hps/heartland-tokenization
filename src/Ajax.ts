@@ -21,7 +21,7 @@ export class Ajax {
     var cardType = Util.getCardType(type, options);
     var params = Util.getParams(type, options);
 
-    this.jsonp(options.gatewayUrl + params, function (data) {
+    Ajax.jsonp(options.gatewayUrl + params, function (data) {
       if (data.error) {
         Util.throwError(options, data);
       } else {

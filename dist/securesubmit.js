@@ -63,7 +63,7 @@ var DOM = (function () {
     DOM.setStyle = function (elementid, htmlstyle) {
         var el = document.getElementById(elementid);
         if (el) {
-            el.setAttribute('style', this.encodeEntities(htmlstyle));
+            el.setAttribute('style', DOM.encodeEntities(htmlstyle));
         }
     };
     /**
@@ -79,7 +79,7 @@ var DOM = (function () {
         if (el) {
             var currstyle = el.getAttribute('style');
             var newstyle = (currstyle ? currstyle : '') + htmlstyle;
-            el.setAttribute('style', this.encodeEntities(newstyle));
+            el.setAttribute('style', DOM.encodeEntities(newstyle));
         }
     };
     /**
@@ -93,7 +93,7 @@ var DOM = (function () {
     DOM.setText = function (elementid, text) {
         var el = document.getElementById(elementid);
         if (el) {
-            el.textContent = this.encodeEntities(text);
+            el.textContent = DOM.encodeEntities(text);
         }
     };
     /**
@@ -112,7 +112,7 @@ var DOM = (function () {
                 el.setAttribute('placeholder', text);
             }
             else {
-                el.setAttribute('placeholder', this.encodeEntities(text));
+                el.setAttribute('placeholder', DOM.encodeEntities(text));
             }
         }
     };
@@ -139,12 +139,12 @@ var DOM = (function () {
         var el = document.getElementById(elementid);
         if (!el && document.getElementById('heartland-field')) {
             el = document.createElement('input');
-            el.setAttribute('id', this.encodeEntities(elementid));
+            el.setAttribute('id', DOM.encodeEntities(elementid));
             el.setAttribute('type', 'hidden');
             document.getElementById('heartland-field-wrapper').appendChild(el);
         }
         if (el) {
-            el.setAttribute('value', this.encodeEntities(value));
+            el.setAttribute('value', DOM.encodeEntities(value));
         }
     };
     /**
@@ -192,12 +192,12 @@ var DOM = (function () {
         var children;
         var i, j;
         var key, value;
-        if (attributes = this.jsonAttributes(json)) {
+        if (attributes = DOM.jsonAttributes(json)) {
             var attributesLength = attributes.length;
             for (i = 0; i < attributesLength; i++) {
                 key = attributes[i];
                 value = json[key];
-                if (this.isArray(value)) {
+                if (DOM.isArray(value)) {
                     var arrLength = value.length;
                     for (j = 0; j < arrLength; j++) {
                         css += key + ':' + value[j] + ';';
@@ -208,12 +208,12 @@ var DOM = (function () {
                 }
             }
         }
-        if (children = this.jsonChildren(json)) {
+        if (children = DOM.jsonChildren(json)) {
             var childrenLength = children.length;
             for (i = 0; i < childrenLength; i++) {
                 key = children[i];
                 value = json[key];
-                css += key + '{' + this.json2css(value) + '}';
+                css += key + '{' + DOM.json2css(value) + '}';
             }
         }
         return css;
@@ -265,7 +265,7 @@ var DOM = (function () {
         var i;
         for (i in json) {
             if (json.hasOwnProperty(i)
-                && (typeof json[i] === 'string' || this.isArray(json[i]))) {
+                && (typeof json[i] === 'string' || DOM.isArray(json[i]))) {
                 set.push(i);
             }
         }
@@ -639,7 +639,7 @@ var Events = (function () {
                             .appendChild(el);
                     }
                     else {
-                        this.tokenizeIframe(hps, data.message);
+                        Events.tokenizeIframe(hps, data.message);
                     }
                     break;
                 case 'setStyle':
@@ -663,7 +663,7 @@ var Events = (function () {
                         document.getElementById('cardCvv') &&
                         document.getElementById('cardExpiration')) {
                         var pkey = document.getElementById('publicKey');
-                        this.tokenizeIframe(hps, (pkey ? pkey.getAttribute('value') : ''));
+                        Events.tokenizeIframe(hps, (pkey ? pkey.getAttribute('value') : ''));
                     }
                     break;
                 case 'getFieldData':
@@ -799,7 +799,7 @@ var Card = (function () {
                 }
             }
         }
-        return this.typeByNumber(number);
+        return Card.typeByNumber(number);
     };
     /**
      * Heartland.Card.luhnCheck
@@ -843,7 +843,7 @@ var Card = (function () {
      */
     Card.addType = function (e) {
         var target = (e.currentTarget ? e.currentTarget : e.srcElement);
-        var type = this.typeByNumber(target.value);
+        var type = Card.typeByNumber(target.value);
         var classList = target.className.split(' ');
         var length = classList.length;
         var i = 0;
@@ -1078,12 +1078,12 @@ var Card = (function () {
      * @param {string} selector
      */
     Card.attachNumberEvents = function (selector) {
-        Events.addHandler(document.querySelector(selector), 'keydown', this.restrictNumeric);
-        Events.addHandler(document.querySelector(selector), 'keydown', this.restrictLength(19));
-        Events.addHandler(document.querySelector(selector), 'keydown', this.deleteProperly);
-        Events.addHandler(document.querySelector(selector), 'input', this.formatNumber);
-        Events.addHandler(document.querySelector(selector), 'input', this.validateNumber);
-        Events.addHandler(document.querySelector(selector), 'input', this.addType);
+        Events.addHandler(document.querySelector(selector), 'keydown', Card.restrictNumeric);
+        Events.addHandler(document.querySelector(selector), 'keydown', Card.restrictLength(19));
+        Events.addHandler(document.querySelector(selector), 'keydown', Card.deleteProperly);
+        Events.addHandler(document.querySelector(selector), 'input', Card.formatNumber);
+        Events.addHandler(document.querySelector(selector), 'input', Card.validateNumber);
+        Events.addHandler(document.querySelector(selector), 'input', Card.addType);
     };
     /**
      * Heartland.Card.attachExpirationEvents
@@ -1091,12 +1091,12 @@ var Card = (function () {
      * @param {string} selector
      */
     Card.attachExpirationEvents = function (selector) {
-        Events.addHandler(document.querySelector(selector), 'keydown', this.restrictNumeric);
-        Events.addHandler(document.querySelector(selector), 'keydown', this.restrictLength(9));
-        Events.addHandler(document.querySelector(selector), 'keyup', this.formatExpiration);
-        Events.addHandler(document.querySelector(selector), 'blur', this.formatExpiration);
-        Events.addHandler(document.querySelector(selector), 'input', this.validateExpiration);
-        Events.addHandler(document.querySelector(selector), 'blur', this.validateExpiration);
+        Events.addHandler(document.querySelector(selector), 'keydown', Card.restrictNumeric);
+        Events.addHandler(document.querySelector(selector), 'keydown', Card.restrictLength(9));
+        Events.addHandler(document.querySelector(selector), 'keyup', Card.formatExpiration);
+        Events.addHandler(document.querySelector(selector), 'blur', Card.formatExpiration);
+        Events.addHandler(document.querySelector(selector), 'input', Card.validateExpiration);
+        Events.addHandler(document.querySelector(selector), 'blur', Card.validateExpiration);
     };
     /**
      * Heartland.Card.attachCvvEvents
@@ -1104,16 +1104,16 @@ var Card = (function () {
      * @param {string} selector
      */
     Card.attachCvvEvents = function (selector) {
-        Events.addHandler(document.querySelector(selector), 'keydown', this.restrictNumeric);
-        Events.addHandler(document.querySelector(selector), 'keydown', this.restrictLength(4));
-        Events.addHandler(document.querySelector(selector), 'input', this.validateCvv);
+        Events.addHandler(document.querySelector(selector), 'keydown', Card.restrictNumeric);
+        Events.addHandler(document.querySelector(selector), 'keydown', Card.restrictLength(4));
+        Events.addHandler(document.querySelector(selector), 'input', Card.validateCvv);
     };
     return Card;
 }());
 if (!Array.prototype.indexOf) {
     Array.prototype.indexOf = function (obj, start) {
-        for (var i = (start || 0), j = this.length; i < j; i++) {
-            if (this[i] === obj) {
+        for (var i = (start || 0), j = Card.length; i < j; i++) {
+            if (Card[i] === obj) {
                 return i;
             }
         }
@@ -1255,7 +1255,7 @@ var Util = (function () {
                 params.push('token_type=supt', 'object=token', '_method=post', 'api_key=' + data.publicKey.replace(/^\s+|\s+$/g, ''), 'encryptedcard%5Btrack_method%5D=swipe', 'encryptedcard%5Btrack%5D=' + encodeURIComponent(data.track.replace(/^\s+|\s+$/g, '')), 'encryptedcard%5Btrack_number%5D=' + encodeURIComponent(data.trackNumber.replace(/^\s+|\s+$/g, '')), 'encryptedcard%5Bktb%5D=' + encodeURIComponent(data.ktb.replace(/^\s+|\s+$/g, '')), 'encryptedcard%5Bpin_block%5D=' + encodeURIComponent(data.pinBlock.replace(/^\s+|\s+$/g, '')));
                 break;
             default:
-                this.throwError(data, 'unknown params type');
+                Util.throwError(data, 'unknown params type');
                 break;
         }
         return '?' + params.join('&');
@@ -1297,8 +1297,8 @@ var Util = (function () {
             else if (window.event) {
                 window.event.returnValue = false;
             }
-            var fields = this.getFields(options.formId);
-            var cardType = this.getCardType(fields.number, 'pan');
+            var fields = Util.getFields(options.formId);
+            var cardType = Util.getCardType(fields.number, 'pan');
             options.cardNumber = fields.number;
             options.cardExpMonth = fields.expMonth;
             options.cardExpYear = fields.expYear;
@@ -1363,7 +1363,7 @@ var Ajax = (function () {
     Ajax.call = function (type, options) {
         var cardType = Util.getCardType(type, options);
         var params = Util.getParams(type, options);
-        this.jsonp(options.gatewayUrl + params, function (data) {
+        Ajax.jsonp(options.gatewayUrl + params, function (data) {
             if (data.error) {
                 Util.throwError(options, data);
             }

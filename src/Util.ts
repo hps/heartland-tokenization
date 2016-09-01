@@ -170,7 +170,7 @@ export class Util {
         );
         break;
       default:
-        this.throwError(data, 'unknown params type');
+        Util.throwError(data, 'unknown params type');
         break;
     }
     return '?' + params.join('&');
@@ -216,8 +216,8 @@ export class Util {
         window.event.returnValue = false;
       }
 
-      var fields = this.getFields(options.formId);
-      var cardType = this.getCardType(fields.number, 'pan');
+      var fields = Util.getFields(options.formId);
+      var cardType = Util.getCardType(fields.number, 'pan');
 
       options.cardNumber = fields.number;
       options.cardExpMonth = fields.expMonth;

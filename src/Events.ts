@@ -143,7 +143,7 @@ export class Events {
               .getElementById('heartland-field-wrapper')
               .appendChild(el);
           } else {
-            this.tokenizeIframe(hps, data.message);
+            Events.tokenizeIframe(hps, data.message);
           }
           break;
         case 'setStyle':
@@ -167,7 +167,7 @@ export class Events {
             document.getElementById('cardCvv') &&
             document.getElementById('cardExpiration')) {
             var pkey = document.getElementById('publicKey');
-            this.tokenizeIframe(hps, (pkey ? pkey.getAttribute('value') : ''));
+            Events.tokenizeIframe(hps, (pkey ? pkey.getAttribute('value') : ''));
           }
           break;
         case 'getFieldData':
@@ -247,4 +247,3 @@ export class Events {
     });
   }
 }
-
