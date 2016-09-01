@@ -1,2 +1,6 @@
 node_modules/
+src/**/*.js
+test/**/*.js
+test/**/*.js.map
+typings/
 npm-debug.log

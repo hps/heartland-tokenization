@@ -1,5 +1,4 @@
-var assert;
-if (!assert) { assert = require('chai').assert; }
+import {assert} from "chai";
 
 var cvvValidator = new window.Heartland.Validator.Cvv;
 

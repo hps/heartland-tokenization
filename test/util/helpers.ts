@@ -1,15 +1,18 @@
-window.Heartland = window.Heartland || {};
-window.Heartland.Test = {
+import {HPS} from "../../src/HPS";
+import {TokenizationResponse} from "../../src/types/TokenizationResponse";
+
+(<any>window).Heartland = (<any>window).Heartland || {};
+(<any>window).Heartland.Test = {
   public_key: 'pkapi_cert_jDLChE5RlZJj9Y7aq9',
 
   // global success handler
-  check_for_token: function (assert, done, callback) {
+  check_for_token: function (assert: any, done: Function, callback: Function) {
     var called = false;
-    return function (response) {
+    return function (response: TokenizationResponse) {
       if (called) { return; }
       assert.ok(response.token_value, 'token_value');
-      assert.ok(response.token_type, 'token_type');
-      assert.ok(response.token_expire, 'token_expire');
+      assert.ok((<any>response).token_type, 'token_type');
+      assert.ok((<any>response).token_expire, 'token_expire');
       assert.ok(response.card_type, 'card_type');
       assert.ok(response.last_four, 'last_four');
       if (callback) { callback(); }
@@ -19,19 +22,19 @@ window.Heartland.Test = {
   },
 
   // global error handler
-  default_error: function (assert, done) {
+  default_error: function (assert: any, done: Function) {
     var called = false;
-    return function (response) {
+    return function (response: TokenizationResponse) {
       if (called) { return; }
-      assert.ok(false, response.error.message);
+      assert.ok(false, (<any>response.error).message);
       done();
       called = true;
     };
   },
 
-  addHandler: window.Heartland.Events.addHandler,
+  addHandler: (<any>window).Heartland.Events.addHandler,
 
-  setCardData: function (hps, child) {
+  setCardData: function (hps: HPS, child: boolean) {
     hps.Messages.post(
       {
         action: 'setFieldData',
@@ -58,7 +61,7 @@ window.Heartland.Test = {
     );
   },
 
-  makeDiv: function (id) {
+  makeDiv: function (id: string) {
     var div = document.createElement('div');
     div.id = id;
     div.style.display = 'none';

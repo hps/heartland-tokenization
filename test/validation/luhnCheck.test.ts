@@ -1,5 +1,4 @@
-var assert;
-if (!assert) { assert = require('chai').assert; }
+import {assert} from "chai";
 
 suite('luhn check', function () {
   test('valid card', function () {

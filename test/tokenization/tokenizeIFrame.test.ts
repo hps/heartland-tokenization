@@ -1,5 +1,4 @@
-var assert;
-if (!assert) { assert = require('chai').assert; }
+import {assert} from "chai";
 
 suite('tokenize iframe', function () {
   test('valid iframe target', function (done) {

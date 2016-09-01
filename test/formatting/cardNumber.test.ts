@@ -1,11 +1,10 @@
-var assert;
-if (!assert) { assert = require('chai').assert; }
+import {assert} from "chai";
 
 var cardFormatter = new window.Heartland.Formatter.CardNumber;
 
 suite('formatter cardNumber', function () {
   test('complete card number', function () {
-    var result;
+    var result: string;
     result = cardFormatter.format('4012002000060016');
     assert.equal(result, '4012 0020 0006 0016', 'complete visa');
 
@@ -23,7 +22,7 @@ suite('formatter cardNumber', function () {
   });
 
   test('partial card number', function () {
-    var result;
+    var result: string;
     result = cardFormatter.format('40120020000600');
     assert.equal(result, '4012 0020 0006 00', 'complete visa');
 

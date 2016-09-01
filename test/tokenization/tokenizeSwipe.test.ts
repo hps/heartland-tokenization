@@ -1,5 +1,4 @@
-var assert;
-if (!assert) { assert = require('chai').assert; }
+import {assert} from "chai";
 
 suite('tokenize swipe', function () {
   test('Valid card swipe should return token', function (done) {

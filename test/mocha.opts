@@ -1,6 +1,7 @@
 --require chai
 --require test/util/dom.js
 --require test/util/helpers.js
+--require source-map-support/register
 
 --reporter dot
 --ui tdd

@@ -1,5 +1,4 @@
-var assert;
-if (!assert) { assert = require('chai').assert; }
+import {assert} from "chai";
 
 suite('tokenize encrypted card', function () {
   test('Valid Track Data should return token', function (done) {

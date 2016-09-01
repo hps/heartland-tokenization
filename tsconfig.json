@@ -2,5 +2,5 @@
   "compilerOptions": {
     "noImplicitAny": true
   },
-  "files": [ "src/SecureSubmit" ]
+  "include": [ "src/", "typings/", "test/" ]
 }
