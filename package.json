@@ -11,7 +11,7 @@
     "build:assets": "cp src/assets/* dist && node bin/replace-securesubmit-ref.js",
     "build:browser": "rollup -c config/rollup.browser.js && rollup -c config/rollup.browser.min.js",
     "build:minify-assets": "html-minifier -c config/html-minifier.json --input-dir dist --output-dir dist --file-ext html",
-    "clean": "rimraf dist",
+    "clean": "rimraf dist test/bundle.js test/bundle.js.map",
     "install": "npm run build",
     "pretest": "rollup -c config/rollup.browser.test.js",
     "test": "phantomjs --web-security=false node_modules/mocha-phantomjs-core/mocha-phantomjs-core.js test/index.html dot",
