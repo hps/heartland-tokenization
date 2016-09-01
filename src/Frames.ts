@@ -77,8 +77,7 @@ export class Frames {
       Events.addHandler(options.buttonTarget, 'click', hps.clickHandler);
     }
 
-    hps.Messages.receive(function (m: MessageEvent) {
-      var data = JSON.parse(m.data);
+    hps.Messages.receive(function (data: Object) {
       var fieldFrame: any;
 
       try {

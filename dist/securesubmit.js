@@ -622,8 +622,7 @@ var Events = (function () {
      * @param {Heartland.HPS} hps
      */
     Events.frameHandleWith = function (hps) {
-        return function (m) {
-            var data = JSON.parse(m.data);
+        return function (data) {
             switch (data.action) {
                 case 'tokenize':
                     if (data.accumulateData) {
@@ -1589,8 +1588,7 @@ var Messages = (function () {
     Messages.prototype.receive = function (callback, sourceOrigin) {
         if (window.postMessage) {
             this.callback = function (m) {
-                // m.data = JSON.parse(m.data);
-                callback(m);
+                callback(JSON.parse(m.data));
             };
             if (window.addEventListener) {
                 window.addEventListener('message', this.callback, !1);
@@ -1838,8 +1836,7 @@ var Frames = (function () {
             };
             Events.addHandler(options.buttonTarget, 'click', hps.clickHandler);
         }
-        hps.Messages.receive(function (m) {
-            var data = JSON.parse(m.data);
+        hps.Messages.receive(function (data) {
             var fieldFrame;
             try {
                 fieldFrame = hps.frames[data.source.name === 'heartland-frame-securesubmit' ? 'parent' : data.source.name];

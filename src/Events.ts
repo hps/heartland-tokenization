@@ -124,8 +124,7 @@ export class Events {
    * @param {Heartland.HPS} hps
    */
   public static frameHandleWith(hps: HPS): (m: any) => void {
-    return function (m) {
-      var data = JSON.parse(m.data);
+    return function (data) {
       switch (data.action) {
         case 'tokenize':
           if (data.accumulateData) {

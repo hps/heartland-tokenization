@@ -160,8 +160,7 @@ export class Messages {
   receive(callback: Function, sourceOrigin: string): void {
     if (window.postMessage) {
       this.callback = function (m) {
-        // m.data = JSON.parse(m.data);
-        callback(m);
+        callback(JSON.parse(m.data));
       };
       if (window.addEventListener) {
         window.addEventListener('message', this.callback, !1);
