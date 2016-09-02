@@ -21,10 +21,10 @@ export class Frames {
    * @listens message
    */
   public static configureIframe(hps: HPS) {
-    var frame: any;
-    var options = hps.options;
-    var target: HTMLElement;
-    var useDefaultStyles = true;
+    let frame: any;
+    let options = hps.options;
+    let target: HTMLElement;
+    let useDefaultStyles = true;
     hps.Messages = hps.Messages || new Messages(hps);
 
     if (options.env === 'cert') {
@@ -77,8 +77,8 @@ export class Frames {
       Events.addHandler(options.buttonTarget, 'click', hps.clickHandler);
     }
 
-    hps.Messages.receive(function (data: Object) {
-      var fieldFrame: any;
+    hps.Messages.receive(function (data: any) {
+      let fieldFrame: any;
 
       try {
         fieldFrame = (<any>hps.frames)[data.source.name === 'heartland-frame-securesubmit' ? 'parent' : data.source.name];
@@ -133,7 +133,7 @@ export class Frames {
           }
 
           if (options.style) {
-            var css = options.styleString
+            const css = options.styleString
               || (options.styleString = DOM.json2css(options.style));
             hps.Messages.post(
               {
@@ -147,14 +147,11 @@ export class Frames {
           Events.trigger('securesubmitIframeReady', document);
           break;
         case 'accumulateData':
-          var i: string;
-          var field: any;
-
-          for (i in hps.frames) {
+          for (const i in hps.frames) {
             if ('submit' === i || 'cardNumber' === i) {
               continue;
             }
-            field = (<any>hps.frames)[i];
+            const field = (<any>hps.frames)[i];
             hps.Messages.post(
               {
                 action: 'getFieldData',
@@ -165,7 +162,7 @@ export class Frames {
           }
           break;
         case 'passData':
-          var cardNumberFieldFrame = hps.frames.cardNumber;
+          const cardNumberFieldFrame = hps.frames.cardNumber;
           if (!cardNumberFieldFrame) {
             break;
           }
@@ -207,18 +204,18 @@ export class Frames {
    * @param {Heartland.HPS} hps
    */
   public static makeFieldsAndLink(hps: HPS) {
-    var options = hps.options;
-    var fieldsLength = fields.length;
-    var baseUrl = hps.iframe_url.replace('index.html', '');
+    const options = hps.options;
+    const fieldsLength = fields.length;
+    const baseUrl = hps.iframe_url.replace('index.html', '');
 
-    for (var i = 0; i < fieldsLength; i++) {
-      var field = fields[i];
-      var fieldOptions = options.fields[field];
+    for (let i = 0; i < fieldsLength; i++) {
+      const field = fields[i];
+      const fieldOptions = options.fields[field];
 
       if (!fieldOptions) { return; }
 
-      var frame = DOM.makeFrame(field);
-      var url = baseUrl;
+      const frame = DOM.makeFrame(field);
+      let url = baseUrl;
       if (field === 'submit') {
         url = url + 'button.html';
       } else {
@@ -249,16 +246,15 @@ export class Frames {
    * @param {string | EventTarget} target
    */
   public static monitorFieldEvents(hps: HPS, target: string | EventTarget) {
-    var events = ['click', 'blur', 'focus', 'change', 'keypress', 'keydown', 'keyup'];
-    var i = 0, length = events.length;
-    var event: string;
+    const events = ['click', 'blur', 'focus', 'change', 'keypress', 'keydown', 'keyup'];
+    let i = 0, length = events.length;
 
     for (i; i < length; i++) {
-      event = events[i];
+      const event = events[i];
       Events.addHandler(target, event, function (e: Event) {
-        var field = document.getElementById('heartland-field');
-        var classes: string[] = [];
-        var data: any = {};
+        const field = document.getElementById('heartland-field');
+        let classes: string[] = [];
+        const data: any = {};
 
         if (field.className !== '') {
           classes = field.className.split(' ');

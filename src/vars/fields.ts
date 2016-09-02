@@ -1,4 +1,4 @@
-export var fields = [
+export const fields = [
   'cardNumber',
   'cardCvv',
   'cardExpiration',

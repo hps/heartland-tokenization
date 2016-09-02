@@ -171,8 +171,8 @@ export class HPS {
    * @param {Heartland.Options} options
    */
   configureFieldIframe(options: Options): void {
-    var hash = document.location.hash.replace(/^#/, '');
-    var split = hash.split(':');
+    const hash = document.location.hash.replace(/^#/, '');
+    const split = hash.split(':');
     this.Messages = new Messages(this);
     this.field = split.shift();
     this.parent = window.parent;
@@ -202,7 +202,7 @@ export class HPS {
       return function () {
         DOM.resizeFrame(hps);
         DOM.configureField(hps);
-        var method = 'attach' + window.name.replace('card', '') + 'Events';
+        const method = 'attach' + window.name.replace('card', '') + 'Events';
         if ((<any>Card)[method]) {
           (<any>Card)[method]('#heartland-field');
         }

@@ -2,16 +2,13 @@ import {Validator} from "../types/Validator";
 
 export class Expiration implements Validator {
   validate(exp: string): boolean {
-    var month: number;
-    var year: number;
-    var split: string[];
-    var m: string, y: string;
+    let m: string, y: string;
 
     if (!exp) {
       return false;
     }
 
-    split = exp.split('/');
+    const split = exp.split('/');
     [m, y] = split;
 
     if (!m || !y) {
@@ -32,8 +29,8 @@ export class Expiration implements Validator {
       y = (new Date).getFullYear().toString().slice(0, 2) + y;
     }
 
-    month = parseInt(m, 10);
-    year = parseInt(y, 10);
+    const month = parseInt(m, 10);
+    const year = parseInt(y, 10);
 
     if (!(1 <= month && month <= 12)) {
       return false;

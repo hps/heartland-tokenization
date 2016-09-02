@@ -2,11 +2,11 @@ import {Formatter} from "../types/Formatter";
 
 export class Expiration implements Formatter {
   format(exp: string, final = false): string {
-    var pat = /^\D*(\d{1,2})(\D+)?(\d{1,4})?/;
-    var groups = exp.match(pat);
-    var month: string;
-    var del: string;
-    var year: string;
+    const pat = /^\D*(\d{1,2})(\D+)?(\d{1,4})?/;
+    const groups = exp.match(pat);
+    let month: string;
+    let del: string;
+    let year: string;
 
     if (!groups) {
       return '';

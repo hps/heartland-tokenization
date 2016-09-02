@@ -12,7 +12,7 @@ export module Styles {
    * modifications. Each function expects a `Heartland.HPS` object to be passed
    * as an argument.
    */
-  export var Defaults = {
+  export const Defaults = {
     body: function (hps: HPS) {
       hps.setStyle('heartland-body',
         'margin: 0;' +
@@ -41,13 +41,14 @@ export module Styles {
       );
     },
     inputsAndSelects: function (hps: HPS) {
-      var ids = [
+      const ids = [
         'heartland-card-number',
         'heartland-expiration-month',
         'heartland-expiration-year',
         'heartland-cvv'
       ];
-      var i = 0, length = ids.length;
+      const length = ids.length;
+      let i = 0;
       for (i; i < length; i++) {
         hps.setStyle(ids[i],
           'width: 309px;' +
@@ -71,14 +72,15 @@ export module Styles {
       }
     },
     labelsAndLegend: function (hps: HPS) {
-      var ids = [
+      const ids = [
         'heartland-card-number-label',
         'heartland-expiration-date-legend',
         'heartland-expiration-month-label',
         'heartland-expiration-year-label',
         'heartland-cvv-label'
       ];
-      var i = 0, length = ids.length;
+      const length = ids.length;
+      let i = 0;
       for (i; i < length; i++) {
         hps.setStyle(ids[i],
           'font-size: 13px;' +
@@ -91,8 +93,9 @@ export module Styles {
       }
     },
     selectLabels: function (hps: HPS) {
-      var ids = ['heartland-expiration-month-label', 'heartland-expiration-year-label'];
-      var i = 0, length = ids.length;
+      const ids = ['heartland-expiration-month-label', 'heartland-expiration-year-label'];
+      const length = ids.length;
+      let i = 0;
       for (i; i < length; i++) {
         hps.setStyle(ids[i],
           'position:absolute;' +
@@ -107,8 +110,9 @@ export module Styles {
       }
     },
     selects: function (hps: HPS) {
-      var ids = ['heartland-expiration-month', 'heartland-expiration-year'];
-      var i = 0, length = ids.length;
+      const ids = ['heartland-expiration-month', 'heartland-expiration-year'];
+      const length = ids.length;
+      let i = 0;
       for (i; i < length; i++) {
         hps.appendStyle(ids[i],
           'border: 0;' +

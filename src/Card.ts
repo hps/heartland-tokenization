@@ -5,7 +5,6 @@ import {Expiration as ExpirationFormatter} from "./Formatter/Expiration";
 import {CardNumber as CardNumberValidator} from "./Validator/CardNumber";
 import {Cvv as CvvValidator} from "./Validator/Cvv";
 import {Expiration as ExpirationValidator} from "./Validator/Expiration";
-
 import {Events} from "./Events";
 
 /**
@@ -21,8 +20,8 @@ export class Card {
    * @returns {Heartland.CardType}
    */
   public static typeByNumber(number: string): CardType {
-    var cardType: CardType;
-    var i: any;
+    let cardType: CardType;
+    let i: any;
 
     if (!number) { return null; }
     if (number.replace(/^\s+|\s+$/gm, '').length < 4) { return null; }
@@ -47,12 +46,12 @@ export class Card {
    * @returns CardType
    */
   public static typeByTrack(data: string, isEncrypted = false, trackNumber?: string) {
-    var number: string;
+    let number: string;
 
     if (isEncrypted && trackNumber && trackNumber === '02') {
       number = data.split('=')[0];
     } else {
-      var temp = data.split('%');
+      let temp = data.split('%');
       if (temp[1]) {
         temp = temp[1].split('^');
         if (temp[0]) {
@@ -73,19 +72,17 @@ export class Card {
    * @returns {boolean}
    */
   public static luhnCheck(number: string): boolean {
-    var odd = true;
-    var sum = 0;
-    var digits: string[];
-    var i = 0;
-    var length = 0;
-    var digit: number;
+    let odd = true;
+    let i = 0;
+    let sum = 0;
+    let digit: number;
 
     if (!number) {
       return false;
     }
 
-    digits = number.split('').reverse();
-    length = digits.length;
+    const digits = number.split('').reverse();
+    const length = digits.length;
 
     for (i; i < length; i++) {
       digit = parseInt(digits[i], 10);
@@ -110,12 +107,12 @@ export class Card {
    * @param {Event} e
    */
   public static addType(e: Event) {
-    var target = <HTMLInputElement>(e.currentTarget ? e.currentTarget : e.srcElement);
-    var type = Card.typeByNumber(target.value);
-    var classList = target.className.split(' ');
-    var length = classList.length;
-    var i = 0;
-    var c = '';
+    const target = <HTMLInputElement>(e.currentTarget ? e.currentTarget : e.srcElement);
+    const type = Card.typeByNumber(target.value);
+    const classList = target.className.split(' ');
+    const length = classList.length;
+    let i = 0;
+    let c = '';
 
     for (i; i < length; i++) {
       c = classList[i];
@@ -140,17 +137,17 @@ export class Card {
    * @param {Event} e
    */
   public static formatNumber(e: Event) {
-    var target = <HTMLInputElement>(e.currentTarget ? e.currentTarget : e.srcElement);
-    var value = target.value;
+    const target = <HTMLInputElement>(e.currentTarget ? e.currentTarget : e.srcElement);
+    const value = target.value;
 
     if (value.length === 0) { return; }
 
-    var formatted = (new CardNumberFormatter).format(value);
+    const formatted = (new CardNumberFormatter).format(value);
     target.value = formatted;
 
     if (!target.setSelectionRange) { return; }
 
-    var cursor = target.selectionStart;
+    let cursor = target.selectionStart;
 
     // copy and paste, space inserted on formatter
     if (value.length < formatted.length) {
@@ -174,16 +171,16 @@ export class Card {
    * @param {KeyboardEvent} e
    */
   public static formatExpiration(e: KeyboardEvent) {
-    var target = <HTMLInputElement>(e.currentTarget ? e.currentTarget : e.srcElement);
-    var value = target.value;
+    const target = <HTMLInputElement>(e.currentTarget ? e.currentTarget : e.srcElement);
+    const value = target.value;
     // allow: delete, backspace
     if ([46, 8].indexOf(e.keyCode) !== -1 ||
       // allow: home, end, left, right
       (e.keyCode >= 35 && e.keyCode <= 39)) {
       return;
     }
-    value = (new ExpirationFormatter).format(value, e.type === 'blur');
-    target.value = value;
+    target.value = (new ExpirationFormatter)
+      .format(value, e.type === 'blur');
   }
 
   /**
@@ -198,8 +195,8 @@ export class Card {
    */
   public static restrictLength(length: number) {
     return function (e: KeyboardEvent) {
-      var target = <HTMLInputElement>(e.currentTarget ? e.currentTarget : e.srcElement);
-      var value = target.value;
+      const target = <HTMLInputElement>(e.currentTarget ? e.currentTarget : e.srcElement);
+      const value = target.value;
       // allow: backspace, delete, tab, escape and enter
       if ([46, 8, 9, 27, 13, 110].indexOf(e.keyCode) !== -1 ||
         // allow: Ctrl+A
@@ -249,12 +246,12 @@ export class Card {
    * @param {KeyboardEvent} e
    */
   public static deleteProperly(e: KeyboardEvent) {
-    var target = <HTMLInputElement>(e.currentTarget ? e.currentTarget : e.srcElement);
-    var value = target.value;
+    const target = <HTMLInputElement>(e.currentTarget ? e.currentTarget : e.srcElement);
+    const value = target.value;
 
     if (!target.setSelectionRange) { return; }
 
-    var cursor = target.selectionStart;
+    const cursor = target.selectionStart;
 
     // allow: delete, backspace
     if ([46, 8].indexOf(e.keyCode) !== -1 &&
@@ -276,13 +273,13 @@ export class Card {
    * @param {Event} e
    */
   public static validateNumber(e: Event) {
-    var target = <HTMLInputElement>(e.currentTarget ? e.currentTarget : e.srcElement);
-    var value = target.value;
-    var classList = target.className.split(' ');
-    var length = classList.length;
-    var c = '';
+    const target = <HTMLInputElement>(e.currentTarget ? e.currentTarget : e.srcElement);
+    const value = target.value;
+    const classList = target.className.split(' ');
+    const length = classList.length;
+    let c = '';
 
-    for (var i = 0; i < length; i++) {
+    for (let i = 0; i < length; i++) {
       c = classList[i];
       if (c.indexOf('valid') !== -1) {
         delete classList[i];
@@ -308,13 +305,13 @@ export class Card {
    * @param {Event} e
    */
   public static validateCvv(e: Event) {
-    var target = <HTMLInputElement>(e.currentTarget ? e.currentTarget : e.srcElement);
-    var value = target.value;
-    var classList = target.className.split(' ');
-    var length = classList.length;
-    var c = '';
+    const target = <HTMLInputElement>(e.currentTarget ? e.currentTarget : e.srcElement);
+    const value = target.value;
+    const classList = target.className.split(' ');
+    const length = classList.length;
+    let c = '';
 
-    for (var i = 0; i < length; i++) {
+    for (let i = 0; i < length; i++) {
       c = classList[i];
       if (c.indexOf('valid') !== -1) {
         delete classList[i];
@@ -340,13 +337,13 @@ export class Card {
    * @param {Event} e
    */
   public static validateExpiration(e: Event) {
-    var target = <HTMLInputElement>(e.currentTarget ? e.currentTarget : e.srcElement);
-    var value = target.value;
-    var classList = target.className.split(' ');
-    var length = classList.length;
-    var c = '';
+    const target = <HTMLInputElement>(e.currentTarget ? e.currentTarget : e.srcElement);
+    const value = target.value;
+    const classList = target.className.split(' ');
+    const length = classList.length;
+    let c = '';
 
-    for (var i = 0; i < length; i++) {
+    for (let i = 0; i < length; i++) {
       c = classList[i];
       if (c.indexOf('valid') !== -1) {
         delete classList[i];
@@ -404,8 +401,8 @@ export class Card {
 
 if (!Array.prototype.indexOf) {
   Array.prototype.indexOf = function (obj, start) {
-    for (var i = (start || 0), j = Card.length; i < j; i++) {
-      if (Card[i] === obj) { return i; }
+    for (let i = (start || 0), j = this.length; i < j; i++) {
+      if (this[i] === obj) { return i; }
     }
     return -1;
   };

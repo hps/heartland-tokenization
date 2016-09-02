@@ -21,9 +21,9 @@ export class Util {
    * @param {Heartland.Options} options
    */
   public static getCardType(tokenizationType: string, options: Options) {
-    var cardType: CardType;
-    var data = '';
-    var type = 'unknown';
+    let cardType: CardType;
+    let data = '';
+    let type = 'unknown';
 
     switch (tokenizationType) {
       case 'swipe':
@@ -59,20 +59,19 @@ export class Util {
    * @returns {Heartland.Options}
    */
   public static applyOptions(source: Options, properties: Options) {
-    var property: string;
-    var destination: Options = {};
+    const destination: Options = {};
 
     if (!source) {
       source = {};
     }
 
-    for (property in source) {
+    for (const property in source) {
       if (source.hasOwnProperty(property)) {
         (<any>destination)[property] = (<any>source)[property];
       }
     }
 
-    for (property in properties) {
+    for (const property in properties) {
       if (properties.hasOwnProperty(property)) {
         (<any>destination)[property] = (<any>properties)[property];
       }
@@ -111,8 +110,8 @@ export class Util {
    * @returns {any}
    */
   public static getItemByPropertyValue(collection: any, property: string, value: any) {
-    var length = collection.length;
-    var i = 0;
+    const length = collection.length;
+    let i = 0;
 
     for (i; i < length; i++) {
       if (collection[i][property] === value) {
@@ -132,7 +131,7 @@ export class Util {
    * @returns {string}
    */
   public static getParams(type: string, data: Options) {
-    var params: Array<string> = [];
+    const params: Array<string> = [];
     switch (type) {
       case 'pan':
         params.push(
@@ -173,7 +172,7 @@ export class Util {
         Util.throwError(data, 'unknown params type');
         break;
     }
-    return '?' + params.join('&');
+    return params.join('&');
   }
 
   /**
@@ -207,17 +206,17 @@ export class Util {
    * @listens submit
    */
   public static addFormHandler(options: Options) {
-    var payment_form = document.getElementById(options.formId);
+    const payment_form = document.getElementById(options.formId);
 
-    var code = function (e: Event) {
+    const code = function (e: Event) {
       if (e.preventDefault) {
         e.preventDefault();
       } else if (window.event) /* for ie */ {
         window.event.returnValue = false;
       }
 
-      var fields = Util.getFields(options.formId);
-      var cardType = Util.getCardType(fields.number, 'pan');
+      const fields = Util.getFields(options.formId);
+      const cardType = Util.getCardType(fields.number, 'pan');
 
       options.cardNumber = fields.number;
       options.cardExpMonth = fields.expMonth;
@@ -243,13 +242,13 @@ export class Util {
    * @returns {Heartland.CardData}
    */
   public static getFields(formParent: string): CardData {
-    var form = document.getElementById(formParent);
-    var fields: CardData = {};
-    var i: number, element: HTMLInputElement;
-    var length = form.childElementCount;
+    const form = document.getElementById(formParent);
+    const fields: CardData = {};
+    let i: number;
+    const length = form.childElementCount;
 
     for (i = 0; i < length; i++) {
-      element = <HTMLInputElement>form.children[i];
+      const element = <HTMLInputElement>form.children[i];
       if (element.id === 'card_number') {
         fields.number = element.value;
       } else if (element.id === 'card_expiration_month') {

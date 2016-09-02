@@ -22,7 +22,7 @@ class Ev {
   }
   public static trigger(node: EventTarget, eventName: string) {
     if (document.createEvent) {
-      var event = document.createEvent('Event');
+      const event = document.createEvent('Event');
       event.initEvent(eventName, true, true);
       node.dispatchEvent(event);
     } else {
@@ -56,7 +56,7 @@ export class Events {
    * @param {EventListener} callback
    */
   public static addHandler(target: string | EventTarget, event: string, callback: EventListener) {
-    var node: EventTarget;
+    let node: EventTarget;
     if (typeof target === 'string') {
       node = document.getElementById(<string>target);
     } else {
@@ -80,7 +80,7 @@ export class Events {
    * @param {EventListener} callback
    */
   public static removeHandler(target: string | EventTarget, event: string, callback: EventListener) {
-    var node: EventTarget;
+    let node: EventTarget;
     if (typeof target === 'string') {
       node = document.getElementById(<string>target);
     } else {
@@ -104,10 +104,8 @@ export class Events {
    * @param {any} data [optional]
    */
   public static trigger(name: string, target: any, data?: any, bubble = false) {
-    var event: any;
-
     if (document.createEvent) {
-      event = document.createEvent('Event');
+      const event = document.createEvent('Event');
       event.initEvent(name, true, true);
       target.dispatchEvent(event);
     } else {
@@ -134,7 +132,7 @@ export class Events {
               },
               'parent'
             );
-            var el = document.createElement('input');
+            const el = document.createElement('input');
             el.id = 'publicKey';
             el.type = 'hidden';
             el.value = data.message;
@@ -165,7 +163,7 @@ export class Events {
           if (document.getElementById('heartland-field') &&
             document.getElementById('cardCvv') &&
             document.getElementById('cardExpiration')) {
-            var pkey = document.getElementById('publicKey');
+            const pkey = document.getElementById('publicKey');
             Events.tokenizeIframe(hps, (pkey ? pkey.getAttribute('value') : ''));
           }
           break;
@@ -193,13 +191,13 @@ export class Events {
    * @param {string} publicKey
    */
   public static tokenizeIframe(hps: HPS, publicKey: string) {
-    var card: CardData = {};
-    var numberElement = <HTMLInputElement>(document.getElementById('heartland-field')
+    const card: CardData = {};
+    const numberElement = <HTMLInputElement>(document.getElementById('heartland-field')
       || document.getElementById('heartland-card-number'));
-    var cvvElement = <HTMLInputElement>(document.getElementById('cardCvv')
+    const cvvElement = <HTMLInputElement>(document.getElementById('cardCvv')
       || document.getElementById('heartland-cvv'));
-    var expElement = document.getElementById('cardExpiration');
-    var tokenResponse = (action: string) => {
+    const expElement = document.getElementById('cardExpiration');
+    const tokenResponse = (action: string) => {
       return (response: TokenizationResponse) => {
         hps.Messages.post({ action: action, response: response }, 'parent');
         if (cvvElement) {
@@ -224,8 +222,8 @@ export class Events {
     card.exp = expElement;
 
     if (card.exp) {
-      var formatter = new ExpirationFormatter();
-      var cardExpSplit = formatter.format((<HTMLInputElement>card.exp).value, true).split('/');
+      const formatter = new ExpirationFormatter();
+      const cardExpSplit = formatter.format((<HTMLInputElement>card.exp).value, true).split('/');
       card.expMonth = cardExpSplit[0];
       card.expYear = cardExpSplit[1];
       card.exp = undefined;

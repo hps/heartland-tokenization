@@ -40,16 +40,15 @@ export class Messages {
    */
   pushMessages(hps: HPS): () => void {
     return function () {
-      var data: Array<any> = [];
-      var messageArr: Array<any> = [];
-      var message = '';
-      var i = 0, length = 0;
-      var targetUrl = '', url = '';
-      var current: any;
-      var targetNode: Window;
-      var re = /^#?\d+&/;
+      const data: Array<any> = [];
+      const messageArr: Array<any> = [];
+      let i = 0;
+      let targetUrl = '';
+      let current: any;
+      let targetNode: Window;
+      const re = /^#?\d+&/;
 
-      length = hps.mailbox.length;
+      const length = hps.mailbox.length;
       if (!length) {
         return;
       }
@@ -72,8 +71,8 @@ export class Messages {
       if (messageArr !== []) {
         hps.cacheBust = hps.cacheBust || 1;
         data.push({ data: messageArr, source: { name: hps.field || 'parent' } });
-        message = JSON.stringify(data);
-        url = targetUrl.replace(/#.*$/, '') + '#' +
+        const message = JSON.stringify(data);
+        const url = targetUrl.replace(/#.*$/, '') + '#' +
           (+new Date()) + (hps.cacheBust++) + '&' +
           encodeURIComponent(message);
         if (targetNode.location) {
@@ -99,9 +98,7 @@ export class Messages {
    * @param {string} target
    */
   post(message: Object | string, target: string): void {
-    var frame: any;
-    var targetNode: Window;
-    var targetUrl: string;
+    let  targetNode: Window;
 
     (<any>message).source = (<any>message).source || {};
     (<any>message).source.name = window.name;
@@ -110,13 +107,13 @@ export class Messages {
       return;
     }
 
-    frame = (<any>this.hps.frames)[target] || (<any>this.hps)[target];
+    const frame = (<any>this.hps.frames)[target] || (<any>this.hps)[target];
 
     if (!frame) {
       return;
     }
 
-    targetUrl = (<any>this.hps.frames)[target].url;
+    const targetUrl = (<any>this.hps.frames)[target].url;
 
     try {
       if (typeof frame.targetNode !== 'undefined') {
@@ -175,22 +172,20 @@ export class Messages {
 
       if (callback) {
         this.intervalId = setInterval(function () {
-          var hash = document.location.hash,
+          const hash = document.location.hash,
             re = /^#?\d+&/;
           if (hash !== this.lastHash && re.test(hash)) {
-            var data = JSON.parse(decodeURIComponent(hash.replace(re, '')));
-            var i: any, j: any;
-            var m: any;
+            const data = JSON.parse(decodeURIComponent(hash.replace(re, '')));
             this.lastHash = hash;
 
-            for (i in data) {
-              m = data[i];
+            for (const i in data) {
+              const m = data[i];
               if (Object.prototype.toString.call(m.data) !== '[object Array]') {
                 callback(m);
                 continue;
               }
 
-              for (j in m.data) {
+              for (const j in m.data) {
                 callback({ data: m.data[j], source: m.source });
               }
             }

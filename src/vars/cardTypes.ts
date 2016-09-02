@@ -1,6 +1,6 @@
 import {CardType} from "../types/CardType";
 
-export var cardTypes: CardType[] = [
+export const cardTypes: CardType[] = [
   {
     code: 'visa',
     format: /(\d{1,4})/g,

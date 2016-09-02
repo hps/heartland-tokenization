@@ -1,6 +1,6 @@
 import {Options} from "../types/Options";
 
-export var defaults: Options = {
+export const defaults: Options = {
   _method: 'post',
   buttonTarget: '',
   cardCvv: '',

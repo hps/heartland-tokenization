@@ -24,7 +24,7 @@ export class DOM {
    * @returns {HTMLIframeElement}
    */
   public static makeFrame(name: string) {
-    var frame = document.createElement('iframe');
+    const frame = document.createElement('iframe');
     frame.id = 'heartland-frame-' + name;
     frame.name = name;
     frame.style.border = '0';
@@ -45,7 +45,7 @@ export class DOM {
    * @param {string} fieldValue
    */
   public static addField(formParent: string, fieldType: string, fieldName: string, fieldValue: string) {
-    var input = document.createElement('input');
+    const input = document.createElement('input');
 
     input.setAttribute('type', fieldType);
     input.setAttribute('name', fieldName);
@@ -63,7 +63,7 @@ export class DOM {
    * @param {string} htmlstyle
    */
   public static setStyle(elementid: string, htmlstyle: string) {
-    var el = document.getElementById(elementid);
+    const el = document.getElementById(elementid);
     if (el) {
       el.setAttribute('style', DOM.encodeEntities(htmlstyle));
     }
@@ -78,10 +78,10 @@ export class DOM {
    * @param {String} htmlstyle
    */
   public static appendStyle(elementid: string, htmlstyle: string) {
-    var el = document.getElementById(elementid);
+    const el = document.getElementById(elementid);
     if (el) {
-      var currstyle = el.getAttribute('style');
-      var newstyle = (currstyle ? currstyle : '') + htmlstyle;
+      const currstyle = el.getAttribute('style');
+      const newstyle = (currstyle ? currstyle : '') + htmlstyle;
       el.setAttribute('style', DOM.encodeEntities(newstyle));
     }
   }
@@ -95,7 +95,7 @@ export class DOM {
    * @param {string} text
    */
   public static setText(elementid: string, text: string) {
-    var el = document.getElementById(elementid);
+    const el = document.getElementById(elementid);
     if (el) {
       el.textContent = DOM.encodeEntities(text);
     }
@@ -110,7 +110,7 @@ export class DOM {
    * @param {string} text
    */
   public static setPlaceholder(elementid: string, text: string) {
-    var el = document.getElementById(elementid);
+    const el = document.getElementById(elementid);
     if (el) {
       if (text === '•••• •••• •••• ••••' || text === '••••' || text === '•••'
         || text === '···· ···· ···· ····') {
@@ -129,7 +129,7 @@ export class DOM {
    * @param {Heartland.HPS} hps
    */
   public static resizeFrame(hps: HPS) {
-    var docHeight = document.body.offsetHeight + 1; // off by one error
+    const docHeight = document.body.offsetHeight + 1; // off by one error
     hps.Messages.post({ action: 'resize', height: docHeight }, 'parent');
   }
 
@@ -142,7 +142,7 @@ export class DOM {
    * @param {string} value
    */
   public static setFieldData(elementid: string, value: string) {
-    var el = document.getElementById(elementid);
+    let el = document.getElementById(elementid);
     if (!el && document.getElementById('heartland-field')) {
       el = document.createElement('input');
       el.setAttribute('id', DOM.encodeEntities(elementid));
@@ -164,7 +164,7 @@ export class DOM {
    * @param {string} elementid
    */
   public static getFieldData(hps: HPS, elementid: string) {
-    var el: HTMLInputElement = <HTMLInputElement>document.getElementById(elementid);
+    const el: HTMLInputElement = <HTMLInputElement>document.getElementById(elementid);
     if (el) {
       hps.Messages.post({ action: 'passData', value: el.value }, 'parent');
     }
@@ -179,8 +179,8 @@ export class DOM {
    * @param {string} elementid
    */
   public static addStylesheet(css: string) {
-    var el = document.createElement('style');
-    var elements = document.getElementsByTagName('head');
+    const el = document.createElement('style');
+    const elements = document.getElementsByTagName('head');
     el.type = 'text/css';
     el.appendChild(document.createTextNode(css));
     if (elements && elements[0]) {
@@ -197,19 +197,19 @@ export class DOM {
    * @returns {string}
    */
   public static json2css(json: Object): string {
-    var css = '';
-    var attributes: string[];
-    var children: Object[];
-    var i: number, j: number;
-    var key: any, value: any;
+    let css = '';
+    let attributes: string[];
+    let children: Object[];
+    let i: number, j: number;
+    let key: any, value: any;
 
     if (attributes = DOM.jsonAttributes(json)) {
-      var attributesLength = attributes.length;
+      const attributesLength = attributes.length;
       for (i = 0; i < attributesLength; i++) {
         key = attributes[i];
         value = (<any>json)[key];
         if (DOM.isArray(value)) {
-          var arrLength = value.length;
+          const arrLength = value.length;
           for (j = 0; j < arrLength; j++) {
             css += key + ':' + value[j] + ';';
           }
@@ -220,7 +220,7 @@ export class DOM {
     }
 
     if (children = DOM.jsonChildren(json)) {
-      var childrenLength = children.length;
+      const childrenLength = children.length;
       for (i = 0; i < childrenLength; i++) {
         key = children[i];
         value = (<any>json)[key];
@@ -240,7 +240,7 @@ export class DOM {
    * @param {string} elementid
    */
   public static setFocus() {
-    var el = document.getElementById('heartland-field');
+    const el = document.getElementById('heartland-field');
     if (el) {
       el.focus();
     }
@@ -262,8 +262,8 @@ export class DOM {
     return value.
       replace(/&/g, '&amp;').
       replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function (v) {
-        var hi = v.charCodeAt(0);
-        var low = v.charCodeAt(1);
+        const hi = v.charCodeAt(0);
+        const low = v.charCodeAt(1);
         return '&#' + (((hi - 0xD800) * 0x400) + (low - 0xDC00) + 0x10000) + ';';
       }).
       replace(/([^\#-~| |!])/g, function (v) {
@@ -278,9 +278,8 @@ export class DOM {
   }
 
   private static jsonAttributes(json: Object): string[] {
-    var set: string[] = [];
-    var i: string;
-    for (i in json) {
+    const set: string[] = [];
+    for (const i in json) {
       if (json.hasOwnProperty(i)
         && (typeof (<any>json)[i] === 'string' || DOM.isArray((<any>json)[i]))) {
         set.push(i);
@@ -290,9 +289,8 @@ export class DOM {
   }
 
   private static jsonChildren(json: Object): Object[] {
-    var set: Object[] = [];
-    var i: string;
-    for (i in json) {
+    const set: Object[] = [];
+    for (const i in json) {
       if (json.hasOwnProperty(i)
         && (Object.prototype.toString.call((<any>json)[i]) === '[object Object]')) {
         set.push(i);

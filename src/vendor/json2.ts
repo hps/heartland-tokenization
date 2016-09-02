@@ -128,7 +128,7 @@ the Apache 2.0 License, whether by implication, estoppel or otherwise.
             // be converted to Date objects.
 
             myData = JSON.parse(text, function (key, value) {
-                var a;
+                let a;
                 if (typeof value === 'string') {
                     a =
 /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/.exec(value);
@@ -141,7 +141,7 @@ the Apache 2.0 License, whether by implication, estoppel or otherwise.
             });
 
             myData = JSON.parse('["Date(09/09/2001)"]', function (key, value) {
-                var d;
+                let d;
                 if (typeof value === 'string' &&
                         value.slice(0, 5) === 'Date(' &&
                         value.slice(-1) === ')') {
@@ -170,9 +170,9 @@ the Apache 2.0 License, whether by implication, estoppel or otherwise.
 // create a JSON object only if one does not already exist. We create the
 // methods in a closure to avoid creating global variables.
 
-export var JSON2: any = { };
+export let JSON2: any = { };
 
-declare var IO: any;
+declare let IO: any;
 
 (function () {
     'use strict';
@@ -196,15 +196,15 @@ declare var IO: any;
                 : null;
         };
 
-        var strProto: any = String.prototype;
-        var numProto: any = Number.prototype;
+        let strProto: any = String.prototype;
+        let numProto: any = Number.prototype;
         numProto.JSON = strProto.JSON =
             (<any>Boolean).prototype.toJSON = function (key?: any) {
                 return this.valueOf();
             };
     }
 
-    var cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
+    let cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
         // tslint:disable-next-line
         esc = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
         gap: string,
@@ -230,7 +230,7 @@ declare var IO: any;
 
         esc.lastIndex = <any>0;
         return esc.test(string) ? '"' + string.replace(esc, function (a: string) {
-            var c = (<any>meta)[a];
+            let c = (<any>meta)[a];
             return typeof c === 'string'
                 ? c
                 : '\\u' + ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
@@ -242,7 +242,7 @@ declare var IO: any;
 
 // produce a string from holder[key].
 
-        var i: number,          // the loop counter.
+        let i: number,          // the loop counter.
             k: string = null,          // the member key.
             v: any,          // the member value.
             length: number,
@@ -377,7 +377,7 @@ declare var IO: any;
 // a default replacer method can be provided. Use of the space parameter can
 // produce text that is more easily readable.
 
-            var i: number;
+            let i: number;
             gap = '';
             indent = '';
 
@@ -421,14 +421,14 @@ declare var IO: any;
 // the parse method takes a text and an optional reviver function, and returns
 // a JavaScript value if the text is a valid JSON text.
 
-            var j: number;
+            let j: number;
 
             function walk(holder: any, key: string | number): {} {
 
 // the walk method is used to recursively walk the resulting structure so
 // that modifications can be made.
 
-                var k: string = null, v: any, value: any = holder[key];
+                let k: string = null, v: any, value: any = holder[key];
                 if (value && typeof value === 'object') {
                     for (k in value) {
                         if (Object.prototype.hasOwnProperty.call(value, k)) {
