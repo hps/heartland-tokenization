@@ -1,8 +1,6 @@
-module Heartland {
-  export var fields = [
-    'cardNumber',
-    'cardCvv',
-    'cardExpiration',
-    'submit'
-  ];
-}
+export const fields = [
+  'cardNumber',
+  'cardCvv',
+  'cardExpiration',
+  'submit'
+];

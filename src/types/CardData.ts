@@ -1,9 +1,7 @@
-module Heartland {
-  export interface CardData {
-    number?: string;
-    cvv?: string;
-    exp?: HTMLElement;
-    expMonth?: string;
-    expYear?: string;
-  }
+export interface CardData {
+  number?: string;
+  cvv?: string;
+  exp?: HTMLElement;
+  expMonth?: string;
+  expYear?: string;
 }

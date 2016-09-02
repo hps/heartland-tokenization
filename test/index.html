@@ -1,32 +1,25 @@
-<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <title>heartland-tokenization test suites</title>
-  <link rel="stylesheet" href="https://code.jquery.com/qunit/qunit-1.18.0.css">
+  <link href="../node_modules/mocha/mocha.css" rel="stylesheet" />
 </head>
 <body>
-  <div id="qunit"></div>
-  <div id="qunit-fixture"></div>
-  <script src="https://code.jquery.com/qunit/qunit-1.18.0.js"></script>
+  <div id="mocha"></div>
+
   <script src="../dist/securesubmit.js"></script>
-  <script src="./_helpers.js"></script>
+  <script src="../node_modules/mocha/mocha.js"></script>
+  <script src="../node_modules/chai/chai.js"></script>
 
-  <!-- formatting -->
-  <script src="./formatting/cardNumber.js"></script>
-  <script src="./formatting/expiration.js"></script>
-
-  <!-- validation -->
-  <script src="./validation/luhnCheck.js"></script>
-  <script src="./validation/cardNumber.js"></script>
-  <script src="./validation/cvv.js"></script>
-  <script src="./validation/expiration.js"></script>
-
-  <!-- tokenization -->
-  <script src="./tokenization/tokenize.js"></script>
-  <script src="./tokenization/tokenizeSwipe.js"></script>
-  <script src="./tokenization/tokenizeEncryptedCard.js"></script>
-  <script src="./tokenization/tokenizeIFrame.js"></script>
-  <script src="./tokenization/tokenizeIFrameFields.js"></script>
+  <script>
+    mocha.setup({
+        ui: 'tdd',
+        slow: '1s',
+        timeout: '5s'
+    });
+    mocha.globals(['Heartland', 'JSON']);
+  </script>
+  <script src="./bundle.js"></script>
+  <script>mocha.run();</script>
 </body>
 </html>

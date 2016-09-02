@@ -1,28 +1,20 @@
-/// <reference path="../types/CardType.ts" />
-/// <reference path="../types/Formatter.ts" />
-/// <reference path="../Card.ts" />
+import {Formatter} from "../types/Formatter";
+import {Card} from "../Card";
 
-module Heartland {
-  export module Formatter {
-    export class CardNumber implements Formatter {
-      format(number: string): string {
-        var type: CardType;
-        var matches: string[];
+export class CardNumber implements Formatter {
+  format(number: string): string {
+    number = number.replace(/\D/g, '');
+    const type = Card.typeByNumber(number);
 
-        number = number.replace(/\D/g, '');
-        type = Card.typeByNumber(number);
+    if (!type) { return number; }
 
-        if (!type) { return number; }
+    const matches = number.match(type.format);
 
-        matches = number.match(type.format);
+    if (!matches) { return number; }
 
-        if (!matches) { return number; }
-
-        if (!type.format.global) {
-          matches.shift();
-        }
-        return matches.join(' ').replace(/^\s+|\s+$/gm, '');
-      }
+    if (!type.format.global) {
+      matches.shift();
     }
+    return matches.join(' ').replace(/^\s+|\s+$/gm, '');
   }
 }

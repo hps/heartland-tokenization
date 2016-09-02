@@ -1,20 +1,16 @@
-/// <reference path="../types/Validator.ts" />
+import {Validator} from "../types/Validator";
 
-module Heartland {
-  export module Validator {
-    export class Cvv implements Validator {
-      validate(cvv: string): boolean {
-        if (!cvv) {
-          return false;
-        }
-
-        cvv = cvv.replace(/^\s+|\s+$/g, '');
-
-        if (!/^\d+$/.test(cvv)) {
-          return false;
-        }
-        return 3 <= cvv.length && cvv.length <= 4;
-      }
+export class Cvv implements Validator {
+  validate(cvv: string): boolean {
+    if (!cvv) {
+      return false;
     }
+
+    cvv = cvv.replace(/^\s+|\s+$/g, '');
+
+    if (!/^\d+$/.test(cvv)) {
+      return false;
+    }
+    return 3 <= cvv.length && cvv.length <= 4;
   }
 }
