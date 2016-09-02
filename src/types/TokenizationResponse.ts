@@ -1,5 +1,9 @@
 export interface TokenizationResponse {
-  error?: string;
+  error?: {
+    message?: string;
+    code?: string;
+    param?: string;
+  };
   last_four?: string;
   card_type?: string;
   exp_month?: string;
