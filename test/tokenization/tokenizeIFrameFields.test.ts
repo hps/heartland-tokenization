@@ -16,9 +16,12 @@ suite('tokenize iframe fields', function () {
       done();
     }, 4000);
     const cleanup = function () {
-      document.getElementById(numberId).remove();
-      document.getElementById(dateId).remove();
-      document.getElementById(cvvId).remove();
+      const numEl = document.getElementById(numberId);
+      numEl.parentNode.removeChild(numEl);
+      const dateEl = document.getElementById(dateId);
+      dateEl.parentNode.removeChild(dateEl);
+      const cvvEl = document.getElementById(cvvId);
+      cvvEl.parentNode.removeChild(cvvEl);
       clearTimeout(timeout);
     };
 
