@@ -8,6 +8,8 @@ import {Frames} from "./Frames";
 import {Messages} from "./Messages";
 import {Util} from "./Util";
 
+import {HeartlandTokenService} from "./TokenService/HeartlandTokenService";
+
 import {Options} from "./types/Options";
 
 interface Frame {
@@ -105,7 +107,22 @@ export class HPS {
       );
       return;
     }
-    Ajax.call(this.options.type, this.options);
+    (new HeartlandTokenService(this.options.gatewayUrl, this.options.type))
+      .tokenize(this.options, (response) => {
+        if (response.error) {
+            Util.throwError(this.options, response);
+        } else {
+            if (this.options.formId && this.options.formId.length > 0) {
+            DOM.addField(this.options.formId, 'hidden', 'token_value', response.token_value);
+            DOM.addField(this.options.formId, 'hidden', 'last_four', response.last_four);
+            DOM.addField(this.options.formId, 'hidden', 'card_exp_year', response.exp_year);
+            DOM.addField(this.options.formId, 'hidden', 'card_exp_month', response.exp_month);
+            DOM.addField(this.options.formId, 'hidden', 'card_type', response.card_type);
+            }
+
+            this.options.success(response);
+        }
+      });
   };
 
   /**
