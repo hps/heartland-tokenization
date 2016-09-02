@@ -1,40 +1,43 @@
 import {assert} from "chai";
+import Heartland from "../../src";
+import {TokenizationResponse} from "../../src/types/TokenizationResponse";
+import {HeartlandTest} from "../util/helpers";
 
 suite('tokenize iframe', function () {
   test('valid iframe target', function (done) {
-    var id = 'valid-iframe-target';
-    window.Heartland.Test.makeDiv(id);
+    const id = 'valid-iframe-target';
+    HeartlandTest.makeDiv(id);
 
-    var hps = new window.Heartland.HPS({
-      publicKey: window.Heartland.Test.public_key,
+    const hps = new Heartland.HPS({
+      publicKey: HeartlandTest.public_key,
       type: 'iframe',
       iframeTarget: id,
-      onTokenSuccess: window.Heartland.Test.check_for_token(assert, done, function () {
+      onTokenSuccess: HeartlandTest.check_for_token(assert, done, function () {
           document.getElementById(id).remove();
       }),
-      onTokenError: window.Heartland.Test.default_error(assert, done, function () {
+      onTokenError: HeartlandTest.default_error(assert, done, function () {
           document.getElementById(id).remove();
       })
     });
-    window.Heartland.Test.addHandler(document, 'securesubmitIframeReady', function () {
-      window.Heartland.Test.setCardData(hps, true);
+    HeartlandTest.addHandler(document, 'securesubmitIframeReady', function () {
+      HeartlandTest.setCardData(hps, true);
       hps.tokenize();
     });
   });
 
 //   test('invalid iframe target - undefined target', function (done) {
-//     var id = undefined;
-//     var fun = function (response) {
+//     const id: any = undefined;
+//     const fun = function (response: TokenizationResponse) {
 //       assert.ok(false, 'token success/error function ran');
 //       done();
 //     };
-//     var timeout = setTimeout(function () {
+//     const timeout = setTimeout(function () {
 //       assert.ok(false, 'iframe failed to construct properly');
 //       done();
 //     }, 5000);
 
-//     var hps = new window.Heartland.HPS({
-//       publicKey: window.Heartland.Test.public_key,
+//     const hps = new Heartland.HPS({
+//       publicKey: HeartlandTest.public_key,
 //       type: 'iframe',
 //       iframeTarget: id,
 //       onTokenSuccess: fun,
@@ -48,11 +51,11 @@ suite('tokenize iframe', function () {
 //   });
 
   test('invalid iframe target - myframe does not exist', function (done) {
-    var id = 'invalid-iframe-target-myframe';
+    const id = 'invalid-iframe-target-myframe';
 
     try {
-      var hps = new window.Heartland.HPS({
-        publicKey: window.Heartland.Test.public_key,
+      const hps = new Heartland.HPS({
+        publicKey: HeartlandTest.public_key,
         type: 'iframe',
         iframeTarget: id,
         targetType: 'myframe'

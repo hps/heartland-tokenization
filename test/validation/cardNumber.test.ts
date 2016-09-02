@@ -1,6 +1,7 @@
 import {assert} from "chai";
+import Heartland from "../../src";
 
-var cardValidator = new window.Heartland.Validator.CardNumber;
+const cardValidator = new Heartland.Validator.CardNumber;
 
 suite('validator card number', function () {
   test('valid card number', function () {

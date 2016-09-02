@@ -1,27 +1,29 @@
 import {assert} from "chai";
+import Heartland from "../../src";
+import {HeartlandTest} from "../util/helpers";
 
 suite('tokenize iframe fields', function () {
   test('valid iframe fields setup', function (done) {
-    var numberId = 'valid-cardNumber-target';
-    var dateId = 'valid-cardExpiration-target';
-    var cvvId = 'valid-cardCvv-target';
-    window.Heartland.Test.makeDiv(numberId);
-    window.Heartland.Test.makeDiv(dateId);
-    window.Heartland.Test.makeDiv(cvvId);
+    const numberId = 'valid-cardNumber-target';
+    const dateId = 'valid-cardExpiration-target';
+    const cvvId = 'valid-cardCvv-target';
+    HeartlandTest.makeDiv(numberId);
+    HeartlandTest.makeDiv(dateId);
+    HeartlandTest.makeDiv(cvvId);
 
-    var timeout = setTimeout(function () {
+    const timeout = setTimeout(function () {
       assert.ok(false, 'iframe failed to construct properly');
       done();
     }, 4000);
-    var cleanup = function () {
+    const cleanup = function () {
       document.getElementById(numberId).remove();
       document.getElementById(dateId).remove();
       document.getElementById(cvvId).remove();
       clearTimeout(timeout);
     };
 
-    var hps = new window.Heartland.HPS({
-      publicKey: window.Heartland.Test.public_key,
+    const hps = new Heartland.HPS({
+      publicKey: HeartlandTest.public_key,
       type: 'iframe',
       fields: {
         cardNumber: {
@@ -37,20 +39,20 @@ suite('tokenize iframe fields', function () {
           placeholder: 'MM / YYYY'
         }
       },
-      onTokenSuccess: window.Heartland.Test.check_for_token(assert, done, cleanup),
-      onTokenError: window.Heartland.Test.default_error(assert, done, cleanup)
+      onTokenSuccess: HeartlandTest.check_for_token(assert, done, cleanup),
+      onTokenError: HeartlandTest.default_error(assert, done, cleanup)
     });
 
-    var readyCount = 0;
-    window.Heartland.Test.addHandler(document, 'securesubmitIframeReady', function () {
+    let readyCount = 0;
+    HeartlandTest.addHandler(document, 'securesubmitIframeReady', function () {
       if (++readyCount === 3) {
-        window.Heartland.Test.setCardData(hps);
+        HeartlandTest.setCardData(hps);
         setTimeout(function () {
           hps.Messages.post(
             {
                 accumulateData: true,
                 action: 'tokenize',
-                message: window.Heartland.Test.public_key
+                message: HeartlandTest.public_key
             },
             'cardNumber'
           );

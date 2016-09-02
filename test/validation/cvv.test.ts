@@ -1,6 +1,7 @@
 import {assert} from "chai";
+import Heartland from "../../src";
 
-var cvvValidator = new window.Heartland.Validator.Cvv;
+const cvvValidator = new Heartland.Validator.Cvv;
 
 suite('validator cvv', function () {
   test('valid cvv', function () {

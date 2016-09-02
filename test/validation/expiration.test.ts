@@ -1,6 +1,7 @@
 import {assert} from "chai";
+import Heartland from "../../src";
 
-var expValidator = new window.Heartland.Validator.Expiration;
+const expValidator = new Heartland.Validator.Expiration;
 
 suite('validator expiration', function () {
   test('valid expiration', function () {

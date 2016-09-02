@@ -1,13 +1,13 @@
+import Heartland from "../../src";
 import {HPS} from "../../src/HPS";
 import {TokenizationResponse} from "../../src/types/TokenizationResponse";
 
-(<any>window).Heartland = (<any>window).Heartland || {};
-(<any>window).Heartland.Test = {
+export const HeartlandTest = {
   public_key: 'pkapi_cert_jDLChE5RlZJj9Y7aq9',
 
   // global success handler
-  check_for_token: function (assert: any, done: Function, callback: Function) {
-    var called = false;
+  check_for_token: function (assert: any, done: MochaDone, callback?: () => void) {
+    let called = false;
     return function (response: TokenizationResponse) {
       if (called) { return; }
       assert.ok(response.token_value, 'token_value');
@@ -22,8 +22,8 @@ import {TokenizationResponse} from "../../src/types/TokenizationResponse";
   },
 
   // global error handler
-  default_error: function (assert: any, done: Function) {
-    var called = false;
+  default_error: function (assert: any, done: MochaDone, callback?: () => void) {
+    let called = false;
     return function (response: TokenizationResponse) {
       if (called) { return; }
       assert.ok(false, (<any>response.error).message);
@@ -32,9 +32,9 @@ import {TokenizationResponse} from "../../src/types/TokenizationResponse";
     };
   },
 
-  addHandler: (<any>window).Heartland.Events.addHandler,
+  addHandler: Heartland.Events.addHandler,
 
-  setCardData: function (hps: HPS, child: boolean) {
+  setCardData: function (hps: HPS, child = false) {
     hps.Messages.post(
       {
         action: 'setFieldData',
@@ -62,7 +62,7 @@ import {TokenizationResponse} from "../../src/types/TokenizationResponse";
   },
 
   makeDiv: function (id: string) {
-    var div = document.createElement('div');
+    const div = document.createElement('div');
     div.id = id;
     div.style.display = 'none';
     document.body.appendChild(div);

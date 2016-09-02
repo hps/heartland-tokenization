@@ -1,6 +1,7 @@
 import {assert} from "chai";
+import Heartland from "../../src";
 
-var expFormatter = new window.Heartland.Formatter.Expiration;
+const expFormatter = new Heartland.Formatter.Expiration;
 
 suite('formatter expiration', function () {
   test('complete expiration', function () {
