@@ -262,8 +262,7 @@ var DOM = (function () {
     };
     DOM.jsonAttributes = function (json) {
         var set = [];
-        var i;
-        for (i in json) {
+        for (var i in json) {
             if (json.hasOwnProperty(i)
                 && (typeof json[i] === 'string' || DOM.isArray(json[i]))) {
                 set.push(i);
@@ -273,8 +272,7 @@ var DOM = (function () {
     };
     DOM.jsonChildren = function (json) {
         var set = [];
-        var i;
-        for (i in json) {
+        for (var i in json) {
             if (json.hasOwnProperty(i)
                 && (Object.prototype.toString.call(json[i]) === '[object Object]')) {
                 set.push(i);
@@ -328,14 +326,12 @@ var CardNumber = (function () {
     function CardNumber() {
     }
     CardNumber.prototype.format = function (number) {
-        var type;
-        var matches;
         number = number.replace(/\D/g, '');
-        type = Card.typeByNumber(number);
+        var type = Card.typeByNumber(number);
         if (!type) {
             return number;
         }
-        matches = number.match(type.format);
+        var matches = number.match(type.format);
         if (!matches) {
             return number;
         }
@@ -387,12 +383,11 @@ var CardNumber$1 = (function () {
     function CardNumber() {
     }
     CardNumber.prototype.validate = function (number) {
-        var type;
         if (!number) {
             return false;
         }
         number = number.replace(/[-\s]/g, '');
-        type = Card.typeByNumber(number);
+        var type = Card.typeByNumber(number);
         if (!type) {
             return false;
         }
@@ -422,14 +417,11 @@ var Expiration$1 = (function () {
     function Expiration() {
     }
     Expiration.prototype.validate = function (exp) {
-        var month;
-        var year;
-        var split;
         var m, y;
         if (!exp) {
             return false;
         }
-        split = exp.split('/');
+        var split = exp.split('/');
         m = split[0], y = split[1];
         if (!m || !y) {
             return false;
@@ -445,8 +437,8 @@ var Expiration$1 = (function () {
         if (y.length === 2) {
             y = (new Date).getFullYear().toString().slice(0, 2) + y;
         }
-        month = parseInt(m, 10);
-        year = parseInt(y, 10);
+        var month = parseInt(m, 10);
+        var year = parseInt(y, 10);
         if (!(1 <= month && month <= 12)) {
             return false;
         }
@@ -603,9 +595,8 @@ var Events = (function () {
      */
     Events.trigger = function (name, target, data, bubble) {
         if (bubble === void 0) { bubble = false; }
-        var event;
         if (document.createEvent) {
-            event = document.createEvent('Event');
+            var event = document.createEvent('Event');
             event.initEvent(name, true, true);
             target.dispatchEvent(event);
         }
@@ -810,16 +801,14 @@ var Card = (function () {
      */
     Card.luhnCheck = function (number) {
         var odd = true;
-        var sum = 0;
-        var digits;
         var i = 0;
-        var length = 0;
+        var sum = 0;
         var digit;
         if (!number) {
             return false;
         }
-        digits = number.split('').reverse();
-        length = digits.length;
+        var digits = number.split('').reverse();
+        var length = digits.length;
         for (i; i < length; i++) {
             digit = parseInt(digits[i], 10);
             if (odd = !odd) {
@@ -905,8 +894,8 @@ var Card = (function () {
             (e.keyCode >= 35 && e.keyCode <= 39)) {
             return;
         }
-        value = (new Expiration).format(value, e.type === 'blur');
-        target.value = value;
+        target.value = (new Expiration)
+            .format(value, e.type === 'blur');
     };
     /**
      * Heartland.Card.restrictLength
@@ -1111,8 +1100,8 @@ var Card = (function () {
 }());
 if (!Array.prototype.indexOf) {
     Array.prototype.indexOf = function (obj, start) {
-        for (var i = (start || 0), j = Card.length; i < j; i++) {
-            if (Card[i] === obj) {
+        for (var i = (start || 0), j = this.length; i < j; i++) {
+            if (this[i] === obj) {
                 return i;
             }
         }
@@ -1176,17 +1165,16 @@ var Util = (function () {
      * @returns {Heartland.Options}
      */
     Util.applyOptions = function (source, properties) {
-        var property;
         var destination = {};
         if (!source) {
             source = {};
         }
-        for (property in source) {
+        for (var property in source) {
             if (source.hasOwnProperty(property)) {
                 destination[property] = source[property];
             }
         }
-        for (property in properties) {
+        for (var property in properties) {
             if (properties.hasOwnProperty(property)) {
                 destination[property] = properties[property];
             }
@@ -1257,7 +1245,7 @@ var Util = (function () {
                 Util.throwError(data, 'unknown params type');
                 break;
         }
-        return '?' + params.join('&');
+        return params.join('&');
     };
     /**
      * Heartland.Util.getUrlByEnv
@@ -1321,10 +1309,10 @@ var Util = (function () {
     Util.getFields = function (formParent) {
         var form = document.getElementById(formParent);
         var fields = {};
-        var i, element;
+        var i;
         var length = form.childElementCount;
         for (i = 0; i < length; i++) {
-            element = form.children[i];
+            var element = form.children[i];
             if (element.id === 'card_number') {
                 fields.number = element.value;
             }
@@ -1362,7 +1350,11 @@ var Ajax = (function () {
     Ajax.call = function (type, options) {
         var cardType = Util.getCardType(type, options);
         var params = Util.getParams(type, options);
-        Ajax.jsonp(options.gatewayUrl + params, function (data) {
+        var request = {
+            payload: params,
+            url: options.gatewayUrl
+        };
+        Ajax.jsonp(request, function (data) {
             if (data.error) {
                 Util.throwError(options, data);
             }
@@ -1393,7 +1385,7 @@ var Ajax = (function () {
      * @param {string} url
      * @param {function} callback
      */
-    Ajax.jsonp = function (url, callback) {
+    Ajax.jsonp = function (request, callback) {
         var script = document.createElement('script');
         var callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
         window[callbackName] = function (data) {
@@ -1401,8 +1393,56 @@ var Ajax = (function () {
             document.body.removeChild(script);
             callback(data);
         };
-        script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
+        script.src = request.url + (request.url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName
+            + '&' + request.payload;
         document.body.appendChild(script);
+    };
+    /**
+     * Heartland.Ajax.cors
+     *
+     * Creates a new XMLHttpRequest object for a POST request to the given `url`.
+     *
+     * @param {string} url
+     * @param {function} callback
+     */
+    Ajax.cors = function (request, payload, callback) {
+        var xhr;
+        var method = 'POST';
+        var timeout;
+        if ((new XMLHttpRequest()).withCredentials === undefined) {
+            xhr = new window.XDomainRequest();
+            method = 'GET';
+            request.url = request.url.split('?')[0];
+            request.url = request.url + '?' + request.payload;
+            payload = null;
+            xhr.open(method, request.url);
+        }
+        else {
+            xhr = new XMLHttpRequest();
+            xhr.open(method, request.url);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        }
+        var cb = function (e) {
+            clearTimeout(timeout);
+            if (e.type === 'error') {
+                callback({ error: { message: 'communication error' } });
+                return;
+            }
+            if (xhr.readyState === 4 || (xhr.readyState !== 4 && xhr.responseText !== '')) {
+                var data = JSON.parse(xhr.responseText);
+                callback(data);
+            }
+            else {
+                callback({ error: { message: 'no data' } });
+            }
+        };
+        xhr.onload = cb;
+        xhr.onerror = cb;
+        xhr.send(payload);
+        timeout = setTimeout(function () {
+            xhr.abort();
+            callback({ error: { message: 'timeout' } });
+        }, 5000);
     };
     return Ajax;
 }());
@@ -1483,13 +1523,12 @@ var Messages = (function () {
         return function () {
             var data = [];
             var messageArr = [];
-            var message = '';
-            var i = 0, length = 0;
-            var targetUrl = '', url = '';
+            var i = 0;
+            var targetUrl = '';
             var current;
             var targetNode;
             var re = /^#?\d+&/;
-            length = hps.mailbox.length;
+            var length = hps.mailbox.length;
             if (!length) {
                 return;
             }
@@ -1509,8 +1548,8 @@ var Messages = (function () {
             if (messageArr !== []) {
                 hps.cacheBust = hps.cacheBust || 1;
                 data.push({ data: messageArr, source: { name: hps.field || 'parent' } });
-                message = JSON.stringify(data);
-                url = targetUrl.replace(/#.*$/, '') + '#' +
+                var message = JSON.stringify(data);
+                var url = targetUrl.replace(/#.*$/, '') + '#' +
                     (+new Date()) + (hps.cacheBust++) + '&' +
                     encodeURIComponent(message);
                 if (targetNode.location) {
@@ -1535,19 +1574,17 @@ var Messages = (function () {
      * @param {string} target
      */
     Messages.prototype.post = function (message, target) {
-        var frame;
         var targetNode;
-        var targetUrl;
         message.source = message.source || {};
         message.source.name = window.name;
         if (!this.hps.frames) {
             return;
         }
-        frame = this.hps.frames[target] || this.hps[target];
+        var frame = this.hps.frames[target] || this.hps[target];
         if (!frame) {
             return;
         }
-        targetUrl = this.hps.frames[target].url;
+        var targetUrl = this.hps.frames[target].url;
         try {
             if (typeof frame.targetNode !== 'undefined') {
                 targetNode = frame.targetNode;
@@ -1607,16 +1644,14 @@ var Messages = (function () {
                     var hash = document.location.hash, re = /^#?\d+&/;
                     if (hash !== this.lastHash && re.test(hash)) {
                         var data = JSON.parse(decodeURIComponent(hash.replace(re, '')));
-                        var i, j;
-                        var m;
                         this.lastHash = hash;
-                        for (i in data) {
-                            m = data[i];
+                        for (var i in data) {
+                            var m = data[i];
                             if (Object.prototype.toString.call(m.data) !== '[object Array]') {
                                 callback(m);
                                 continue;
                             }
-                            for (j in m.data) {
+                            for (var j in m.data) {
                                 callback({ data: m.data[j], source: m.source });
                             }
                         }
@@ -1696,7 +1731,8 @@ var Styles;
                 'heartland-expiration-year',
                 'heartland-cvv'
             ];
-            var i = 0, length = ids.length;
+            var length = ids.length;
+            var i = 0;
             for (i; i < length; i++) {
                 hps.setStyle(ids[i], 'width: 309px;' +
                     'padding: 5px;' +
@@ -1725,7 +1761,8 @@ var Styles;
                 'heartland-expiration-year-label',
                 'heartland-cvv-label'
             ];
-            var i = 0, length = ids.length;
+            var length = ids.length;
+            var i = 0;
             for (i; i < length; i++) {
                 hps.setStyle(ids[i], 'font-size: 13px;' +
                     'text-transform: uppercase;' +
@@ -1737,7 +1774,8 @@ var Styles;
         },
         selectLabels: function (hps) {
             var ids = ['heartland-expiration-month-label', 'heartland-expiration-year-label'];
-            var i = 0, length = ids.length;
+            var length = ids.length;
+            var i = 0;
             for (i; i < length; i++) {
                 hps.setStyle(ids[i], 'position:absolute;' +
                     'width:1px;' +
@@ -1751,7 +1789,8 @@ var Styles;
         },
         selects: function (hps) {
             var ids = ['heartland-expiration-month', 'heartland-expiration-year'];
-            var i = 0, length = ids.length;
+            var length = ids.length;
+            var i = 0;
             for (i; i < length; i++) {
                 hps.appendStyle(ids[i], 'border: 0;' +
                     'outline: 1px solid #ccc;' +
@@ -1895,13 +1934,11 @@ var Frames = (function () {
                     Events.trigger('securesubmitIframeReady', document);
                     break;
                 case 'accumulateData':
-                    var i;
-                    var field;
-                    for (i in hps.frames) {
+                    for (var i in hps.frames) {
                         if ('submit' === i || 'cardNumber' === i) {
                             continue;
                         }
-                        field = hps.frames[i];
+                        var field = hps.frames[i];
                         hps.Messages.post({
                             action: 'getFieldData',
                             id: 'heartland-field'
@@ -1985,9 +2022,8 @@ var Frames = (function () {
     Frames.monitorFieldEvents = function (hps, target) {
         var events = ['click', 'blur', 'focus', 'change', 'keypress', 'keydown', 'keyup'];
         var i = 0, length = events.length;
-        var event;
         for (i; i < length; i++) {
-            event = events[i];
+            var event = events[i];
             Events.addHandler(target, event, function (e) {
                 var field = document.getElementById('heartland-field');
                 var classes = [];
