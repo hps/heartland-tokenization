@@ -1,6 +1,259 @@
 var Heartland = (function () {
 'use strict';
 
+var JsonpRequest = (function () {
+    function JsonpRequest(url, payload) {
+        if (url === void 0) { url = ""; }
+        if (payload === void 0) { payload = ""; }
+        this.url = url;
+        this.payload = payload;
+        this.type = "jsonp";
+    }
+    return JsonpRequest;
+}());
+/**
+ * @namespace Heartland.Ajax
+ */
+var Ajax = (function () {
+    function Ajax() {
+    }
+    /**
+     * Heartland.Ajax.jsonp
+     *
+     * Creates a new DOM node containing a created JSONP callback handler for an
+     * impending Ajax JSONP request. Removes need for `XMLHttpRequest`.
+     *
+     * @param {string} url
+     * @param {function} callback
+     */
+    Ajax.jsonp = function (request, callback) {
+        var script = document.createElement('script');
+        var callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+        window[callbackName] = function (data) {
+            window[callbackName] = undefined;
+            document.body.removeChild(script);
+            callback(data);
+        };
+        script.src = request.url + (request.url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName
+            + '&' + request.payload;
+        document.body.appendChild(script);
+    };
+    /**
+     * Heartland.Ajax.cors
+     *
+     * Creates a new `XMLHttpRequest` object for a POST request to the given `url`.
+     *
+     * @param {string} url
+     * @param {function} callback
+     */
+    Ajax.cors = function (request, callback) {
+        var xhr;
+        var method = 'POST';
+        var timeout;
+        if ((new XMLHttpRequest()).withCredentials === undefined) {
+            xhr = new window.XDomainRequest();
+            method = 'GET';
+            request.url = request.url.split('?')[0];
+            request.url = request.url + '?' + request.payload;
+            xhr.open(method, request.url);
+        }
+        else {
+            xhr = new XMLHttpRequest();
+            xhr.open(method, request.url);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        }
+        var cb = function (e) {
+            clearTimeout(timeout);
+            if (e.type === 'error') {
+                callback({ error: { message: 'communication error' } });
+                return;
+            }
+            if (xhr.readyState === 4 || (xhr.readyState !== 4 && xhr.responseText !== '')) {
+                var data = JSON.parse(xhr.responseText);
+                callback(data);
+            }
+            else {
+                callback({ error: { message: 'no data' } });
+            }
+        };
+        xhr.onload = cb;
+        xhr.onerror = cb;
+        xhr.send(request.payload);
+        timeout = setTimeout(function () {
+            xhr.abort();
+            callback({ error: { message: 'timeout' } });
+        }, 5000);
+    };
+    return Ajax;
+}());
+
+var cardTypes = [
+    {
+        code: 'visa',
+        format: /(\d{1,4})/g,
+        length: 16,
+        regex: /^4/
+    },
+    {
+        code: 'mastercard',
+        format: /(\d{1,4})/g,
+        length: 16,
+        regex: /^(5[1-5]|2[2-7])/
+    },
+    {
+        code: 'amex',
+        format: /(\d{1,4})(\d{1,6})?(\d{1,5})?/,
+        length: 15,
+        regex: /^3[47]/
+    },
+    {
+        code: 'diners',
+        format: /(\d{1,4})(\d{1,6})?(\d{1,4})?/,
+        length: 14,
+        regex: /^3[0689]/
+    },
+    {
+        code: 'discover',
+        format: /(\d{1,4})/g,
+        length: 16,
+        regex: /^6([045]|22)/
+    },
+    {
+        code: 'jcb',
+        format: /(\d{1,4})/g,
+        length: 16,
+        regex: /^35/
+    }
+];
+
+var CardNumber = (function () {
+    function CardNumber() {
+    }
+    CardNumber.prototype.format = function (number) {
+        number = number.replace(/\D/g, '');
+        var type = Card.typeByNumber(number);
+        if (!type) {
+            return number;
+        }
+        var matches = number.match(type.format);
+        if (!matches) {
+            return number;
+        }
+        if (!type.format.global) {
+            matches.shift();
+        }
+        return matches.join(' ').replace(/^\s+|\s+$/gm, '');
+    };
+    return CardNumber;
+}());
+
+var Expiration = (function () {
+    function Expiration() {
+    }
+    Expiration.prototype.format = function (exp, final) {
+        if (final === void 0) { final = false; }
+        var pat = /^\D*(\d{1,2})(\D+)?(\d{1,4})?/;
+        var groups = exp.match(pat);
+        var month;
+        var del;
+        var year;
+        if (!groups) {
+            return '';
+        }
+        month = groups[1] || '';
+        del = groups[2] || '';
+        year = groups[3] || '';
+        if (year.length > 0) {
+            del = ' / ';
+        }
+        else if (month.length === 2 || del.length > 0) {
+            del = ' / ';
+        }
+        else if (month.length === 1 && (month !== '0' && month !== '1')) {
+            del = ' / ';
+        }
+        if (month.length === 1 && del !== '') {
+            month = '0' + month;
+        }
+        if (final && year.length === 2) {
+            year = (new Date).getFullYear().toString().slice(0, 2) + year;
+        }
+        return month + del + year;
+    };
+    return Expiration;
+}());
+
+var CardNumber$1 = (function () {
+    function CardNumber() {
+    }
+    CardNumber.prototype.validate = function (number) {
+        if (!number) {
+            return false;
+        }
+        number = number.replace(/[-\s]/g, '');
+        var type = Card.typeByNumber(number);
+        if (!type) {
+            return false;
+        }
+        return Card.luhnCheck(number)
+            && number.length === type.length;
+    };
+    return CardNumber;
+}());
+
+var Cvv = (function () {
+    function Cvv() {
+    }
+    Cvv.prototype.validate = function (cvv) {
+        if (!cvv) {
+            return false;
+        }
+        cvv = cvv.replace(/^\s+|\s+$/g, '');
+        if (!/^\d+$/.test(cvv)) {
+            return false;
+        }
+        return 3 <= cvv.length && cvv.length <= 4;
+    };
+    return Cvv;
+}());
+
+var Expiration$1 = (function () {
+    function Expiration() {
+    }
+    Expiration.prototype.validate = function (exp) {
+        var m, y;
+        if (!exp) {
+            return false;
+        }
+        var split = exp.split('/');
+        m = split[0], y = split[1];
+        if (!m || !y) {
+            return false;
+        }
+        m = m.replace(/^\s+|\s+$/g, '');
+        y = y.replace(/^\s+|\s+$/g, '');
+        if (!/^\d+$/.test(m)) {
+            return false;
+        }
+        if (!/^\d+$/.test(y)) {
+            return false;
+        }
+        if (y.length === 2) {
+            y = (new Date).getFullYear().toString().slice(0, 2) + y;
+        }
+        var month = parseInt(m, 10);
+        var year = parseInt(y, 10);
+        if (!(1 <= month && month <= 12)) {
+            return false;
+        }
+        // creates date as 1 day past end of
+        // expiration month since JS months
+        // are 0 indexed
+        return (new Date(year, month, 1)) > (new Date);
+    };
+    return Expiration;
+}());
+
 /**
  * @namespace Heartland.DOM
  */
@@ -281,173 +534,6 @@ var DOM = (function () {
         return set;
     };
     return DOM;
-}());
-
-var cardTypes = [
-    {
-        code: 'visa',
-        format: /(\d{1,4})/g,
-        length: 16,
-        regex: /^4/
-    },
-    {
-        code: 'mastercard',
-        format: /(\d{1,4})/g,
-        length: 16,
-        regex: /^(5[1-5]|2[2-7])/
-    },
-    {
-        code: 'amex',
-        format: /(\d{1,4})(\d{1,6})?(\d{1,5})?/,
-        length: 15,
-        regex: /^3[47]/
-    },
-    {
-        code: 'diners',
-        format: /(\d{1,4})(\d{1,6})?(\d{1,4})?/,
-        length: 14,
-        regex: /^3[0689]/
-    },
-    {
-        code: 'discover',
-        format: /(\d{1,4})/g,
-        length: 16,
-        regex: /^6([045]|22)/
-    },
-    {
-        code: 'jcb',
-        format: /(\d{1,4})/g,
-        length: 16,
-        regex: /^35/
-    }
-];
-
-var CardNumber = (function () {
-    function CardNumber() {
-    }
-    CardNumber.prototype.format = function (number) {
-        number = number.replace(/\D/g, '');
-        var type = Card.typeByNumber(number);
-        if (!type) {
-            return number;
-        }
-        var matches = number.match(type.format);
-        if (!matches) {
-            return number;
-        }
-        if (!type.format.global) {
-            matches.shift();
-        }
-        return matches.join(' ').replace(/^\s+|\s+$/gm, '');
-    };
-    return CardNumber;
-}());
-
-var Expiration = (function () {
-    function Expiration() {
-    }
-    Expiration.prototype.format = function (exp, final) {
-        if (final === void 0) { final = false; }
-        var pat = /^\D*(\d{1,2})(\D+)?(\d{1,4})?/;
-        var groups = exp.match(pat);
-        var month;
-        var del;
-        var year;
-        if (!groups) {
-            return '';
-        }
-        month = groups[1] || '';
-        del = groups[2] || '';
-        year = groups[3] || '';
-        if (year.length > 0) {
-            del = ' / ';
-        }
-        else if (month.length === 2 || del.length > 0) {
-            del = ' / ';
-        }
-        else if (month.length === 1 && (month !== '0' && month !== '1')) {
-            del = ' / ';
-        }
-        if (month.length === 1 && del !== '') {
-            month = '0' + month;
-        }
-        if (final && year.length === 2) {
-            year = (new Date).getFullYear().toString().slice(0, 2) + year;
-        }
-        return month + del + year;
-    };
-    return Expiration;
-}());
-
-var CardNumber$1 = (function () {
-    function CardNumber() {
-    }
-    CardNumber.prototype.validate = function (number) {
-        if (!number) {
-            return false;
-        }
-        number = number.replace(/[-\s]/g, '');
-        var type = Card.typeByNumber(number);
-        if (!type) {
-            return false;
-        }
-        return Card.luhnCheck(number)
-            && number.length === type.length;
-    };
-    return CardNumber;
-}());
-
-var Cvv = (function () {
-    function Cvv() {
-    }
-    Cvv.prototype.validate = function (cvv) {
-        if (!cvv) {
-            return false;
-        }
-        cvv = cvv.replace(/^\s+|\s+$/g, '');
-        if (!/^\d+$/.test(cvv)) {
-            return false;
-        }
-        return 3 <= cvv.length && cvv.length <= 4;
-    };
-    return Cvv;
-}());
-
-var Expiration$1 = (function () {
-    function Expiration() {
-    }
-    Expiration.prototype.validate = function (exp) {
-        var m, y;
-        if (!exp) {
-            return false;
-        }
-        var split = exp.split('/');
-        m = split[0], y = split[1];
-        if (!m || !y) {
-            return false;
-        }
-        m = m.replace(/^\s+|\s+$/g, '');
-        y = y.replace(/^\s+|\s+$/g, '');
-        if (!/^\d+$/.test(m)) {
-            return false;
-        }
-        if (!/^\d+$/.test(y)) {
-            return false;
-        }
-        if (y.length === 2) {
-            y = (new Date).getFullYear().toString().slice(0, 2) + y;
-        }
-        var month = parseInt(m, 10);
-        var year = parseInt(y, 10);
-        if (!(1 <= month && month <= 12)) {
-            return false;
-        }
-        // creates date as 1 day past end of
-        // expiration month since JS months
-        // are 0 indexed
-        return (new Date(year, month, 1)) > (new Date);
-    };
-    return Expiration;
 }());
 
 var Expiration$2 = (function () {
@@ -1111,344 +1197,6 @@ if (!Array.prototype.indexOf) {
     };
 }
 
-var urls = {
-    CERT: 'https://cert.api2.heartlandportico.com/Hps.Exchange.PosGateway.Hpf.v1/api/token',
-    PROD: 'https://api.heartlandportico.com/SecureSubmit.v1/api/token',
-    iframeCERT: 'https://hps.github.io/token/2.1/',
-    iframePROD: 'https://api.heartlandportico.com/SecureSubmit.v1/token/2.1/'
-};
-
-/**
- * @namespace Heartland.Util
- */
-var Util = (function () {
-    function Util() {
-    }
-    /**
-     * Heartland.Util.getCardType
-     *
-     * Parses a credit card number to obtain the card type/brand.
-     *
-     * @param {string} tokenizationType
-     * @param {Heartland.Options} options
-     */
-    Util.getCardType = function (tokenizationType, options) {
-        var cardType;
-        var data = '';
-        var type = 'unknown';
-        switch (tokenizationType) {
-            case 'swipe':
-                data = options.track;
-                cardType = Card.typeByTrack(data);
-                break;
-            case 'encrypted':
-                data = options.track;
-                cardType = Card.typeByTrack(data, true, options.trackNumber);
-                break;
-            default:
-                data = options.cardNumber;
-                cardType = Card.typeByNumber(data);
-                break;
-        }
-        if (cardType) {
-            type = cardType.code;
-        }
-        return type;
-    };
-    /**
-     * Heartland.Util.applyOptions
-     *
-     * Creates a single object by merging a `source` (default) and `properties`
-     * obtained elsewhere, e.g. a function argument in `HPS`. Any properties in
-     * `properties` will overwrite matching properties in `source`.
-     *
-     * @param {Heartland.Options} source
-     * @param {Heartland.Options} properties
-     * @returns {Heartland.Options}
-     */
-    Util.applyOptions = function (source, properties) {
-        var destination = {};
-        if (!source) {
-            source = {};
-        }
-        for (var property in source) {
-            if (source.hasOwnProperty(property)) {
-                destination[property] = source[property];
-            }
-        }
-        for (var property in properties) {
-            if (properties.hasOwnProperty(property)) {
-                destination[property] = properties[property];
-            }
-        }
-        return destination;
-    };
-    /**
-     * Heartland.Util.throwError
-     *
-     * Allows a merchant-defined error handler to be used in cases where the
-     * tokenization process fails. If not provided, we throw the message as a
-     * JS runtime error.
-     *
-     * @param {Heartland.Options} options
-     * @param {string | Heartland.TokenizationResponse} errorMessage
-     */
-    Util.throwError = function (options, errorMessage) {
-        if (typeof (options.error) === 'function') {
-            options.error(errorMessage);
-        }
-        else {
-            throw errorMessage;
-        }
-    };
-    /**
-     * Heartland.Util.getItemByPropertyValue
-     *
-     * Enumerates over a `collection` to retreive an item whose `property` is
-     * a given `value`.
-     *
-     * @param {any} collection
-     * @param {string} property
-     * @param {any} value
-     * @returns {any}
-     */
-    Util.getItemByPropertyValue = function (collection, property, value) {
-        var length = collection.length;
-        var i = 0;
-        for (i; i < length; i++) {
-            if (collection[i][property] === value) {
-                return collection[i];
-            }
-        }
-    };
-    /**
-     * Heartland.Util.getParams
-     *
-     * Builds param list for a particular `type` from expected properties in
-     * `data`.
-     *
-     * @param {string} type - The tokenization type
-     * @param {Heartland.Options} data
-     * @returns {string}
-     */
-    Util.getParams = function (type, data) {
-        var params = [];
-        switch (type) {
-            case 'pan':
-                params.push('token_type=supt', 'object=token', '_method=post', 'api_key=' + data.publicKey.replace(/^\s+|\s+$/g, ''), 'card%5Bnumber%5D=' + data.cardNumber.replace(/\s/g, ''), 'card%5Bexp_month%5D=' + data.cardExpMonth.replace(/^\s+|\s+$/g, ''), 'card%5Bexp_year%5D=' + data.cardExpYear.replace(/^\s+|\s+$/g, ''), 'card%5Bcvc%5D=' + data.cardCvv.replace(/^\s+|\s+$/g, ''));
-                break;
-            case 'swipe':
-                params.push('token_type=supt', 'object=token', '_method=post', 'api_key=' + data.publicKey.replace(/^\s+|\s+$/g, ''), 'card%5Btrack_method%5D=swipe', 'card%5Btrack%5D=' + encodeURIComponent(data.track.replace(/^\s+|\s+$/g, '')));
-                break;
-            case 'encrypted':
-                params.push('token_type=supt', 'object=token', '_method=post', 'api_key=' + data.publicKey.replace(/^\s+|\s+$/g, ''), 'encryptedcard%5Btrack_method%5D=swipe', 'encryptedcard%5Btrack%5D=' + encodeURIComponent(data.track.replace(/^\s+|\s+$/g, '')), 'encryptedcard%5Btrack_number%5D=' + encodeURIComponent(data.trackNumber.replace(/^\s+|\s+$/g, '')), 'encryptedcard%5Bktb%5D=' + encodeURIComponent(data.ktb.replace(/^\s+|\s+$/g, '')), 'encryptedcard%5Bpin_block%5D=' + encodeURIComponent(data.pinBlock.replace(/^\s+|\s+$/g, '')));
-                break;
-            default:
-                Util.throwError(data, 'unknown params type');
-                break;
-        }
-        return params.join('&');
-    };
-    /**
-     * Heartland.Util.getUrlByEnv
-     *
-     * Selects the appropriate tokenization service URL for the
-     * active `publicKey`.
-     *
-     * @param {Heartland.Options} options
-     * @returns {string}
-     */
-    Util.getUrlByEnv = function (options) {
-        options.env = options.publicKey.split('_')[1];
-        if (options.env === 'cert') {
-            options.gatewayUrl = urls.CERT;
-        }
-        else {
-            options.gatewayUrl = urls.PROD;
-        }
-        return options;
-    };
-    /**
-     * Heartland.Util.addFormHandler
-     *
-     * Creates and adds an event handler function for the submission for a given
-     * form (`options.form_id`).
-     *
-     * @param {Heartland.Options} options
-     * @listens submit
-     */
-    Util.addFormHandler = function (options) {
-        var payment_form = document.getElementById(options.formId);
-        var code = function (e) {
-            if (e.preventDefault) {
-                e.preventDefault();
-            }
-            else if (window.event) {
-                window.event.returnValue = false;
-            }
-            var fields = Util.getFields(options.formId);
-            var cardType = Util.getCardType(fields.number, 'pan');
-            options.cardNumber = fields.number;
-            options.cardExpMonth = fields.expMonth;
-            options.cardExpYear = fields.expYear;
-            options.cardCvv = fields.cvv;
-            options.cardType = cardType;
-            Ajax.call('pan', options);
-        };
-        Events.addHandler(payment_form, 'submit', code);
-        DOM.addField(options.formId, 'hidden', 'publicKey', options.publicKey);
-    };
-    /**
-     * Heartland.Util.getFields
-     *
-     * Extracts card information from the fields with names `card_number`,
-     * `card_expiration_month`, `card_expiration_year`, and `card_cvc` and
-     * expects them to be present as children of `formParent`.
-     *
-     * @param {string} formParent
-     * @returns {Heartland.CardData}
-     */
-    Util.getFields = function (formParent) {
-        var form = document.getElementById(formParent);
-        var fields = {};
-        var i;
-        var length = form.childElementCount;
-        for (i = 0; i < length; i++) {
-            var element = form.children[i];
-            if (element.id === 'card_number') {
-                fields.number = element.value;
-            }
-            else if (element.id === 'card_expiration_month') {
-                fields.expMonth = element.value;
-            }
-            else if (element.id === 'card_expiration_year') {
-                fields.expYear = element.value;
-            }
-            else if (element.id === 'card_cvc') {
-                fields.cvv = element.value;
-            }
-        }
-        return fields;
-    };
-    return Util;
-}());
-
-/**
- * @namespace Heartland.Ajax
- */
-var Ajax = (function () {
-    function Ajax() {
-    }
-    /**
-     * Heartland.Ajax.call
-     *
-     * Sets up a request to be passed to `Heartland.Ajax.jsonp`. On successful tokenization,
-     * `options.success` will be called with the tokenization data as the only
-     * argument passed.
-     *
-     * @param {string} type
-     * @param {Heartland.Options} options
-     */
-    Ajax.call = function (type, options) {
-        var cardType = Util.getCardType(type, options);
-        var params = Util.getParams(type, options);
-        var request = {
-            payload: params,
-            url: options.gatewayUrl
-        };
-        Ajax.jsonp(request, function (data) {
-            if (data.error) {
-                Util.throwError(options, data);
-            }
-            else {
-                var card = data.card || data.encryptedcard;
-                var lastfour = card.number.slice(-4);
-                data.last_four = lastfour;
-                data.card_type = cardType;
-                data.exp_month = options.cardExpMonth;
-                data.exp_year = options.cardExpYear;
-                if (options.formId && options.formId.length > 0) {
-                    DOM.addField(options.formId, 'hidden', 'token_value', data.token_value);
-                    DOM.addField(options.formId, 'hidden', 'last_four', lastfour);
-                    DOM.addField(options.formId, 'hidden', 'card_exp_year', options.cardExpYear);
-                    DOM.addField(options.formId, 'hidden', 'card_exp_month', options.cardExpMonth);
-                    DOM.addField(options.formId, 'hidden', 'card_type', cardType);
-                }
-                options.success(data);
-            }
-        });
-    };
-    /**
-     * Heartland.Ajax.jsonp
-     *
-     * Creates a new DOM node containing a created JSONP callback handler for an
-     * impending Ajax JSONP request. Removes need for `XMLHttpRequest`.
-     *
-     * @param {string} url
-     * @param {function} callback
-     */
-    Ajax.jsonp = function (request, callback) {
-        var script = document.createElement('script');
-        var callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
-        window[callbackName] = function (data) {
-            window[callbackName] = undefined;
-            document.body.removeChild(script);
-            callback(data);
-        };
-        script.src = request.url + (request.url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName
-            + '&' + request.payload;
-        document.body.appendChild(script);
-    };
-    /**
-     * Heartland.Ajax.cors
-     *
-     * Creates a new XMLHttpRequest object for a POST request to the given `url`.
-     *
-     * @param {string} url
-     * @param {function} callback
-     */
-    Ajax.cors = function (request, payload, callback) {
-        var xhr;
-        var method = 'POST';
-        var timeout;
-        if ((new XMLHttpRequest()).withCredentials === undefined) {
-            xhr = new window.XDomainRequest();
-            method = 'GET';
-            request.url = request.url.split('?')[0];
-            request.url = request.url + '?' + request.payload;
-            payload = null;
-            xhr.open(method, request.url);
-        }
-        else {
-            xhr = new XMLHttpRequest();
-            xhr.open(method, request.url);
-            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        }
-        var cb = function (e) {
-            clearTimeout(timeout);
-            if (e.type === 'error') {
-                callback({ error: { message: 'communication error' } });
-                return;
-            }
-            if (xhr.readyState === 4 || (xhr.readyState !== 4 && xhr.responseText !== '')) {
-                var data = JSON.parse(xhr.responseText);
-                callback(data);
-            }
-            else {
-                callback({ error: { message: 'no data' } });
-            }
-        };
-        xhr.onload = cb;
-        xhr.onerror = cb;
-        xhr.send(payload);
-        timeout = setTimeout(function () {
-            xhr.abort();
-            callback({ error: { message: 'timeout' } });
-        }, 5000);
-    };
-    return Ajax;
-}());
-
 var Formatter = {
     CardNumber: CardNumber,
     Expiration: Expiration
@@ -1490,6 +1238,13 @@ var fields = [
     'cardExpiration',
     'submit'
 ];
+
+var urls = {
+    CERT: 'https://cert.api2.heartlandportico.com/Hps.Exchange.PosGateway.Hpf.v1/api/token',
+    PROD: 'https://api.heartlandportico.com/SecureSubmit.v1/api/token',
+    iframeCERT: 'https://hps.github.io/token/2.1/',
+    iframePROD: 'https://api.heartlandportico.com/SecureSubmit.v1/token/2.1/'
+};
 
 /**
  * Heartland.Messages
@@ -2052,6 +1807,256 @@ var Frames = (function () {
 }());
 
 /**
+ * @namespace Heartland.Util
+ */
+var Util = (function () {
+    function Util() {
+    }
+    /**
+     * Heartland.Util.getCardType
+     *
+     * Parses a credit card number to obtain the card type/brand.
+     *
+     * @param {string} tokenizationType
+     * @param {Heartland.Options} options
+     */
+    Util.getCardType = function (tokenizationType, options) {
+        var cardType;
+        var data = '';
+        var type = 'unknown';
+        switch (tokenizationType) {
+            case 'swipe':
+                data = options.track;
+                cardType = Card.typeByTrack(data);
+                break;
+            case 'encrypted':
+                data = options.track;
+                cardType = Card.typeByTrack(data, true, options.trackNumber);
+                break;
+            default:
+                data = options.cardNumber;
+                cardType = Card.typeByNumber(data);
+                break;
+        }
+        if (cardType) {
+            type = cardType.code;
+        }
+        return type;
+    };
+    /**
+     * Heartland.Util.applyOptions
+     *
+     * Creates a single object by merging a `source` (default) and `properties`
+     * obtained elsewhere, e.g. a function argument in `HPS`. Any properties in
+     * `properties` will overwrite matching properties in `source`.
+     *
+     * @param {Heartland.Options} source
+     * @param {Heartland.Options} properties
+     * @returns {Heartland.Options}
+     */
+    Util.applyOptions = function (source, properties) {
+        var destination = {};
+        if (!source) {
+            source = {};
+        }
+        for (var property in source) {
+            if (source.hasOwnProperty(property)) {
+                destination[property] = source[property];
+            }
+        }
+        for (var property in properties) {
+            if (properties.hasOwnProperty(property)) {
+                destination[property] = properties[property];
+            }
+        }
+        return destination;
+    };
+    /**
+     * Heartland.Util.throwError
+     *
+     * Allows a merchant-defined error handler to be used in cases where the
+     * tokenization process fails. If not provided, we throw the message as a
+     * JS runtime error.
+     *
+     * @param {Heartland.Options} options
+     * @param {string | Heartland.TokenizationResponse} errorMessage
+     */
+    Util.throwError = function (options, errorMessage) {
+        if (typeof (options.error) === 'function') {
+            options.error(errorMessage);
+        }
+        else {
+            throw errorMessage;
+        }
+    };
+    /**
+     * Heartland.Util.getItemByPropertyValue
+     *
+     * Enumerates over a `collection` to retreive an item whose `property` is
+     * a given `value`.
+     *
+     * @param {any} collection
+     * @param {string} property
+     * @param {any} value
+     * @returns {any}
+     */
+    Util.getItemByPropertyValue = function (collection, property, value) {
+        var length = collection.length;
+        var i = 0;
+        for (i; i < length; i++) {
+            if (collection[i][property] === value) {
+                return collection[i];
+            }
+        }
+    };
+    /**
+     * Heartland.Util.getParams
+     *
+     * Builds param list for a particular `type` from expected properties in
+     * `data`.
+     *
+     * @param {string} type - The tokenization type
+     * @param {Heartland.Options} data
+     * @returns {string}
+     */
+    Util.getParams = function (type, data) {
+        var params = [];
+        switch (type) {
+            case 'pan':
+                params.push('token_type=supt', 'object=token', '_method=post', 'api_key=' + data.publicKey.replace(/^\s+|\s+$/g, ''), 'card%5Bnumber%5D=' + data.cardNumber.replace(/\s/g, ''), 'card%5Bexp_month%5D=' + data.cardExpMonth.replace(/^\s+|\s+$/g, ''), 'card%5Bexp_year%5D=' + data.cardExpYear.replace(/^\s+|\s+$/g, ''), 'card%5Bcvc%5D=' + data.cardCvv.replace(/^\s+|\s+$/g, ''));
+                break;
+            case 'swipe':
+                params.push('token_type=supt', 'object=token', '_method=post', 'api_key=' + data.publicKey.replace(/^\s+|\s+$/g, ''), 'card%5Btrack_method%5D=swipe', 'card%5Btrack%5D=' + encodeURIComponent(data.track.replace(/^\s+|\s+$/g, '')));
+                break;
+            case 'encrypted':
+                params.push('token_type=supt', 'object=token', '_method=post', 'api_key=' + data.publicKey.replace(/^\s+|\s+$/g, ''), 'encryptedcard%5Btrack_method%5D=swipe', 'encryptedcard%5Btrack%5D=' + encodeURIComponent(data.track.replace(/^\s+|\s+$/g, '')), 'encryptedcard%5Btrack_number%5D=' + encodeURIComponent(data.trackNumber.replace(/^\s+|\s+$/g, '')), 'encryptedcard%5Bktb%5D=' + encodeURIComponent(data.ktb.replace(/^\s+|\s+$/g, '')), 'encryptedcard%5Bpin_block%5D=' + encodeURIComponent(data.pinBlock.replace(/^\s+|\s+$/g, '')));
+                break;
+            default:
+                Util.throwError(data, 'unknown params type');
+                break;
+        }
+        return params.join('&');
+    };
+    /**
+     * Heartland.Util.getUrlByEnv
+     *
+     * Selects the appropriate tokenization service URL for the
+     * active `publicKey`.
+     *
+     * @param {Heartland.Options} options
+     * @returns {string}
+     */
+    Util.getUrlByEnv = function (options) {
+        options.env = options.publicKey.split('_')[1];
+        if (options.env === 'cert') {
+            options.gatewayUrl = urls.CERT;
+        }
+        else {
+            options.gatewayUrl = urls.PROD;
+        }
+        return options;
+    };
+    /**
+     * Heartland.Util.addFormHandler
+     *
+     * Creates and adds an event handler function for the submission for a given
+     * form (`options.form_id`).
+     *
+     * @param {Heartland.Options} options
+     * @listens submit
+     */
+    Util.addFormHandler = function (options) {
+        var payment_form = document.getElementById(options.formId);
+        var code = function (e) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+            else if (window.event) {
+                window.event.returnValue = false;
+            }
+            var fields = Util.getFields(options.formId);
+            var cardType = Util.getCardType(fields.number, 'pan');
+            options.cardNumber = fields.number;
+            options.cardExpMonth = fields.expMonth;
+            options.cardExpYear = fields.expYear;
+            options.cardCvv = fields.cvv;
+            options.cardType = cardType;
+            Ajax.call('pan', options);
+        };
+        Events.addHandler(payment_form, 'submit', code);
+        DOM.addField(options.formId, 'hidden', 'publicKey', options.publicKey);
+    };
+    /**
+     * Heartland.Util.getFields
+     *
+     * Extracts card information from the fields with names `card_number`,
+     * `card_expiration_month`, `card_expiration_year`, and `card_cvc` and
+     * expects them to be present as children of `formParent`.
+     *
+     * @param {string} formParent
+     * @returns {Heartland.CardData}
+     */
+    Util.getFields = function (formParent) {
+        var form = document.getElementById(formParent);
+        var fields = {};
+        var i;
+        var length = form.childElementCount;
+        for (i = 0; i < length; i++) {
+            var element = form.children[i];
+            if (element.id === 'card_number') {
+                fields.number = element.value;
+            }
+            else if (element.id === 'card_expiration_month') {
+                fields.expMonth = element.value;
+            }
+            else if (element.id === 'card_expiration_year') {
+                fields.expYear = element.value;
+            }
+            else if (element.id === 'card_cvc') {
+                fields.cvv = element.value;
+            }
+        }
+        return fields;
+    };
+    return Util;
+}());
+
+var HeartlandTokenService = (function () {
+    function HeartlandTokenService(url, type) {
+        if (type === void 0) { type = "pan"; }
+        this.url = url;
+        this.type = type;
+    }
+    HeartlandTokenService.prototype.tokenize = function (data, callback) {
+        var _this = this;
+        this.requestData = data;
+        Ajax.jsonp(this.buildRequest(data), function (response) {
+            callback(_this.deserializeResponseData(response));
+        });
+    };
+    HeartlandTokenService.prototype.buildRequest = function (data) {
+        return new JsonpRequest(this.url, this.serializeRequestData(data));
+    };
+    HeartlandTokenService.prototype.serializeRequestData = function (data) {
+        return Util.getParams(this.type, data);
+    };
+    HeartlandTokenService.prototype.deserializeResponseData = function (data) {
+        if (data.error) {
+            return data;
+        }
+        var cardType = Util.getCardType(this.type, this.requestData);
+        var card = data.card || data.encryptedcard;
+        var lastfour = card.number.slice(-4);
+        data.last_four = lastfour;
+        data.card_type = cardType;
+        data.exp_month = this.requestData.cardExpMonth;
+        data.exp_year = this.requestData.cardExpYear;
+        return data;
+    };
+    return HeartlandTokenService;
+}());
+
+/**
  * Heartland.HPS
  *
  * Initializes options and adds the default form handler if a `formId` is
@@ -2095,6 +2100,7 @@ var HPS = (function () {
      * @param {Heartland.Options} options [optional]
      */
     HPS.prototype.tokenize = function (options) {
+        var _this = this;
         options = options || {};
         if (options) {
             this.options = Util.applyOptions(this.options, options);
@@ -2107,7 +2113,22 @@ var HPS = (function () {
             }, 'child');
             return;
         }
-        Ajax.call(this.options.type, this.options);
+        (new HeartlandTokenService(this.options.gatewayUrl, this.options.type))
+            .tokenize(this.options, function (response) {
+            if (response.error) {
+                Util.throwError(_this.options, response);
+            }
+            else {
+                if (_this.options.formId && _this.options.formId.length > 0) {
+                    DOM.addField(_this.options.formId, 'hidden', 'token_value', response.token_value);
+                    DOM.addField(_this.options.formId, 'hidden', 'last_four', response.last_four);
+                    DOM.addField(_this.options.formId, 'hidden', 'card_exp_year', response.exp_year);
+                    DOM.addField(_this.options.formId, 'hidden', 'card_exp_month', response.exp_month);
+                    DOM.addField(_this.options.formId, 'hidden', 'card_type', response.card_type);
+                }
+                _this.options.success(response);
+            }
+        });
     };
     ;
     /**
