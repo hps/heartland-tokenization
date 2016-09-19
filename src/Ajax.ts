@@ -3,7 +3,7 @@ import {TokenizationResponse} from "./types/TokenizationResponse";
 export interface Request {
     type: string;
     url?: string;
-    payload?: string;
+    payload?: any;
 }
 
 export class CorsRequest implements Request {
@@ -14,6 +14,11 @@ export class CorsRequest implements Request {
 export class JsonpRequest implements Request {
     public type = "jsonp";
     constructor(public url = "", public payload = "") {}
+}
+
+export class NullRequest implements Request {
+    public type = "null";
+    constructor(public payload = {}) {}
 }
 
 /**

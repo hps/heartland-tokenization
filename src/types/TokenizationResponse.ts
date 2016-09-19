@@ -15,4 +15,5 @@ export interface TokenizationResponse {
   encryptedcard?: {
     number?: string;
   };
+  jwt?: string;
 }

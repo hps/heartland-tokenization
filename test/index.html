@@ -8,9 +8,9 @@
 <body>
   <div id="mocha"></div>
 
-  <script src="../dist/securesubmit.js"></script>
   <script src="../node_modules/mocha/mocha.js"></script>
   <script src="../node_modules/chai/chai.js"></script>
+  <script src="https://includestest.ccdc02.com/cardinalcruise/v1/songbird.js"></script>
 
   <script>
     mocha.setup({
@@ -18,7 +18,7 @@
         slow: '1s',
         timeout: '5s'
     });
-    mocha.globals(['Heartland', 'JSON']);
+    mocha.globals(['Heartland', 'JSON', 'Cardinal']);
   </script>
   <script src="./bundle.js"></script>
   <script>mocha.run();</script>

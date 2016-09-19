@@ -1,6 +1,5 @@
 import {defaults} from "./vars/defaults";
 
-import {Ajax} from "./Ajax";
 import {Card} from "./Card";
 import {DOM} from "./DOM";
 import {Events} from "./Events";
@@ -9,8 +8,10 @@ import {Messages} from "./Messages";
 import {Util} from "./Util";
 
 import {HeartlandTokenService} from "./TokenService/HeartlandTokenService";
+import {CardinalTokenService} from "./TokenService/CardinalTokenService";
 
 import {Options} from "./types/Options";
+import {TokenizationResponse} from "./types/TokenizationResponse";
 
 interface Frame {
   frame?: Window;
@@ -107,22 +108,48 @@ export class HPS {
       );
       return;
     }
-    (new HeartlandTokenService(this.options.gatewayUrl, this.options.type))
-      .tokenize(this.options, (response) => {
-        if (response.error) {
-            Util.throwError(this.options, response);
-        } else {
-            if (this.options.formId && this.options.formId.length > 0) {
-            DOM.addField(this.options.formId, 'hidden', 'token_value', response.token_value);
-            DOM.addField(this.options.formId, 'hidden', 'last_four', response.last_four);
-            DOM.addField(this.options.formId, 'hidden', 'card_exp_year', response.exp_year);
-            DOM.addField(this.options.formId, 'hidden', 'card_exp_month', response.exp_month);
-            DOM.addField(this.options.formId, 'hidden', 'card_type', response.card_type);
-            }
 
-            this.options.success(response);
+    let tokens: {cardinal: TokenizationResponse, heartland: TokenizationResponse} = {
+      cardinal: null,
+      heartland: null
+    };
+
+    const callback = (response: Object) => {
+      if ((<any>response).error) {
+        Util.throwError(this.options, response);
+      } else {
+        if (this.options.formId && this.options.formId.length > 0) {
+          const heartland = (<any>response).heartland || response;
+          DOM.addField(this.options.formId, 'hidden', 'token_value', heartland.token_value);
+          DOM.addField(this.options.formId, 'hidden', 'last_four', heartland.last_four);
+          DOM.addField(this.options.formId, 'hidden', 'card_exp_year', heartland.exp_year);
+          DOM.addField(this.options.formId, 'hidden', 'card_exp_month', heartland.exp_month);
+          DOM.addField(this.options.formId, 'hidden', 'card_type', heartland.card_type);
         }
-      });
+
+       this.options.success(response);
+      }
+    };
+
+    const callbackWrapper = (type: string) => {
+      return (response: TokenizationResponse) => {
+        (<any>tokens)[type] = response;
+        if (this.options.cca && tokens.cardinal && tokens.heartland) {
+          callback(tokens);
+        }
+        if (!this.options.cca && tokens.heartland) {
+          callback(tokens.heartland);
+        }
+      };
+    };
+
+    (new HeartlandTokenService(this.options.gatewayUrl, this.options.type))
+      .tokenize(this.options, callbackWrapper('heartland'));
+
+    if (this.options.cca) {
+      (new CardinalTokenService(this.options.cca.jwt))
+        .tokenize(this.options, callbackWrapper('cardinal'));
+    }
   };
 
   /**

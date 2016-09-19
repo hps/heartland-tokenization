@@ -24,7 +24,7 @@ suite('tokenize encrypted card', function () {
       ktb: '/wECAQEEAoFGAgEH3wICTDT6jRZwb3NAc2VjdXJlZXhjaGFuZ2UubmV0oyixA/yDoXL0iQbtz2RQFXIJgH2p+RIggm81xBBiHOVR6Pa2aDTIc7VtTNhpK6nMLR6kvJ6yubVFTSNsobpUKQRNvwjDf+YhO3LjeUrn44ew7CSwkicqgqAAwRKbb148OFtFVrqmZWOK39aQG6O9lXO1B7tyhhIjSJu9eL26gR0AF56UD+igdXDqEDMSc+HqVIVbTC0uicp4TJQEwW7IcyH+1hdk',
       success: function (response: TokenizationResponse) {
         assert.ok(response.token_value);
-        assert.ok(!response.error);
+        assert.notOk(response.error);
         done();
       },
       error: HeartlandTest.default_error(assert, done)

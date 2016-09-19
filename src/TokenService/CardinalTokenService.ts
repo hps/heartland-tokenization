@@ -1,63 +1,101 @@
-import {Ajax, CorsRequest} from "../Ajax";
+import {NullRequest} from "../Ajax";
+import {Options} from "../types/Options";
 import {TokenizationResponse} from "../types/TokenizationResponse";
-import {JSON2} from "../vendor/json2";
 import {TokenService} from "./TokenService";
+
+interface CardinalTokenResponse {
+  ActionCode?: string;
+  ErrorDescription?: string;
+  ErrorNumber?: number;
+  Payment?: {
+    ExtendedData?: {
+      CAVV?: string;
+      ECIFlag?: string;
+      Enrolled?: boolean;
+      PAResStatus?: string;
+      SignatureVerification?: string;
+      XID: string;
+    };
+    Type?: string;
+  };
+  Token?: {
+    ReasonCode?: string;
+    ReasonDescription?: string;
+    Token?: string;
+  };
+  Validated?: boolean;
+  jwt?: string;
+}
 
 export class CardinalTokenService implements TokenService {
   protected jwt: string;
   protected sessionId: string;
-  protected url: string;
 
-  constructor(url: string, jwt?: string) {
-    this.url = url;
+  constructor(jwt?: string) {
     this.jwt = jwt;
   }
 
   tokenize(data: Object, callback: (response: TokenizationResponse) => void) {
-    let request = this.buildRequest(data);
-    request.url += "Init";
-    Ajax.cors(request, (resp) => {
-      request.url = request.url.replace("Init", "Start");
-      Ajax.cors(request, (response) => {
-        callback(this.deserializeResponseData(response));
-      });
+    const request = this.buildRequest(data);
+    const cardinal = (<any>window).Cardinal;
+    const cb = (responseData: CardinalTokenResponse, jwt: string) => {
+      responseData.jwt = jwt;
+      callback(this.deserializeResponseData(responseData));
+    };
+    cardinal.setup('init', { jwt: this.jwt });
+    cardinal.on('payments.validated', cb);
+    cardinal.start('cca', request.payload);
+  }
+
+  buildRequest(data: Options): NullRequest {
+    return new NullRequest({
+      Consumer: {
+        Account: {
+          AccountNumber: data.cardNumber,
+          CardCode: data.cardCvv,
+          ExpirationMonth: data.cardExpMonth,
+          ExpirationYear: data.cardExpYear
+        }
+      },
+      Options: {
+        EnableCCA: false
+      },
+      OrderDetails: {
+        OrderNumber: data.cca.orderNumber
+      }
     });
   }
 
-  buildRequest(data: Object): CorsRequest {
-    return new CorsRequest(
-      this.url,
-      this.serializeRequestData({
-        BrowserPayload: {
-          Order: {
-            Consumer: {
-              Account: {
-                AccountNumber: "4000000000000002",
-                CardCode: "123",
-                ExpirationMonth: "01",
-                ExpirationYear: "2099"
-              }
-            },
-            OrderDetails: {
-              OrderNumber: "urqghifstlkmxcejbdaozpyvnw"
-            }
-          },
-          PaymentType: "cca"
-        },
-        ConsumerSessionId: this.sessionId,
-        ServerJWT: this.jwt
-      })
-    );
+  serializeRequestData(data: Object): Object {
+    return data;
   }
 
-  serializeRequestData(data: Object): string {
-    return JSON2.stringify(data);
+  deserializeResponseData(data: CardinalTokenResponse): TokenizationResponse {
+    if (typeof data.Token !== "undefined" &&
+      data.Token.Token !== "undefined" &&
+      data.Token.ReasonCode === "0") {
+        return this.deserializeSuccessResponse(data);
+    }
+    return this.deserializeFailureResponse(data);
   }
 
-  deserializeResponseData(data: any): TokenizationResponse {
-    const json = JSON2.parse(data);
+  deserializeSuccessResponse(data: CardinalTokenResponse): TokenizationResponse {
     return {
-      token_value: json.Token.token
+      jwt: data.jwt,
+      token_value: data.Token.Token
+    };
+  }
+
+  deserializeFailureResponse(data: CardinalTokenResponse): TokenizationResponse {
+    let message = data.ErrorDescription;
+    if (data.Token && data.Token.ReasonDescription !== "") {
+        message = data.Token.ReasonDescription;
+    }
+
+    return {
+      error: {
+        message: message
+      }
     };
   }
 }
