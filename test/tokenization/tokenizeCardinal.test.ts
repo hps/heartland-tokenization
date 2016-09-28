@@ -67,6 +67,7 @@ suite('tokenize Cardinal', function () {
       },
       publicKey: HeartlandTest.public_key,
       success: (response: any) => {
+        console.log(response);
         if (called) { return; }
         assert.notDeepEqual({}, response.heartland);
         assert.notDeepEqual({}, response.cardinal);

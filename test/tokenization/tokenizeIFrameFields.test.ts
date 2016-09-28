@@ -50,16 +50,7 @@ suite('tokenize iframe fields', function () {
     HeartlandTest.addHandler(document, 'securesubmitIframeReady', function () {
       if (++readyCount === 3) {
         HeartlandTest.setCardData(hps);
-        setTimeout(function () {
-          hps.Messages.post(
-            {
-                accumulateData: true,
-                action: 'tokenize',
-                message: HeartlandTest.public_key
-            },
-            'cardNumber'
-          );
-        }, 3000);
+        hps.tokenize();
       }
     });
   });

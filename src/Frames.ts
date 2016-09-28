@@ -1,11 +1,11 @@
-import {defaults} from "./vars/defaults";
-import {fields} from "./vars/fields";
-import {urls} from "./vars/urls";
-import {DOM} from "./DOM";
-import {Events} from "./Events";
-import {HPS} from "./HPS";
-import {Messages} from "./Messages";
-import {Styles} from "./Styles";
+import { defaults } from "./vars/defaults";
+import { fields } from "./vars/fields";
+import { urls } from "./vars/urls";
+import { DOM } from "./DOM";
+import { Events } from "./Events";
+import { HPS } from "./HPS";
+import { Messages } from "./Messages";
+import { Styles } from "./Styles";
 
 /**
  * @namespace Heartland.Frames
@@ -62,7 +62,7 @@ export class Frames {
     }
 
     if (options.buttonTarget) {
-      hps.clickHandler = function (e) {
+      hps.clickHandler = function(e) {
         e.preventDefault();
         hps.Messages.post(
           {
@@ -77,7 +77,7 @@ export class Frames {
       Events.addHandler(options.buttonTarget, 'click', hps.clickHandler);
     }
 
-    hps.Messages.receive(function (data: any) {
+    hps.Messages.receive(function(data: any) {
       let fieldFrame: any;
 
       try {
@@ -90,7 +90,7 @@ export class Frames {
             {
               accumulateData: !!hps.frames.cardNumber,
               action: 'tokenize',
-              message: options.publicKey
+              data: options
             },
             hps.frames.cardNumber ? 'cardNumber' : 'child'
           );
@@ -218,6 +218,10 @@ export class Frames {
       let url = baseUrl;
       if (field === 'submit') {
         url = url + 'button.html';
+      } else if (options.cca && options.env === 'cert') {
+        url = url + 'fieldCca.cert.html';
+      } else if (options.cca && options.env === 'prod') {
+        url = url + 'fieldCca.prod.html';
       } else {
         url = url + 'field.html';
       }
@@ -251,7 +255,7 @@ export class Frames {
 
     for (i; i < length; i++) {
       const event = events[i];
-      Events.addHandler(target, event, function (e: Event) {
+      Events.addHandler(target, event, function(e: Event) {
         const field = document.getElementById('heartland-field');
         let classes: string[] = [];
         const data: any = {};

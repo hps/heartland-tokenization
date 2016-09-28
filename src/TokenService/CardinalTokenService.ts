@@ -51,10 +51,10 @@ export class CardinalTokenService implements TokenService {
     return new NullRequest({
       Consumer: {
         Account: {
-          AccountNumber: data.cardNumber,
-          CardCode: data.cardCvv,
-          ExpirationMonth: data.cardExpMonth,
-          ExpirationYear: data.cardExpYear
+          AccountNumber: data.cardNumber.replace(/\D/g, ''),
+          CardCode: data.cardCvv.replace(/^\s+|\s+$/g, ''),
+          ExpirationMonth: data.cardExpMonth.replace(/^\s+|\s+$/g, ''),
+          ExpirationYear: data.cardExpYear.replace(/^\s+|\s+$/g, '')
         }
       },
       Options: {
