@@ -1,60 +1,30 @@
-import {DOM} from "./DOM.ts";
-import {Util} from "./Util.ts";
-import {Options} from "./types/Options";
 import {TokenizationResponse} from "./types/TokenizationResponse";
 
-interface Request {
+export interface Request {
+    type: string;
     url?: string;
-    payload?: string;
+    payload?: any;
+}
+
+export class CorsRequest implements Request {
+    public type = "cors";
+    constructor(public url = "", public payload = "") {}
+}
+
+export class JsonpRequest implements Request {
+    public type = "jsonp";
+    constructor(public url = "", public payload = "") {}
+}
+
+export class NullRequest implements Request {
+    public type = "null";
+    constructor(public payload = {}) {}
 }
 
 /**
  * @namespace Heartland.Ajax
  */
 export class Ajax {
-  /**
-   * Heartland.Ajax.call
-   *
-   * Sets up a request to be passed to `Heartland.Ajax.jsonp`. On successful tokenization,
-   * `options.success` will be called with the tokenization data as the only
-   * argument passed.
-   *
-   * @param {string} type
-   * @param {Heartland.Options} options
-   */
-  public static call(type: string, options: Options) {
-    const cardType = Util.getCardType(type, options);
-    const params = Util.getParams(type, options);
-    const request: Request = {
-        payload: params,
-        url: options.gatewayUrl
-    };
-
-    Ajax.jsonp(request, function (data) {
-      if (data.error) {
-        Util.throwError(options, data);
-      } else {
-        const card = data.card || data.encryptedcard;
-        const lastfour = card.number.slice(-4);
-
-        data.last_four = lastfour;
-        data.card_type = cardType;
-        data.exp_month = options.cardExpMonth;
-        data.exp_year = options.cardExpYear;
-
-        if (options.formId && options.formId.length > 0) {
-          DOM.addField(options.formId, 'hidden', 'token_value', data.token_value);
-          DOM.addField(options.formId, 'hidden', 'last_four', lastfour);
-          DOM.addField(options.formId, 'hidden', 'card_exp_year', options.cardExpYear);
-          DOM.addField(options.formId, 'hidden', 'card_exp_month', options.cardExpMonth);
-          DOM.addField(options.formId, 'hidden', 'card_type', cardType);
-        }
-
-        options.success(data);
-      }
-    });
-  }
-
   /**
    * Heartland.Ajax.jsonp
    *
@@ -64,7 +34,7 @@ export class Ajax {
    * @param {string} url
    * @param {function} callback
    */
-  private static jsonp(request: Request, callback: (data: TokenizationResponse) => void) {
+  public static jsonp(request: JsonpRequest, callback: (data: TokenizationResponse) => void) {
     const script = document.createElement('script');
     const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
     (<any>window)[callbackName] = function (data: TokenizationResponse): void {
@@ -81,12 +51,12 @@ export class Ajax {
   /**
    * Heartland.Ajax.cors
    *
-   * Creates a new XMLHttpRequest object for a POST request to the given `url`.
+   * Creates a new `XMLHttpRequest` object for a POST request to the given `url`.
    *
    * @param {string} url
    * @param {function} callback
    */
-  private static cors(request: Request, payload: string, callback: (data: TokenizationResponse) => void) {
+  public static cors(request: CorsRequest, callback: (data: TokenizationResponse) => void) {
     let xhr: any;
     let method = 'POST';
     let timeout: number;
@@ -96,7 +66,6 @@ export class Ajax {
       method = 'GET';
       request.url = request.url.split('?')[0];
       request.url = request.url + '?' + request.payload;
-      payload = null;
       xhr.open(method, request.url);
     } else {
       xhr = new XMLHttpRequest();
@@ -124,7 +93,7 @@ export class Ajax {
 
     xhr.onload = cb;
     xhr.onerror = cb;
-    xhr.send(payload);
+    xhr.send(request.payload);
     timeout = setTimeout(function () {
       xhr.abort();
       callback({error: {message: 'timeout'}});

@@ -1,14 +1,17 @@
-import {defaults} from "./vars/defaults";
+import { defaults } from "./vars/defaults";
 
-import {Ajax} from "./Ajax";
-import {Card} from "./Card";
-import {DOM} from "./DOM";
-import {Events} from "./Events";
-import {Frames} from "./Frames";
-import {Messages} from "./Messages";
-import {Util} from "./Util";
+import { Card } from "./Card";
+import { DOM } from "./DOM";
+import { Events } from "./Events";
+import { Frames } from "./Frames";
+import { Messages } from "./Messages";
+import { Util } from "./Util";
 
-import {Options} from "./types/Options";
+import { HeartlandTokenService } from "./TokenService/HeartlandTokenService";
+import { CardinalTokenService } from "./TokenService/CardinalTokenService";
+
+import { Options } from "./types/Options";
+import { TokenizationResponse } from "./types/TokenizationResponse";
 
 interface Frame {
   frame?: Window;
@@ -98,15 +101,55 @@ export class HPS {
     if (this.options.type === 'iframe') {
       this.Messages.post(
         {
-          action: 'tokenize',
-          message: this.options.publicKey
+          action: 'requestTokenize'
         },
-        'child'
+        'parent'
       );
       return;
     }
-    Ajax.call(this.options.type, this.options);
-  };
+
+    let tokens: { cardinal: TokenizationResponse, heartland: TokenizationResponse } = {
+      cardinal: null,
+      heartland: null
+    };
+
+    const callback = (response: Object) => {
+      if ((<any>response).error) {
+        Util.throwError(this.options, response);
+      } else {
+        if (this.options.formId && this.options.formId.length > 0) {
+          const heartland = (<any>response).heartland || response;
+          DOM.addField(this.options.formId, 'hidden', 'token_value', heartland.token_value);
+          DOM.addField(this.options.formId, 'hidden', 'last_four', heartland.last_four);
+          DOM.addField(this.options.formId, 'hidden', 'card_exp_year', heartland.exp_year);
+          DOM.addField(this.options.formId, 'hidden', 'card_exp_month', heartland.exp_month);
+          DOM.addField(this.options.formId, 'hidden', 'card_type', heartland.card_type);
+        }
+
+        this.options.success(response);
+      }
+    };
+
+    const callbackWrapper = (type: string) => {
+      return (response: TokenizationResponse) => {
+        (<any>tokens)[type] = response;
+        if (this.options.cca && tokens.cardinal && tokens.heartland) {
+          callback(tokens);
+        }
+        if (!this.options.cca && tokens.heartland) {
+          callback(tokens.heartland);
+        }
+      };
+    };
+
+    (new HeartlandTokenService(this.options.gatewayUrl, this.options.type))
+      .tokenize(this.options, callbackWrapper('heartland'));
+
+    if (this.options.cca) {
+      (new CardinalTokenService(this.options.cca.jwt))
+        .tokenize(this.options, callbackWrapper('cardinal'));
+    }
+  }
 
   /**
    * Heartland.HPS.configureInternalIframe
@@ -126,14 +169,14 @@ export class HPS {
       url: decodeURIComponent(document.location.hash.replace(/^#/, ''))
     };
 
-    this.loadHandler = (function (hps: HPS) {
-      return function () {
+    this.loadHandler = (function(hps: HPS) {
+      return function() {
         DOM.resizeFrame(hps);
       };
     } (this));
 
-    this.receiveMessageHandlerAddedHandler = (function (hps: HPS) {
-      return function () {
+    this.receiveMessageHandlerAddedHandler = (function(hps: HPS) {
+      return function() {
         hps.Messages.post({ action: 'receiveMessageHandlerAdded' }, 'parent');
       };
     } (this));
@@ -154,8 +197,8 @@ export class HPS {
    */
   configureButtonFieldIframe(options: Options): void {
     this.configureFieldIframe(options);
-    Events.addHandler('heartland-field', 'click', (function (hps: HPS) {
-      return function (e: Event) {
+    Events.addHandler('heartland-field', 'click', (function(hps: HPS) {
+      return function(e: Event) {
         e.preventDefault ? e.preventDefault() : (e.returnValue = false);
         hps.Messages.post({ action: 'requestTokenize' }, 'parent');
       };
@@ -183,8 +226,8 @@ export class HPS {
       url: decodeURIComponent(split.join(':').replace(/^:/, ''))
     };
 
-    window.onerror = (function (hps: HPS) {
-      return function (errorMsg: string, url: string, lineNumber: number, column: number, errorObj: any) {
+    window.onerror = (function(hps: HPS) {
+      return function(errorMsg: string, url: string, lineNumber: number, column: number, errorObj: any) {
         hps.Messages.post({
           action: 'error',
           data: {
@@ -198,8 +241,8 @@ export class HPS {
       };
     } (this));
 
-    this.loadHandler = (function (hps: HPS) {
-      return function () {
+    this.loadHandler = (function(hps: HPS) {
+      return function() {
         DOM.resizeFrame(hps);
         DOM.configureField(hps);
         const method = 'attach' + window.name.replace('card', '') + 'Events';
@@ -209,8 +252,8 @@ export class HPS {
       };
     } (this));
 
-    this.receiveMessageHandlerAddedHandler = (function (hps: HPS) {
-      return function () {
+    this.receiveMessageHandlerAddedHandler = (function(hps: HPS) {
+      return function() {
         hps.Messages.post({ action: 'receiveMessageHandlerAdded' }, 'parent');
       };
     } (this));

@@ -1,6 +1,267 @@
 var Heartland = (function () {
 'use strict';
 
+var JsonpRequest = (function () {
+    function JsonpRequest(url, payload) {
+        if (url === void 0) { url = ""; }
+        if (payload === void 0) { payload = ""; }
+        this.url = url;
+        this.payload = payload;
+        this.type = "jsonp";
+    }
+    return JsonpRequest;
+}());
+var NullRequest = (function () {
+    function NullRequest(payload) {
+        if (payload === void 0) { payload = {}; }
+        this.payload = payload;
+        this.type = "null";
+    }
+    return NullRequest;
+}());
+/**
+ * @namespace Heartland.Ajax
+ */
+var Ajax = (function () {
+    function Ajax() {
+    }
+    /**
+     * Heartland.Ajax.jsonp
+     *
+     * Creates a new DOM node containing a created JSONP callback handler for an
+     * impending Ajax JSONP request. Removes need for `XMLHttpRequest`.
+     *
+     * @param {string} url
+     * @param {function} callback
+     */
+    Ajax.jsonp = function (request, callback) {
+        var script = document.createElement('script');
+        var callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+        window[callbackName] = function (data) {
+            window[callbackName] = undefined;
+            document.body.removeChild(script);
+            callback(data);
+        };
+        script.src = request.url + (request.url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName
+            + '&' + request.payload;
+        document.body.appendChild(script);
+    };
+    /**
+     * Heartland.Ajax.cors
+     *
+     * Creates a new `XMLHttpRequest` object for a POST request to the given `url`.
+     *
+     * @param {string} url
+     * @param {function} callback
+     */
+    Ajax.cors = function (request, callback) {
+        var xhr;
+        var method = 'POST';
+        var timeout;
+        if ((new XMLHttpRequest()).withCredentials === undefined) {
+            xhr = new window.XDomainRequest();
+            method = 'GET';
+            request.url = request.url.split('?')[0];
+            request.url = request.url + '?' + request.payload;
+            xhr.open(method, request.url);
+        }
+        else {
+            xhr = new XMLHttpRequest();
+            xhr.open(method, request.url);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        }
+        var cb = function (e) {
+            clearTimeout(timeout);
+            if (e.type === 'error') {
+                callback({ error: { message: 'communication error' } });
+                return;
+            }
+            if (xhr.readyState === 4 || (xhr.readyState !== 4 && xhr.responseText !== '')) {
+                var data = JSON.parse(xhr.responseText);
+                callback(data);
+            }
+            else {
+                callback({ error: { message: 'no data' } });
+            }
+        };
+        xhr.onload = cb;
+        xhr.onerror = cb;
+        xhr.send(request.payload);
+        timeout = setTimeout(function () {
+            xhr.abort();
+            callback({ error: { message: 'timeout' } });
+        }, 5000);
+    };
+    return Ajax;
+}());
+
+var cardTypes = [
+    {
+        code: 'visa',
+        format: /(\d{1,4})/g,
+        length: 16,
+        regex: /^4/
+    },
+    {
+        code: 'mastercard',
+        format: /(\d{1,4})/g,
+        length: 16,
+        regex: /^(5[1-5]|2[2-7])/
+    },
+    {
+        code: 'amex',
+        format: /(\d{1,4})(\d{1,6})?(\d{1,5})?/,
+        length: 15,
+        regex: /^3[47]/
+    },
+    {
+        code: 'diners',
+        format: /(\d{1,4})(\d{1,6})?(\d{1,4})?/,
+        length: 14,
+        regex: /^3[0689]/
+    },
+    {
+        code: 'discover',
+        format: /(\d{1,4})/g,
+        length: 16,
+        regex: /^6([045]|22)/
+    },
+    {
+        code: 'jcb',
+        format: /(\d{1,4})/g,
+        length: 16,
+        regex: /^35/
+    }
+];
+
+var CardNumber = (function () {
+    function CardNumber() {
+    }
+    CardNumber.prototype.format = function (number) {
+        number = number.replace(/\D/g, '');
+        var type = Card.typeByNumber(number);
+        if (!type) {
+            return number;
+        }
+        var matches = number.match(type.format);
+        if (!matches) {
+            return number;
+        }
+        if (!type.format.global) {
+            matches.shift();
+        }
+        return matches.join(' ').replace(/^\s+|\s+$/gm, '');
+    };
+    return CardNumber;
+}());
+
+var Expiration = (function () {
+    function Expiration() {
+    }
+    Expiration.prototype.format = function (exp, final) {
+        if (final === void 0) { final = false; }
+        var pat = /^\D*(\d{1,2})(\D+)?(\d{1,4})?/;
+        var groups = exp.match(pat);
+        var month;
+        var del;
+        var year;
+        if (!groups) {
+            return '';
+        }
+        month = groups[1] || '';
+        del = groups[2] || '';
+        year = groups[3] || '';
+        if (year.length > 0) {
+            del = ' / ';
+        }
+        else if (month.length === 2 || del.length > 0) {
+            del = ' / ';
+        }
+        else if (month.length === 1 && (month !== '0' && month !== '1')) {
+            del = ' / ';
+        }
+        if (month.length === 1 && del !== '') {
+            month = '0' + month;
+        }
+        if (final && year.length === 2) {
+            year = (new Date).getFullYear().toString().slice(0, 2) + year;
+        }
+        return month + del + year;
+    };
+    return Expiration;
+}());
+
+var CardNumber$1 = (function () {
+    function CardNumber() {
+    }
+    CardNumber.prototype.validate = function (number) {
+        if (!number) {
+            return false;
+        }
+        number = number.replace(/[-\s]/g, '');
+        var type = Card.typeByNumber(number);
+        if (!type) {
+            return false;
+        }
+        return Card.luhnCheck(number)
+            && number.length === type.length;
+    };
+    return CardNumber;
+}());
+
+var Cvv = (function () {
+    function Cvv() {
+    }
+    Cvv.prototype.validate = function (cvv) {
+        if (!cvv) {
+            return false;
+        }
+        cvv = cvv.replace(/^\s+|\s+$/g, '');
+        if (!/^\d+$/.test(cvv)) {
+            return false;
+        }
+        return 3 <= cvv.length && cvv.length <= 4;
+    };
+    return Cvv;
+}());
+
+var Expiration$1 = (function () {
+    function Expiration() {
+    }
+    Expiration.prototype.validate = function (exp) {
+        var m, y;
+        if (!exp) {
+            return false;
+        }
+        var split = exp.split('/');
+        m = split[0], y = split[1];
+        if (!m || !y) {
+            return false;
+        }
+        m = m.replace(/^\s+|\s+$/g, '');
+        y = y.replace(/^\s+|\s+$/g, '');
+        if (!/^\d+$/.test(m)) {
+            return false;
+        }
+        if (!/^\d+$/.test(y)) {
+            return false;
+        }
+        if (y.length === 2) {
+            y = (new Date).getFullYear().toString().slice(0, 2) + y;
+        }
+        var month = parseInt(m, 10);
+        var year = parseInt(y, 10);
+        if (!(1 <= month && month <= 12)) {
+            return false;
+        }
+        // creates date as 1 day past end of
+        // expiration month since JS months
+        // are 0 indexed
+        return (new Date(year, month, 1)) > (new Date);
+    };
+    return Expiration;
+}());
+
 /**
  * @namespace Heartland.DOM
  */
@@ -283,173 +544,6 @@ var DOM = (function () {
     return DOM;
 }());
 
-var cardTypes = [
-    {
-        code: 'visa',
-        format: /(\d{1,4})/g,
-        length: 16,
-        regex: /^4/
-    },
-    {
-        code: 'mastercard',
-        format: /(\d{1,4})/g,
-        length: 16,
-        regex: /^(5[1-5]|2[2-7])/
-    },
-    {
-        code: 'amex',
-        format: /(\d{1,4})(\d{1,6})?(\d{1,5})?/,
-        length: 15,
-        regex: /^3[47]/
-    },
-    {
-        code: 'diners',
-        format: /(\d{1,4})(\d{1,6})?(\d{1,4})?/,
-        length: 14,
-        regex: /^3[0689]/
-    },
-    {
-        code: 'discover',
-        format: /(\d{1,4})/g,
-        length: 16,
-        regex: /^6([045]|22)/
-    },
-    {
-        code: 'jcb',
-        format: /(\d{1,4})/g,
-        length: 16,
-        regex: /^35/
-    }
-];
-
-var CardNumber = (function () {
-    function CardNumber() {
-    }
-    CardNumber.prototype.format = function (number) {
-        number = number.replace(/\D/g, '');
-        var type = Card.typeByNumber(number);
-        if (!type) {
-            return number;
-        }
-        var matches = number.match(type.format);
-        if (!matches) {
-            return number;
-        }
-        if (!type.format.global) {
-            matches.shift();
-        }
-        return matches.join(' ').replace(/^\s+|\s+$/gm, '');
-    };
-    return CardNumber;
-}());
-
-var Expiration = (function () {
-    function Expiration() {
-    }
-    Expiration.prototype.format = function (exp, final) {
-        if (final === void 0) { final = false; }
-        var pat = /^\D*(\d{1,2})(\D+)?(\d{1,4})?/;
-        var groups = exp.match(pat);
-        var month;
-        var del;
-        var year;
-        if (!groups) {
-            return '';
-        }
-        month = groups[1] || '';
-        del = groups[2] || '';
-        year = groups[3] || '';
-        if (year.length > 0) {
-            del = ' / ';
-        }
-        else if (month.length === 2 || del.length > 0) {
-            del = ' / ';
-        }
-        else if (month.length === 1 && (month !== '0' && month !== '1')) {
-            del = ' / ';
-        }
-        if (month.length === 1 && del !== '') {
-            month = '0' + month;
-        }
-        if (final && year.length === 2) {
-            year = (new Date).getFullYear().toString().slice(0, 2) + year;
-        }
-        return month + del + year;
-    };
-    return Expiration;
-}());
-
-var CardNumber$1 = (function () {
-    function CardNumber() {
-    }
-    CardNumber.prototype.validate = function (number) {
-        if (!number) {
-            return false;
-        }
-        number = number.replace(/[-\s]/g, '');
-        var type = Card.typeByNumber(number);
-        if (!type) {
-            return false;
-        }
-        return Card.luhnCheck(number)
-            && number.length === type.length;
-    };
-    return CardNumber;
-}());
-
-var Cvv = (function () {
-    function Cvv() {
-    }
-    Cvv.prototype.validate = function (cvv) {
-        if (!cvv) {
-            return false;
-        }
-        cvv = cvv.replace(/^\s+|\s+$/g, '');
-        if (!/^\d+$/.test(cvv)) {
-            return false;
-        }
-        return 3 <= cvv.length && cvv.length <= 4;
-    };
-    return Cvv;
-}());
-
-var Expiration$1 = (function () {
-    function Expiration() {
-    }
-    Expiration.prototype.validate = function (exp) {
-        var m, y;
-        if (!exp) {
-            return false;
-        }
-        var split = exp.split('/');
-        m = split[0], y = split[1];
-        if (!m || !y) {
-            return false;
-        }
-        m = m.replace(/^\s+|\s+$/g, '');
-        y = y.replace(/^\s+|\s+$/g, '');
-        if (!/^\d+$/.test(m)) {
-            return false;
-        }
-        if (!/^\d+$/.test(y)) {
-            return false;
-        }
-        if (y.length === 2) {
-            y = (new Date).getFullYear().toString().slice(0, 2) + y;
-        }
-        var month = parseInt(m, 10);
-        var year = parseInt(y, 10);
-        if (!(1 <= month && month <= 12)) {
-            return false;
-        }
-        // creates date as 1 day past end of
-        // expiration month since JS months
-        // are 0 indexed
-        return (new Date(year, month, 1)) > (new Date);
-    };
-    return Expiration;
-}());
-
 var Expiration$2 = (function () {
     function Expiration() {
     }
@@ -484,6 +578,417 @@ var Expiration$2 = (function () {
         return month + del + year;
     };
     return Expiration;
+}());
+
+/* -----------------------------------------------------------------------------
+This file is based on or incorporates material from the projects listed below
+(collectively, "Third Party Code"). Microsoft is not the original author of the
+Third Party Code. The original copyright notice and the license, under which
+Microsoft received such Third Party Code, are set forth below. Such licenses
+and notices are provided for informational purposes only. Microsoft, not the
+third party, licenses the Third Party Code to you under the terms of the
+Apache License, Version 2.0. See License.txt in the project root for complete
+license information. Microsoft reserves all rights not expressly granted under
+the Apache 2.0 License, whether by implication, estoppel or otherwise.
+----------------------------------------------------------------------------- */
+/*
+    json2.js
+    2011-10-19
+
+    Public Domain.
+
+    NO WARRANTY EXPRESSED OR IMPLIED. USE AT YOUR OWN RISK.
+
+    See http://www.JSON.org/js.html
+
+
+    This code should be minified before deployment.
+    See http://javascript.crockford.com/jsmin.html
+
+    USE YOUR OWN COPY. IT IS EXTREMELY UNWISE TO LOAD CODE FROM SERVERS YOU DO
+    NOT CONTROL.
+
+
+    This file creates a global JSON object containing two methods: stringify
+    and parse.
+
+        JSON.stringify(value, replacer, space)
+            value       any JavaScript value, usually an object or array.
+
+            replacer    an optional parameter that determines how object
+                        values are stringified for objects. It can be a
+                        function or an array of strings.
+
+            space       an optional parameter that specifies the indentation
+                        of nested structures. If it is omitted, the text will
+                        be packed without extra whitespace. If it is a number,
+                        it will specify the number of spaces to indent at each
+                        level. If it is a string (such as '\t' or '&nbsp;'),
+                        it contains the characters used to indent at each level.
+
+            This method produces a JSON text from a JavaScript value.
+
+            When an object value is found, if the object contains a toJSON
+            method, its toJSON method will be called and the result will be
+            stringified. A toJSON method does not serialize: it returns the
+            value represented by the name/value pair that should be serialized,
+            or undefined if nothing should be serialized. The toJSON method
+            will be passed the key associated with the value, and this will be
+            bound to the value
+
+            For example, this would serialize Dates as ISO strings.
+
+                Date.prototype.toJSON = function (key) {
+                    function f(n) {
+                        // Format integers to have at least two digits.
+                        return n < 10 ? '0' + n : n;
+                    }
+
+                    return this.getUTCFullYear()   + '-' +
+                         f(this.getUTCMonth() + 1) + '-' +
+                         f(this.getUTCDate())      + 'T' +
+                         f(this.getUTCHours())     + ':' +
+                         f(this.getUTCMinutes())   + ':' +
+                         f(this.getUTCSeconds())   + 'Z';
+                };
+
+            You can provide an optional replacer method. It will be passed the
+            key and value of each member, with this bound to the containing
+            object. The value that is returned from your method will be
+            serialized. If your method returns undefined, then the member will
+            be excluded from the serialization.
+
+            If the replacer parameter is an array of strings, then it will be
+            used to select the members to be serialized. It filters the results
+            such that only members with keys listed in the replacer array are
+            stringified.
+
+            Values that do not have JSON representations, such as undefined or
+            functions, will not be serialized. Such values in objects will be
+            dropped; in arrays they will be replaced with null. You can use
+            a replacer function to replace those with JSON values.
+            JSON.stringify(undefined) returns undefined.
+
+            The optional space parameter produces a stringification of the
+            value that is filled with line breaks and indentation to make it
+            easier to read.
+
+            If the space parameter is a non-empty string, then that string will
+            be used for indentation. If the space parameter is a number, then
+            the indentation will be that many spaces.
+
+            Example:
+
+            text = JSON.stringify(['e', {pluribus: 'unum'}]);
+            // text is '["e",{"pluribus":"unum"}]'
+
+
+            text = JSON.stringify(['e', {pluribus: 'unum'}], null, '\t');
+            // text is '[\n\t"e",\n\t{\n\t\t"pluribus": "unum"\n\t}\n]'
+
+            text = JSON.stringify([new Date()], function (key, value) {
+                return this[key] instanceof Date ?
+                    'Date(' + this[key] + ')' : value;
+            });
+            // text is '["Date(---current time---)"]'
+
+
+        JSON.parse(text, reviver)
+            This method parses a JSON text to produce an object or array.
+            It can throw a SyntaxError exception.
+
+            The optional reviver parameter is a function that can filter and
+            transform the results. It receives each of the keys and values,
+            and its return value is used instead of the original value.
+            If it returns what it received, then the structure is not modified.
+            If it returns undefined then the member is deleted.
+
+            Example:
+
+            // Parse the text. Values that look like ISO date strings will
+            // be converted to Date objects.
+
+            myData = JSON.parse(text, function (key, value) {
+                let a;
+                if (typeof value === 'string') {
+                    a =
+/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/.exec(value);
+                    if (a) {
+                        return new Date(Date.UTC(+a[1], +a[2] - 1, +a[3], +a[4],
+                            +a[5], +a[6]));
+                    }
+                }
+                return value;
+            });
+
+            myData = JSON.parse('["Date(09/09/2001)"]', function (key, value) {
+                let d;
+                if (typeof value === 'string' &&
+                        value.slice(0, 5) === 'Date(' &&
+                        value.slice(-1) === ')') {
+                    d = new Date(value.slice(5, -1));
+                    if (d) {
+                        return d;
+                    }
+                }
+                return value;
+            });
+
+
+    This is a reference implementation. You are free to copy, modify, or
+    redistribute.
+*/
+/*jslint evil: true, regexp: true */
+/*members "", "\b", "\t", "\n", "\f", "\r", "\"", JSON, "\\", apply,
+    call, charCodeAt, getUTCDate, getUTCFullYear, getUTCHours,
+    getUTCMinutes, getUTCMonth, getUTCSeconds, hasOwnProperty, join,
+    lastIndex, length, parse, prototype, push, replace, slice, stringify,
+    test, toJSON, toString, valueOf
+*/
+// create a JSON object only if one does not already exist. We create the
+// methods in a closure to avoid creating global variables.
+var JSON2 = {};
+(function () {
+    'use strict';
+    function f(n) {
+        // format integers to have at least two digits.
+        return n < 10 ? '0' + n : n;
+    }
+    if (typeof Date.prototype.toJSON !== 'function') {
+        Date.prototype.toJSON = function (key) {
+            return isFinite(this.valueOf())
+                ? this.getUTCFullYear() + '-' +
+                    f(this.getUTCMonth() + 1) + '-' +
+                    f(this.getUTCDate()) + 'T' +
+                    f(this.getUTCHours()) + ':' +
+                    f(this.getUTCMinutes()) + ':' +
+                    f(this.getUTCSeconds()) + 'Z'
+                : null;
+        };
+        var strProto = String.prototype;
+        var numProto = Number.prototype;
+        numProto.JSON = strProto.JSON =
+            Boolean.prototype.toJSON = function (key) {
+                return this.valueOf();
+            };
+    }
+    var cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g, 
+    // tslint:disable-next-line
+    esc = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g, gap, indent, meta = {
+        '\b': '\\b',
+        '\t': '\\t',
+        '\n': '\\n',
+        '\f': '\\f',
+        '\r': '\\r',
+        '"': '\\"',
+        '\\': '\\\\'
+    }, rep;
+    function quote(string) {
+        // if the string contains no control characters, no quote characters, and no
+        // backslash characters, then we can safely slap some quotes around it.
+        // otherwise we must also replace the offending characters with safe escape
+        // sequences.
+        esc.lastIndex = 0;
+        return esc.test(string) ? '"' + string.replace(esc, function (a) {
+            var c = meta[a];
+            return typeof c === 'string'
+                ? c
+                : '\\u' + ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
+        }) + '"' : '"' + string + '"';
+    }
+    function str(key, holder) {
+        // produce a string from holder[key].
+        var i, // the loop counter.
+        k = null, // the member key.
+        v, // the member value.
+        length, mind = gap, partial, value = holder[key];
+        // if the value has a toJSON method, call it to obtain a replacement value.
+        if (value && typeof value === 'object' &&
+            typeof value.toJSON === 'function') {
+            value = value.toJSON(key);
+        }
+        // if we were called with a replacer function, then call the replacer to
+        // obtain a replacement value.
+        if (typeof rep === 'function') {
+            value = rep.call(holder, key, value);
+        }
+        // what happens next depends on the value's type.
+        switch (typeof value) {
+            case 'string':
+                return quote(value);
+            case 'number':
+                // json numbers must be finite. Encode non-finite numbers as null.
+                return isFinite(value) ? String(value) : 'null';
+            case 'boolean':
+            case 'null':
+                // if the value is a boolean or null, convert it to a string. Note:
+                // typeof null does not produce 'null'. The case is included here in
+                // the remote chance that this gets fixed someday.
+                return String(value);
+            // if the type is 'object', we might be dealing with an object or an array or
+            // null.
+            case 'object':
+                // due to a specification blunder in ECMAScript, typeof null is 'object',
+                // so watch out for that case.
+                if (!value) {
+                    return 'null';
+                }
+                // make an array to hold the partial: string[] results of stringifying this object value.
+                gap += indent;
+                partial = [];
+                // is the value an array?
+                if (Object.prototype.toString.apply(value, []) === '[object Array]') {
+                    // the value is an array. Stringify every element. Use null as a placeholder
+                    // for non-JSON values.
+                    length = value.length;
+                    for (i = 0; i < length; i += 1) {
+                        partial[i] = str(i.toString(), value) || 'null';
+                    }
+                    // join all of the elements together, separated with commas, and wrap them in
+                    // brackets.
+                    v = partial.length === 0
+                        ? '[]'
+                        : gap
+                            ? '[\n' + gap + partial.join(',\n' + gap) + '\n' + mind + ']'
+                            : '[' + partial.join(',') + ']';
+                    gap = mind;
+                    return v;
+                }
+                // if the replacer is an array, use it to select the members to be stringified.
+                if (rep && typeof rep === 'object') {
+                    length = rep.length;
+                    for (i = 0; i < length; i += 1) {
+                        if (typeof rep[i] === 'string') {
+                            k = rep[i];
+                            v = str(k, value);
+                            if (v) {
+                                partial.push(quote(k) + (gap ? ': ' : ':') + v);
+                            }
+                        }
+                    }
+                }
+                else {
+                    // otherwise, iterate through all of the keys in the object.
+                    for (k in value) {
+                        if (Object.prototype.hasOwnProperty.call(value, k)) {
+                            v = str(k, value);
+                            if (v) {
+                                partial.push(quote(k) + (gap ? ': ' : ':') + v);
+                            }
+                        }
+                    }
+                }
+                // join all of the member texts together, separated with commas,
+                // and wrap them in braces.
+                v = partial.length === 0
+                    ? '{}'
+                    : gap
+                        ? '{\n' + gap + partial.join(',\n' + gap) + '\n' + mind + '}'
+                        : '{' + partial.join(',') + '}';
+                gap = mind;
+                return v;
+        }
+    }
+    // if the JSON object does not yet have a stringify method, give it one.
+    if (typeof JSON2.stringify !== 'function') {
+        JSON2.stringify = function (value, replacer, space) {
+            // the stringify method takes a value and an optional replacer, and an optional
+            // space parameter, and returns a JSON text. The replacer can be a function
+            // that can replace values, or an array of strings that will select the keys.
+            // a default replacer method can be provided. Use of the space parameter can
+            // produce text that is more easily readable.
+            var i;
+            gap = '';
+            indent = '';
+            // if the space parameter is a number, make an indent string containing that
+            // many spaces.
+            if (typeof space === 'number') {
+                for (i = 0; i < space; i += 1) {
+                    indent += ' ';
+                }
+            }
+            else if (typeof space === 'string') {
+                indent = space;
+            }
+            // if there is a replacer, it must be a function or an array.
+            // otherwise, throw an error.
+            rep = replacer;
+            if (replacer && typeof replacer !== 'function' &&
+                (typeof replacer !== 'object' ||
+                    typeof replacer.length !== 'number')) {
+                throw new Error('JSON.stringify');
+            }
+            // make a fake root object containing our value under the key of ''.
+            // return the result of stringifying the value.
+            return str('', { '': value });
+        };
+    }
+    // if the JSON object does not yet have a parse method, give it one.
+    if (typeof JSON2.parse !== 'function') {
+        JSON2.parse = function (text, reviver) {
+            // the parse method takes a text and an optional reviver function, and returns
+            // a JavaScript value if the text is a valid JSON text.
+            var j;
+            function walk(holder, key) {
+                // the walk method is used to recursively walk the resulting structure so
+                // that modifications can be made.
+                var k = null, v, value = holder[key];
+                if (value && typeof value === 'object') {
+                    for (k in value) {
+                        if (Object.prototype.hasOwnProperty.call(value, k)) {
+                            v = walk(value, k);
+                            if (v !== undefined) {
+                                value[k] = v;
+                            }
+                            else {
+                                value[k] = undefined;
+                            }
+                        }
+                    }
+                }
+                return reviver.call(holder, key, value);
+            }
+            // parsing happens in four stages. In the first stage, we replace certain
+            // unicode characters with escape sequences. JavaScript handles many characters
+            // incorrectly, either silently deleting them, or treating them as line endings.
+            text = String(text);
+            cx.lastIndex = 0;
+            if (cx.test(text)) {
+                text = text.replace(cx, function (a) {
+                    return '\\u' +
+                        ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
+                });
+            }
+            // in the second stage, we run the text against regular expressions that look
+            // for non-JSON patterns. We are especially concerned with '()' and 'new'
+            // because they can cause invocation, and '=' because it can cause mutation.
+            // but just to be safe, we want to reject all unexpected forms.
+            // we split the second stage into 4 regexp operations in order to work around
+            // crippling inefficiencies in IE's and Safari's regexp engines. First we
+            // replace the JSON backslash pairs with '@' (a non-JSON character). Second, we
+            // replace all simple value tokens with ']' characters. Third, we delete all
+            // open brackets that follow a colon or comma or that begin the text. Finally,
+            // we look to see that the remaining characters are only whitespace or ']' or
+            // ',' or ':' or '{' or '}'. If that is so, then the text is safe for eval.
+            if (/^[\],:{}\s]*$/
+                .test(text.replace(/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g, '@')
+                .replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']')
+                .replace(/(?:^|:|,)(?:\s*\[)+/g, ''))) {
+                // in the third stage we use the eval function to compile the text into a
+                // javascript structure. The '{' operator is subject to a syntactic ambiguity
+                // in JavaScript: it can begin a block or an object literal. We wrap the text
+                // in parens to eliminate the ambiguity.
+                j = (new Function('return (' + text + ')')());
+                // in the optional fourth stage, we recursively walk the new structure, passing
+                // each name/value pair to a reviver function for possible transformation.
+                return typeof reviver === 'function'
+                    ? walk({ '': j }, '')
+                    : j;
+            }
+            // if the text is not JSON parseable, then a SyntaxError is thrown.
+            throw new SyntaxError('JSON.parse');
+        };
+    }
 }());
 
 var Ev = (function () {
@@ -621,15 +1126,15 @@ var Events = (function () {
                             action: 'accumulateData'
                         }, 'parent');
                         var el = document.createElement('input');
-                        el.id = 'publicKey';
+                        el.id = 'tokenizeOptions';
                         el.type = 'hidden';
-                        el.value = data.message;
+                        el.value = JSON2.stringify(data.data);
                         document
                             .getElementById('heartland-field-wrapper')
                             .appendChild(el);
                     }
                     else {
-                        Events.tokenizeIframe(hps, data.message);
+                        Events.tokenizeIframe(hps, data.data);
                     }
                     break;
                 case 'setStyle':
@@ -652,8 +1157,8 @@ var Events = (function () {
                     if (document.getElementById('heartland-field') &&
                         document.getElementById('cardCvv') &&
                         document.getElementById('cardExpiration')) {
-                        var pkey = document.getElementById('publicKey');
-                        Events.tokenizeIframe(hps, (pkey ? pkey.getAttribute('value') : ''));
+                        var opts = document.getElementById('tokenizeOptions');
+                        Events.tokenizeIframe(hps, (opts ? JSON2.parse(opts.getAttribute('value')) : null));
                     }
                     break;
                 case 'getFieldData':
@@ -678,7 +1183,7 @@ var Events = (function () {
      * @param {Heartland.HPS} hps
      * @param {string} publicKey
      */
-    Events.tokenizeIframe = function (hps, publicKey) {
+    Events.tokenizeIframe = function (hps, data) {
         var card = {};
         var numberElement = (document.getElementById('heartland-field')
             || document.getElementById('heartland-card-number'));
@@ -725,8 +1230,9 @@ var Events = (function () {
             cardExpMonth: card.expMonth ? card.expMonth : '',
             cardExpYear: card.expYear ? card.expYear : '',
             cardNumber: card.number ? card.number : '',
+            cca: data.cca,
             error: tokenResponse('onTokenError'),
-            publicKey: publicKey ? publicKey : '',
+            publicKey: data.publicKey ? data.publicKey : '',
             success: tokenResponse('onTokenSuccess'),
             type: 'pan'
         });
@@ -1111,344 +1617,6 @@ if (!Array.prototype.indexOf) {
     };
 }
 
-var urls = {
-    CERT: 'https://cert.api2.heartlandportico.com/Hps.Exchange.PosGateway.Hpf.v1/api/token',
-    PROD: 'https://api.heartlandportico.com/SecureSubmit.v1/api/token',
-    iframeCERT: 'https://hps.github.io/token/2.1/',
-    iframePROD: 'https://api.heartlandportico.com/SecureSubmit.v1/token/2.1/'
-};
-
-/**
- * @namespace Heartland.Util
- */
-var Util = (function () {
-    function Util() {
-    }
-    /**
-     * Heartland.Util.getCardType
-     *
-     * Parses a credit card number to obtain the card type/brand.
-     *
-     * @param {string} tokenizationType
-     * @param {Heartland.Options} options
-     */
-    Util.getCardType = function (tokenizationType, options) {
-        var cardType;
-        var data = '';
-        var type = 'unknown';
-        switch (tokenizationType) {
-            case 'swipe':
-                data = options.track;
-                cardType = Card.typeByTrack(data);
-                break;
-            case 'encrypted':
-                data = options.track;
-                cardType = Card.typeByTrack(data, true, options.trackNumber);
-                break;
-            default:
-                data = options.cardNumber;
-                cardType = Card.typeByNumber(data);
-                break;
-        }
-        if (cardType) {
-            type = cardType.code;
-        }
-        return type;
-    };
-    /**
-     * Heartland.Util.applyOptions
-     *
-     * Creates a single object by merging a `source` (default) and `properties`
-     * obtained elsewhere, e.g. a function argument in `HPS`. Any properties in
-     * `properties` will overwrite matching properties in `source`.
-     *
-     * @param {Heartland.Options} source
-     * @param {Heartland.Options} properties
-     * @returns {Heartland.Options}
-     */
-    Util.applyOptions = function (source, properties) {
-        var destination = {};
-        if (!source) {
-            source = {};
-        }
-        for (var property in source) {
-            if (source.hasOwnProperty(property)) {
-                destination[property] = source[property];
-            }
-        }
-        for (var property in properties) {
-            if (properties.hasOwnProperty(property)) {
-                destination[property] = properties[property];
-            }
-        }
-        return destination;
-    };
-    /**
-     * Heartland.Util.throwError
-     *
-     * Allows a merchant-defined error handler to be used in cases where the
-     * tokenization process fails. If not provided, we throw the message as a
-     * JS runtime error.
-     *
-     * @param {Heartland.Options} options
-     * @param {string | Heartland.TokenizationResponse} errorMessage
-     */
-    Util.throwError = function (options, errorMessage) {
-        if (typeof (options.error) === 'function') {
-            options.error(errorMessage);
-        }
-        else {
-            throw errorMessage;
-        }
-    };
-    /**
-     * Heartland.Util.getItemByPropertyValue
-     *
-     * Enumerates over a `collection` to retreive an item whose `property` is
-     * a given `value`.
-     *
-     * @param {any} collection
-     * @param {string} property
-     * @param {any} value
-     * @returns {any}
-     */
-    Util.getItemByPropertyValue = function (collection, property, value) {
-        var length = collection.length;
-        var i = 0;
-        for (i; i < length; i++) {
-            if (collection[i][property] === value) {
-                return collection[i];
-            }
-        }
-    };
-    /**
-     * Heartland.Util.getParams
-     *
-     * Builds param list for a particular `type` from expected properties in
-     * `data`.
-     *
-     * @param {string} type - The tokenization type
-     * @param {Heartland.Options} data
-     * @returns {string}
-     */
-    Util.getParams = function (type, data) {
-        var params = [];
-        switch (type) {
-            case 'pan':
-                params.push('token_type=supt', 'object=token', '_method=post', 'api_key=' + data.publicKey.replace(/^\s+|\s+$/g, ''), 'card%5Bnumber%5D=' + data.cardNumber.replace(/\s/g, ''), 'card%5Bexp_month%5D=' + data.cardExpMonth.replace(/^\s+|\s+$/g, ''), 'card%5Bexp_year%5D=' + data.cardExpYear.replace(/^\s+|\s+$/g, ''), 'card%5Bcvc%5D=' + data.cardCvv.replace(/^\s+|\s+$/g, ''));
-                break;
-            case 'swipe':
-                params.push('token_type=supt', 'object=token', '_method=post', 'api_key=' + data.publicKey.replace(/^\s+|\s+$/g, ''), 'card%5Btrack_method%5D=swipe', 'card%5Btrack%5D=' + encodeURIComponent(data.track.replace(/^\s+|\s+$/g, '')));
-                break;
-            case 'encrypted':
-                params.push('token_type=supt', 'object=token', '_method=post', 'api_key=' + data.publicKey.replace(/^\s+|\s+$/g, ''), 'encryptedcard%5Btrack_method%5D=swipe', 'encryptedcard%5Btrack%5D=' + encodeURIComponent(data.track.replace(/^\s+|\s+$/g, '')), 'encryptedcard%5Btrack_number%5D=' + encodeURIComponent(data.trackNumber.replace(/^\s+|\s+$/g, '')), 'encryptedcard%5Bktb%5D=' + encodeURIComponent(data.ktb.replace(/^\s+|\s+$/g, '')), 'encryptedcard%5Bpin_block%5D=' + encodeURIComponent(data.pinBlock.replace(/^\s+|\s+$/g, '')));
-                break;
-            default:
-                Util.throwError(data, 'unknown params type');
-                break;
-        }
-        return params.join('&');
-    };
-    /**
-     * Heartland.Util.getUrlByEnv
-     *
-     * Selects the appropriate tokenization service URL for the
-     * active `publicKey`.
-     *
-     * @param {Heartland.Options} options
-     * @returns {string}
-     */
-    Util.getUrlByEnv = function (options) {
-        options.env = options.publicKey.split('_')[1];
-        if (options.env === 'cert') {
-            options.gatewayUrl = urls.CERT;
-        }
-        else {
-            options.gatewayUrl = urls.PROD;
-        }
-        return options;
-    };
-    /**
-     * Heartland.Util.addFormHandler
-     *
-     * Creates and adds an event handler function for the submission for a given
-     * form (`options.form_id`).
-     *
-     * @param {Heartland.Options} options
-     * @listens submit
-     */
-    Util.addFormHandler = function (options) {
-        var payment_form = document.getElementById(options.formId);
-        var code = function (e) {
-            if (e.preventDefault) {
-                e.preventDefault();
-            }
-            else if (window.event) {
-                window.event.returnValue = false;
-            }
-            var fields = Util.getFields(options.formId);
-            var cardType = Util.getCardType(fields.number, 'pan');
-            options.cardNumber = fields.number;
-            options.cardExpMonth = fields.expMonth;
-            options.cardExpYear = fields.expYear;
-            options.cardCvv = fields.cvv;
-            options.cardType = cardType;
-            Ajax.call('pan', options);
-        };
-        Events.addHandler(payment_form, 'submit', code);
-        DOM.addField(options.formId, 'hidden', 'publicKey', options.publicKey);
-    };
-    /**
-     * Heartland.Util.getFields
-     *
-     * Extracts card information from the fields with names `card_number`,
-     * `card_expiration_month`, `card_expiration_year`, and `card_cvc` and
-     * expects them to be present as children of `formParent`.
-     *
-     * @param {string} formParent
-     * @returns {Heartland.CardData}
-     */
-    Util.getFields = function (formParent) {
-        var form = document.getElementById(formParent);
-        var fields = {};
-        var i;
-        var length = form.childElementCount;
-        for (i = 0; i < length; i++) {
-            var element = form.children[i];
-            if (element.id === 'card_number') {
-                fields.number = element.value;
-            }
-            else if (element.id === 'card_expiration_month') {
-                fields.expMonth = element.value;
-            }
-            else if (element.id === 'card_expiration_year') {
-                fields.expYear = element.value;
-            }
-            else if (element.id === 'card_cvc') {
-                fields.cvv = element.value;
-            }
-        }
-        return fields;
-    };
-    return Util;
-}());
-
-/**
- * @namespace Heartland.Ajax
- */
-var Ajax = (function () {
-    function Ajax() {
-    }
-    /**
-     * Heartland.Ajax.call
-     *
-     * Sets up a request to be passed to `Heartland.Ajax.jsonp`. On successful tokenization,
-     * `options.success` will be called with the tokenization data as the only
-     * argument passed.
-     *
-     * @param {string} type
-     * @param {Heartland.Options} options
-     */
-    Ajax.call = function (type, options) {
-        var cardType = Util.getCardType(type, options);
-        var params = Util.getParams(type, options);
-        var request = {
-            payload: params,
-            url: options.gatewayUrl
-        };
-        Ajax.jsonp(request, function (data) {
-            if (data.error) {
-                Util.throwError(options, data);
-            }
-            else {
-                var card = data.card || data.encryptedcard;
-                var lastfour = card.number.slice(-4);
-                data.last_four = lastfour;
-                data.card_type = cardType;
-                data.exp_month = options.cardExpMonth;
-                data.exp_year = options.cardExpYear;
-                if (options.formId && options.formId.length > 0) {
-                    DOM.addField(options.formId, 'hidden', 'token_value', data.token_value);
-                    DOM.addField(options.formId, 'hidden', 'last_four', lastfour);
-                    DOM.addField(options.formId, 'hidden', 'card_exp_year', options.cardExpYear);
-                    DOM.addField(options.formId, 'hidden', 'card_exp_month', options.cardExpMonth);
-                    DOM.addField(options.formId, 'hidden', 'card_type', cardType);
-                }
-                options.success(data);
-            }
-        });
-    };
-    /**
-     * Heartland.Ajax.jsonp
-     *
-     * Creates a new DOM node containing a created JSONP callback handler for an
-     * impending Ajax JSONP request. Removes need for `XMLHttpRequest`.
-     *
-     * @param {string} url
-     * @param {function} callback
-     */
-    Ajax.jsonp = function (request, callback) {
-        var script = document.createElement('script');
-        var callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
-        window[callbackName] = function (data) {
-            window[callbackName] = undefined;
-            document.body.removeChild(script);
-            callback(data);
-        };
-        script.src = request.url + (request.url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName
-            + '&' + request.payload;
-        document.body.appendChild(script);
-    };
-    /**
-     * Heartland.Ajax.cors
-     *
-     * Creates a new XMLHttpRequest object for a POST request to the given `url`.
-     *
-     * @param {string} url
-     * @param {function} callback
-     */
-    Ajax.cors = function (request, payload, callback) {
-        var xhr;
-        var method = 'POST';
-        var timeout;
-        if ((new XMLHttpRequest()).withCredentials === undefined) {
-            xhr = new window.XDomainRequest();
-            method = 'GET';
-            request.url = request.url.split('?')[0];
-            request.url = request.url + '?' + request.payload;
-            payload = null;
-            xhr.open(method, request.url);
-        }
-        else {
-            xhr = new XMLHttpRequest();
-            xhr.open(method, request.url);
-            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        }
-        var cb = function (e) {
-            clearTimeout(timeout);
-            if (e.type === 'error') {
-                callback({ error: { message: 'communication error' } });
-                return;
-            }
-            if (xhr.readyState === 4 || (xhr.readyState !== 4 && xhr.responseText !== '')) {
-                var data = JSON.parse(xhr.responseText);
-                callback(data);
-            }
-            else {
-                callback({ error: { message: 'no data' } });
-            }
-        };
-        xhr.onload = cb;
-        xhr.onerror = cb;
-        xhr.send(payload);
-        timeout = setTimeout(function () {
-            xhr.abort();
-            callback({ error: { message: 'timeout' } });
-        }, 5000);
-    };
-    return Ajax;
-}());
-
 var Formatter = {
     CardNumber: CardNumber,
     Expiration: Expiration
@@ -1490,6 +1658,13 @@ var fields = [
     'cardExpiration',
     'submit'
 ];
+
+var urls = {
+    CERT: 'https://cert.api2.heartlandportico.com/Hps.Exchange.PosGateway.Hpf.v1/api/token',
+    PROD: 'https://api.heartlandportico.com/SecureSubmit.v1/api/token',
+    iframeCERT: 'https://hps.github.io/token/2.1/',
+    iframePROD: 'https://api.heartlandportico.com/SecureSubmit.v1/token/2.1/'
+};
 
 /**
  * Heartland.Messages
@@ -1627,7 +1802,10 @@ var Messages = (function () {
     Messages.prototype.receive = function (callback, sourceOrigin) {
         if (window.postMessage) {
             this.callback = function (m) {
-                callback(JSON.parse(m.data));
+                try {
+                    callback(JSON.parse(m.data));
+                }
+                catch (e) { }
             };
             if (window.addEventListener) {
                 window.addEventListener('message', this.callback, !1);
@@ -1890,7 +2068,7 @@ var Frames = (function () {
                     hps.Messages.post({
                         accumulateData: !!hps.frames.cardNumber,
                         action: 'tokenize',
-                        message: options.publicKey
+                        data: options
                     }, hps.frames.cardNumber ? 'cardNumber' : 'child');
                     break;
                 case 'onTokenSuccess':
@@ -1997,6 +2175,12 @@ var Frames = (function () {
             if (field === 'submit') {
                 url = url + 'button.html';
             }
+            else if (options.cca && options.env === 'cert') {
+                url = url + 'fieldCca.cert.html';
+            }
+            else if (options.cca && options.env === 'prod') {
+                url = url + 'fieldCca.prod.html';
+            }
             else {
                 url = url + 'field.html';
             }
@@ -2052,6 +2236,321 @@ var Frames = (function () {
 }());
 
 /**
+ * @namespace Heartland.Util
+ */
+var Util = (function () {
+    function Util() {
+    }
+    /**
+     * Heartland.Util.getCardType
+     *
+     * Parses a credit card number to obtain the card type/brand.
+     *
+     * @param {string} tokenizationType
+     * @param {Heartland.Options} options
+     */
+    Util.getCardType = function (tokenizationType, options) {
+        var cardType;
+        var data = '';
+        var type = 'unknown';
+        switch (tokenizationType) {
+            case 'swipe':
+                data = options.track;
+                cardType = Card.typeByTrack(data);
+                break;
+            case 'encrypted':
+                data = options.track;
+                cardType = Card.typeByTrack(data, true, options.trackNumber);
+                break;
+            default:
+                data = options.cardNumber;
+                cardType = Card.typeByNumber(data);
+                break;
+        }
+        if (cardType) {
+            type = cardType.code;
+        }
+        return type;
+    };
+    /**
+     * Heartland.Util.applyOptions
+     *
+     * Creates a single object by merging a `source` (default) and `properties`
+     * obtained elsewhere, e.g. a function argument in `HPS`. Any properties in
+     * `properties` will overwrite matching properties in `source`.
+     *
+     * @param {Heartland.Options} source
+     * @param {Heartland.Options} properties
+     * @returns {Heartland.Options}
+     */
+    Util.applyOptions = function (source, properties) {
+        var destination = {};
+        if (!source) {
+            source = {};
+        }
+        for (var property in source) {
+            if (source.hasOwnProperty(property)) {
+                destination[property] = source[property];
+            }
+        }
+        for (var property in properties) {
+            if (properties.hasOwnProperty(property)) {
+                destination[property] = properties[property];
+            }
+        }
+        return destination;
+    };
+    /**
+     * Heartland.Util.throwError
+     *
+     * Allows a merchant-defined error handler to be used in cases where the
+     * tokenization process fails. If not provided, we throw the message as a
+     * JS runtime error.
+     *
+     * @param {Heartland.Options} options
+     * @param {string | Heartland.TokenizationResponse} errorMessage
+     */
+    Util.throwError = function (options, errorMessage) {
+        if (typeof (options.error) === 'function') {
+            options.error(errorMessage);
+        }
+        else {
+            throw errorMessage;
+        }
+    };
+    /**
+     * Heartland.Util.getItemByPropertyValue
+     *
+     * Enumerates over a `collection` to retreive an item whose `property` is
+     * a given `value`.
+     *
+     * @param {any} collection
+     * @param {string} property
+     * @param {any} value
+     * @returns {any}
+     */
+    Util.getItemByPropertyValue = function (collection, property, value) {
+        var length = collection.length;
+        var i = 0;
+        for (i; i < length; i++) {
+            if (collection[i][property] === value) {
+                return collection[i];
+            }
+        }
+    };
+    /**
+     * Heartland.Util.getParams
+     *
+     * Builds param list for a particular `type` from expected properties in
+     * `data`.
+     *
+     * @param {string} type - The tokenization type
+     * @param {Heartland.Options} data
+     * @returns {string}
+     */
+    Util.getParams = function (type, data) {
+        var params = [];
+        switch (type) {
+            case 'pan':
+                params.push('token_type=supt', 'object=token', '_method=post', 'api_key=' + data.publicKey.replace(/^\s+|\s+$/g, ''), 'card%5Bnumber%5D=' + data.cardNumber.replace(/\s/g, ''), 'card%5Bexp_month%5D=' + data.cardExpMonth.replace(/^\s+|\s+$/g, ''), 'card%5Bexp_year%5D=' + data.cardExpYear.replace(/^\s+|\s+$/g, ''), 'card%5Bcvc%5D=' + data.cardCvv.replace(/^\s+|\s+$/g, ''));
+                break;
+            case 'swipe':
+                params.push('token_type=supt', 'object=token', '_method=post', 'api_key=' + data.publicKey.replace(/^\s+|\s+$/g, ''), 'card%5Btrack_method%5D=swipe', 'card%5Btrack%5D=' + encodeURIComponent(data.track.replace(/^\s+|\s+$/g, '')));
+                break;
+            case 'encrypted':
+                params.push('token_type=supt', 'object=token', '_method=post', 'api_key=' + data.publicKey.replace(/^\s+|\s+$/g, ''), 'encryptedcard%5Btrack_method%5D=swipe', 'encryptedcard%5Btrack%5D=' + encodeURIComponent(data.track.replace(/^\s+|\s+$/g, '')), 'encryptedcard%5Btrack_number%5D=' + encodeURIComponent(data.trackNumber.replace(/^\s+|\s+$/g, '')), 'encryptedcard%5Bktb%5D=' + encodeURIComponent(data.ktb.replace(/^\s+|\s+$/g, '')), 'encryptedcard%5Bpin_block%5D=' + encodeURIComponent(data.pinBlock.replace(/^\s+|\s+$/g, '')));
+                break;
+            default:
+                Util.throwError(data, 'unknown params type');
+                break;
+        }
+        return params.join('&');
+    };
+    /**
+     * Heartland.Util.getUrlByEnv
+     *
+     * Selects the appropriate tokenization service URL for the
+     * active `publicKey`.
+     *
+     * @param {Heartland.Options} options
+     * @returns {string}
+     */
+    Util.getUrlByEnv = function (options) {
+        options.env = options.publicKey.split('_')[1];
+        if (options.env === 'cert') {
+            options.gatewayUrl = urls.CERT;
+        }
+        else {
+            options.gatewayUrl = urls.PROD;
+        }
+        return options;
+    };
+    /**
+     * Heartland.Util.addFormHandler
+     *
+     * Creates and adds an event handler function for the submission for a given
+     * form (`options.form_id`).
+     *
+     * @param {Heartland.Options} options
+     * @listens submit
+     */
+    Util.addFormHandler = function (options) {
+        var payment_form = document.getElementById(options.formId);
+        var code = function (e) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+            else if (window.event) {
+                window.event.returnValue = false;
+            }
+            var fields = Util.getFields(options.formId);
+            var cardType = Util.getCardType(fields.number, 'pan');
+            options.cardNumber = fields.number;
+            options.cardExpMonth = fields.expMonth;
+            options.cardExpYear = fields.expYear;
+            options.cardCvv = fields.cvv;
+            options.cardType = cardType;
+            Ajax.call('pan', options);
+        };
+        Events.addHandler(payment_form, 'submit', code);
+        DOM.addField(options.formId, 'hidden', 'publicKey', options.publicKey);
+    };
+    /**
+     * Heartland.Util.getFields
+     *
+     * Extracts card information from the fields with names `card_number`,
+     * `card_expiration_month`, `card_expiration_year`, and `card_cvc` and
+     * expects them to be present as children of `formParent`.
+     *
+     * @param {string} formParent
+     * @returns {Heartland.CardData}
+     */
+    Util.getFields = function (formParent) {
+        var form = document.getElementById(formParent);
+        var fields = {};
+        var i;
+        var length = form.childElementCount;
+        for (i = 0; i < length; i++) {
+            var element = form.children[i];
+            if (element.id === 'card_number') {
+                fields.number = element.value;
+            }
+            else if (element.id === 'card_expiration_month') {
+                fields.expMonth = element.value;
+            }
+            else if (element.id === 'card_expiration_year') {
+                fields.expYear = element.value;
+            }
+            else if (element.id === 'card_cvc') {
+                fields.cvv = element.value;
+            }
+        }
+        return fields;
+    };
+    return Util;
+}());
+
+var HeartlandTokenService = (function () {
+    function HeartlandTokenService(url, type) {
+        if (type === void 0) { type = "pan"; }
+        this.url = url;
+        this.type = type;
+    }
+    HeartlandTokenService.prototype.tokenize = function (data, callback) {
+        var _this = this;
+        this.requestData = data;
+        Ajax.jsonp(this.buildRequest(data), function (response) {
+            callback(_this.deserializeResponseData(response));
+        });
+    };
+    HeartlandTokenService.prototype.buildRequest = function (data) {
+        return new JsonpRequest(this.url, this.serializeRequestData(data));
+    };
+    HeartlandTokenService.prototype.serializeRequestData = function (data) {
+        return Util.getParams(this.type, data);
+    };
+    HeartlandTokenService.prototype.deserializeResponseData = function (data) {
+        if (data.error) {
+            return data;
+        }
+        var cardType = Util.getCardType(this.type, this.requestData);
+        var card = data.card || data.encryptedcard;
+        var lastfour = card.number.slice(-4);
+        data.last_four = lastfour;
+        data.card_type = cardType;
+        data.exp_month = this.requestData.cardExpMonth;
+        data.exp_year = this.requestData.cardExpYear;
+        return data;
+    };
+    return HeartlandTokenService;
+}());
+
+var CardinalTokenService = (function () {
+    function CardinalTokenService(jwt) {
+        this.jwt = jwt;
+    }
+    CardinalTokenService.prototype.tokenize = function (data, callback) {
+        var _this = this;
+        var request = this.buildRequest(data);
+        var cardinal = window.Cardinal;
+        var cb = function (responseData, jwt) {
+            responseData.jwt = jwt;
+            callback(_this.deserializeResponseData(responseData));
+        };
+        cardinal.setup('init', { jwt: this.jwt });
+        cardinal.on('payments.validated', cb);
+        cardinal.start('cca', request.payload);
+    };
+    CardinalTokenService.prototype.buildRequest = function (data) {
+        return new NullRequest({
+            Consumer: {
+                Account: {
+                    AccountNumber: data.cardNumber.replace(/\D/g, ''),
+                    CardCode: data.cardCvv.replace(/^\s+|\s+$/g, ''),
+                    ExpirationMonth: data.cardExpMonth.replace(/^\s+|\s+$/g, ''),
+                    ExpirationYear: data.cardExpYear.replace(/^\s+|\s+$/g, '')
+                }
+            },
+            Options: {
+                EnableCCA: false
+            },
+            OrderDetails: {
+                OrderNumber: data.cca.orderNumber
+            }
+        });
+    };
+    CardinalTokenService.prototype.serializeRequestData = function (data) {
+        return data;
+    };
+    CardinalTokenService.prototype.deserializeResponseData = function (data) {
+        if (typeof data.Token !== "undefined" &&
+            data.Token.Token !== "undefined" &&
+            data.Token.ReasonCode === "0") {
+            return this.deserializeSuccessResponse(data);
+        }
+        return this.deserializeFailureResponse(data);
+    };
+    CardinalTokenService.prototype.deserializeSuccessResponse = function (data) {
+        return {
+            jwt: data.jwt,
+            token_value: data.Token.Token
+        };
+    };
+    CardinalTokenService.prototype.deserializeFailureResponse = function (data) {
+        var message = data.ErrorDescription;
+        if (data.Token && data.Token.ReasonDescription !== "") {
+            message = data.Token.ReasonDescription;
+        }
+        return {
+            error: {
+                message: message
+            }
+        };
+    };
+    return CardinalTokenService;
+}());
+
+/**
  * Heartland.HPS
  *
  * Initializes options and adds the default form handler if a `formId` is
@@ -2095,6 +2594,7 @@ var HPS = (function () {
      * @param {Heartland.Options} options [optional]
      */
     HPS.prototype.tokenize = function (options) {
+        var _this = this;
         options = options || {};
         if (options) {
             this.options = Util.applyOptions(this.options, options);
@@ -2102,14 +2602,48 @@ var HPS = (function () {
         }
         if (this.options.type === 'iframe') {
             this.Messages.post({
-                action: 'tokenize',
-                message: this.options.publicKey
-            }, 'child');
+                action: 'requestTokenize'
+            }, 'parent');
             return;
         }
-        Ajax.call(this.options.type, this.options);
+        var tokens = {
+            cardinal: null,
+            heartland: null
+        };
+        var callback = function (response) {
+            if (response.error) {
+                Util.throwError(_this.options, response);
+            }
+            else {
+                if (_this.options.formId && _this.options.formId.length > 0) {
+                    var heartland = response.heartland || response;
+                    DOM.addField(_this.options.formId, 'hidden', 'token_value', heartland.token_value);
+                    DOM.addField(_this.options.formId, 'hidden', 'last_four', heartland.last_four);
+                    DOM.addField(_this.options.formId, 'hidden', 'card_exp_year', heartland.exp_year);
+                    DOM.addField(_this.options.formId, 'hidden', 'card_exp_month', heartland.exp_month);
+                    DOM.addField(_this.options.formId, 'hidden', 'card_type', heartland.card_type);
+                }
+                _this.options.success(response);
+            }
+        };
+        var callbackWrapper = function (type) {
+            return function (response) {
+                tokens[type] = response;
+                if (_this.options.cca && tokens.cardinal && tokens.heartland) {
+                    callback(tokens);
+                }
+                if (!_this.options.cca && tokens.heartland) {
+                    callback(tokens.heartland);
+                }
+            };
+        };
+        (new HeartlandTokenService(this.options.gatewayUrl, this.options.type))
+            .tokenize(this.options, callbackWrapper('heartland'));
+        if (this.options.cca) {
+            (new CardinalTokenService(this.options.cca.jwt))
+                .tokenize(this.options, callbackWrapper('cardinal'));
+        }
     };
-    ;
     /**
      * Heartland.HPS.configureInternalIframe
      *

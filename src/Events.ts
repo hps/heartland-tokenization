@@ -1,8 +1,10 @@
-import {DOM} from "./DOM";
-import {HPS} from "./HPS";
-import {CardData} from "./types/CardData";
-import {TokenizationResponse} from "./types/TokenizationResponse";
-import {Expiration as ExpirationFormatter} from "./formatter/Expiration";
+import { DOM } from "./DOM";
+import { HPS } from "./HPS";
+import { CardData } from "./types/CardData";
+import { Options } from "./types/Options";
+import { TokenizationResponse } from "./types/TokenizationResponse";
+import { Expiration as ExpirationFormatter } from "./formatter/Expiration";
+import { JSON2 } from "./vendor/json2";
 
 class Ev {
   public static listen(node: EventTarget, eventName: string, callback: EventListener) {
@@ -10,7 +12,7 @@ class Ev {
       node.addEventListener(eventName, callback, false);
     } else {
       if (node === document) {
-        (<any>document.documentElement).attachEvent('onpropertychange', function (e: Event) {
+        (<any>document.documentElement).attachEvent('onpropertychange', function(e: Event) {
           if ((<any>e).propertyName === eventName) {
             callback(e);
           }
@@ -33,7 +35,7 @@ class Ev {
     if (document.removeEventListener) {
       document.removeEventListener(eventName, callback, false);
     } else {
-      (<any>document.documentElement).detachEvent('onpropertychange', function (e: Event) {
+      (<any>document.documentElement).detachEvent('onpropertychange', function(e: Event) {
         if ((<any>e).propertyName === eventName) {
           callback(e);
         }
@@ -122,7 +124,7 @@ export class Events {
    * @param {Heartland.HPS} hps
    */
   public static frameHandleWith(hps: HPS): (m: any) => void {
-    return function (data) {
+    return function(data) {
       switch (data.action) {
         case 'tokenize':
           if (data.accumulateData) {
@@ -133,14 +135,14 @@ export class Events {
               'parent'
             );
             const el = document.createElement('input');
-            el.id = 'publicKey';
+            el.id = 'tokenizeOptions';
             el.type = 'hidden';
-            el.value = data.message;
+            el.value = JSON2.stringify(data.data);
             document
               .getElementById('heartland-field-wrapper')
               .appendChild(el);
           } else {
-            Events.tokenizeIframe(hps, data.message);
+            Events.tokenizeIframe(hps, data.data);
           }
           break;
         case 'setStyle':
@@ -163,8 +165,8 @@ export class Events {
           if (document.getElementById('heartland-field') &&
             document.getElementById('cardCvv') &&
             document.getElementById('cardExpiration')) {
-            const pkey = document.getElementById('publicKey');
-            Events.tokenizeIframe(hps, (pkey ? pkey.getAttribute('value') : ''));
+            const opts = document.getElementById('tokenizeOptions');
+            Events.tokenizeIframe(hps, (opts ? JSON2.parse(opts.getAttribute('value')) : null));
           }
           break;
         case 'getFieldData':
@@ -190,7 +192,7 @@ export class Events {
    * @param {Heartland.HPS} hps
    * @param {string} publicKey
    */
-  public static tokenizeIframe(hps: HPS, publicKey: string) {
+  public static tokenizeIframe(hps: HPS, data: Options) {
     const card: CardData = {};
     const numberElement = <HTMLInputElement>(document.getElementById('heartland-field')
       || document.getElementById('heartland-card-number'));
@@ -237,8 +239,9 @@ export class Events {
       cardExpMonth: card.expMonth ? card.expMonth : '',
       cardExpYear: card.expYear ? card.expYear : '',
       cardNumber: card.number ? card.number : '',
+      cca: data.cca,
       error: tokenResponse('onTokenError'),
-      publicKey: publicKey ? publicKey : '',
+      publicKey: data.publicKey ? data.publicKey : '',
       success: tokenResponse('onTokenSuccess'),
       type: 'pan'
     });

@@ -26,7 +26,7 @@ export const HeartlandTest = {
     let called = false;
     return function (response: TokenizationResponse) {
       if (called) { return; }
-      assert.ok(false, (<any>response.error).message);
+      assert.ok(false, response.error.message);
       done();
       called = true;
     };

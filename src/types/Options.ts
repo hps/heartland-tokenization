@@ -29,4 +29,8 @@ export interface Options {
   onTokenError?: Function;
   style?: Object;
   styleString?: string;
+  cca?: {
+    orderNumber?: string;
+    jwt?: string;
+  };
 }
