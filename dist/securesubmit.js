@@ -939,7 +939,9 @@ var Card = (function () {
             // allow: Ctrl+A
             (e.keyCode === 65 && e.ctrlKey === true) ||
             // allow: home, end, left, right
-            (e.keyCode >= 35 && e.keyCode <= 39)) {
+            (e.keyCode >= 35 && e.keyCode <= 39) ||
+            // allow: weird Android/Chrome issue
+            (e.keyCode === 229)) {
             // let it happen, don't do anything
             return;
         }
