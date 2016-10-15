@@ -1125,10 +1125,18 @@ var Events = (function () {
                         hps.Messages.post({
                             action: 'accumulateData'
                         }, 'parent');
-                        var el = document.createElement('input');
-                        el.id = 'tokenizeOptions';
-                        el.type = 'hidden';
-                        el.value = JSON2.stringify(data.data);
+                        var el = document.getElementById('tokenizeOptions');
+                        if (!el) {
+                            el = document.createElement('input');
+                            el.id = 'tokenizeOptions';
+                            el.type = 'hidden';
+                        }
+                        if (data.data) {
+                            el.value = JSON2.stringify(data.data);
+                        }
+                        else {
+                            el.value = JSON2.stringify({ publicKey: data.message });
+                        }
                         document
                             .getElementById('heartland-field-wrapper')
                             .appendChild(el);
