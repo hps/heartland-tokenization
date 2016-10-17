@@ -68,7 +68,7 @@ export class Frames {
           {
             accumulateData: !!hps.frames.cardNumber,
             action: 'tokenize',
-            message: options.publicKey
+            data: { publicKey: options.publicKey }
           },
           hps.frames.cardNumber ? 'cardNumber' : 'child'
         );

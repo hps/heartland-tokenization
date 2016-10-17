@@ -5,11 +5,11 @@
     <title>Hosted Fields Test</title>
   </head>
   <body>
-    <form action="/charge.php" method="get">
+    <form id="form" action="/charge.php" method="get">
       <div id="cardNumber"></div>
       <div id="cardCvv"></div>
       <div id="cardExp"></div>
-      <div id="cardSubmit"></div>
+      <div id="cardSubmit"><input id="submit" type="submit"</div>
     </form>
     <script type="text/javascript" src="../dist/securesubmit.min.js"></script>
     <script type="text/javascript">
@@ -29,10 +29,10 @@
             cardExpiration: {
               target: 'cardExp',
               placeholder: 'MM / YYYY'
-            },
-            submit: {
-              target: 'cardSubmit'
-            }
+            }//,
+            //submit: {
+            //  target: 'cardSubmit'
+            //}
           },
           onTokenSuccess: function (response) {
             console.log(response);
@@ -41,6 +41,12 @@
             console.log(response);
           }
         });
+        document.getElementById('form').addEventListener('submit', function (e) {
+          e.preventDefault();
+          //hps.Messages.post({action:'tokenize', accumulateData: true, message: 'pkapi_cert_dNpEYIISXCGDDyKJiV'}, 'cardNumber');
+
+          hps.tokenize();
+        })
       }());
     </script>
   </body>

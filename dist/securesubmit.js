@@ -1670,7 +1670,7 @@ var fields = [
 var urls = {
     CERT: 'https://cert.api2.heartlandportico.com/Hps.Exchange.PosGateway.Hpf.v1/api/token',
     PROD: 'https://api.heartlandportico.com/SecureSubmit.v1/api/token',
-    iframeCERT: 'https://hps.github.io/token/2.1/',
+    iframeCERT: 'http://localhost:7778/dist/',
     iframePROD: 'https://api.heartlandportico.com/SecureSubmit.v1/token/2.1/'
 };
 
@@ -2057,7 +2057,7 @@ var Frames = (function () {
                 hps.Messages.post({
                     accumulateData: !!hps.frames.cardNumber,
                     action: 'tokenize',
-                    message: options.publicKey
+                    data: { publicKey: options.publicKey }
                 }, hps.frames.cardNumber ? 'cardNumber' : 'child');
                 return false;
             };
@@ -2321,10 +2321,12 @@ var Util = (function () {
     Util.throwError = function (options, errorMessage) {
         if (typeof (options.error) === 'function') {
             options.error(errorMessage);
+            return;
         }
-        else {
-            throw errorMessage;
+        if (errorMessage.error) {
+            throw new Error(errorMessage.error.message);
         }
+        throw new Error(errorMessage);
     };
     /**
      * Heartland.Util.getItemByPropertyValue
@@ -2359,6 +2361,7 @@ var Util = (function () {
     Util.getParams = function (type, data) {
         var params = [];
         switch (type) {
+            case 'iframe':
             case 'pan':
                 params.push('token_type=supt', 'object=token', '_method=post', 'api_key=' + data.publicKey.replace(/^\s+|\s+$/g, ''), 'card%5Bnumber%5D=' + data.cardNumber.replace(/\s/g, ''), 'card%5Bexp_month%5D=' + data.cardExpMonth.replace(/^\s+|\s+$/g, ''), 'card%5Bexp_year%5D=' + data.cardExpYear.replace(/^\s+|\s+$/g, ''), 'card%5Bcvc%5D=' + data.cardCvv.replace(/^\s+|\s+$/g, ''));
                 break;
@@ -2608,10 +2611,21 @@ var HPS = (function () {
             this.options = Util.applyOptions(this.options, options);
             this.options = Util.getUrlByEnv(this.options);
         }
-        if (this.options.type === 'iframe') {
+        if (this.options.type === 'iframe' && !!this.frames.cardNumber) {
+            console.log('hello');
             this.Messages.post({
-                action: 'requestTokenize'
-            }, 'parent');
+                accumulateData: !!this.frames.cardNumber,
+                action: 'tokenize',
+                data: { publicKey: this.options.publicKey }
+            }, 'cardNumber');
+            return;
+        }
+        else if (this.options.type === 'iframe') {
+            console.log('hi');
+            this.Messages.post({
+                action: 'tokenize',
+                data: { publicKey: this.options.publicKey }
+            }, 'child');
             return;
         }
         var tokens = {

@@ -13,12 +13,12 @@ suite('tokenize iframe', function () {
       type: 'iframe',
       iframeTarget: id,
       onTokenSuccess: HeartlandTest.check_for_token(assert, done, function () {
-        const el = document.getElementById(id);
-        el.parentNode.removeChild(el);
+        // const el = document.getElementById(id);
+        // el.parentNode.removeChild(el);
       }),
       onTokenError: HeartlandTest.default_error(assert, done, function () {
-        const el = document.getElementById(id);
-        el.parentNode.removeChild(el);
+        // const el = document.getElementById(id);
+        // el.parentNode.removeChild(el);
       })
     });
     HeartlandTest.addHandler(document, 'securesubmitIframeReady', function () {
