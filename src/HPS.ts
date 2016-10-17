@@ -100,7 +100,6 @@ export class HPS {
     }
 
     if (this.options.type === 'iframe' && !!this.frames.cardNumber) {
-      console.log('hello');
       this.Messages.post({
         accumulateData: !!this.frames.cardNumber,
         action: 'tokenize',
@@ -108,7 +107,6 @@ export class HPS {
       }, 'cardNumber');
       return;
     } else if (this.options.type === 'iframe') {
-      console.log('hi');
       this.Messages.post({
         action: 'tokenize',
         data: { publicKey: this.options.publicKey }

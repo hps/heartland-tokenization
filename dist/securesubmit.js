@@ -2612,7 +2612,6 @@ var HPS = (function () {
             this.options = Util.getUrlByEnv(this.options);
         }
         if (this.options.type === 'iframe' && !!this.frames.cardNumber) {
-            console.log('hello');
             this.Messages.post({
                 accumulateData: !!this.frames.cardNumber,
                 action: 'tokenize',
@@ -2621,7 +2620,6 @@ var HPS = (function () {
             return;
         }
         else if (this.options.type === 'iframe') {
-            console.log('hi');
             this.Messages.post({
                 action: 'tokenize',
                 data: { publicKey: this.options.publicKey }
