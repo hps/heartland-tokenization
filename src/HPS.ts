@@ -98,13 +98,19 @@ export class HPS {
       this.options = Util.applyOptions(this.options, options);
       this.options = Util.getUrlByEnv(this.options);
     }
-    if (this.options.type === 'iframe') {
-      this.Messages.post(
-        {
-          action: 'requestTokenize'
-        },
-        'parent'
-      );
+
+    if (this.options.type === 'iframe' && !!this.frames.cardNumber) {
+      this.Messages.post({
+        accumulateData: !!this.frames.cardNumber,
+        action: 'tokenize',
+        data: { publicKey: this.options.publicKey }
+      }, 'cardNumber');
+      return;
+    } else if (this.options.type === 'iframe') {
+      this.Messages.post({
+        action: 'tokenize',
+        data: { publicKey: this.options.publicKey }
+      }, 'child');
       return;
     }
 

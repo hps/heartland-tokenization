@@ -93,9 +93,12 @@ export class Util {
   public static throwError(options: Options, errorMessage: string | TokenizationResponse) {
     if (typeof (options.error) === 'function') {
       options.error(errorMessage);
-    } else {
-      throw errorMessage;
+      return;
     }
+    if ((<TokenizationResponse>errorMessage).error) {
+      throw new Error((<TokenizationResponse>errorMessage).error.message);
+    }
+    throw new Error(<string>errorMessage);
   }
 
   /**
@@ -133,6 +136,7 @@ export class Util {
   public static getParams(type: string, data: Options) {
     const params: Array<string> = [];
     switch (type) {
+      case 'iframe':
       case 'pan':
         params.push(
           'token_type=supt',

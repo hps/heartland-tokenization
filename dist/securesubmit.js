@@ -1125,13 +1125,32 @@ var Events = (function () {
                         hps.Messages.post({
                             action: 'accumulateData'
                         }, 'parent');
-                        var el = document.createElement('input');
-                        el.id = 'tokenizeOptions';
-                        el.type = 'hidden';
-                        el.value = JSON2.stringify(data.data);
+                        var elOpts = document.getElementById('tokenizeOptions');
+                        if (!elOpts) {
+                            elOpts = document.createElement('input');
+                            elOpts.id = 'tokenizeOptions';
+                            elOpts.type = 'hidden';
+                        }
+                        var elPK = document.getElementById('publicKey');
+                        if (!elPK) {
+                            elPK = document.createElement('input');
+                            elPK.id = 'publicKey';
+                            elPK.type = 'hidden';
+                        }
+                        if (data.data) {
+                            elOpts.value = JSON2.stringify(data.data);
+                            elPK.value = data.data.publicKey;
+                        }
+                        else {
+                            elOpts.value = JSON2.stringify({ publicKey: data.message });
+                            elPK.value = data.message;
+                        }
                         document
                             .getElementById('heartland-field-wrapper')
-                            .appendChild(el);
+                            .appendChild(elOpts);
+                        document
+                            .getElementById('heartland-field-wrapper')
+                            .appendChild(elPK);
                     }
                     else {
                         Events.tokenizeIframe(hps, data.data);
@@ -1158,7 +1177,10 @@ var Events = (function () {
                         document.getElementById('cardCvv') &&
                         document.getElementById('cardExpiration')) {
                         var opts = document.getElementById('tokenizeOptions');
-                        Events.tokenizeIframe(hps, (opts ? JSON2.parse(opts.getAttribute('value')) : null));
+                        var pk = document.getElementById('publicKey');
+                        Events.tokenizeIframe(hps, (opts && opts.getAttribute('value') !== 'undefined'
+                            ? JSON2.parse(opts.getAttribute('value'))
+                            : { publicKey: pk.getAttribute('value') }));
                     }
                     break;
                 case 'getFieldData':
@@ -2049,7 +2071,7 @@ var Frames = (function () {
                 hps.Messages.post({
                     accumulateData: !!hps.frames.cardNumber,
                     action: 'tokenize',
-                    message: options.publicKey
+                    data: { publicKey: options.publicKey }
                 }, hps.frames.cardNumber ? 'cardNumber' : 'child');
                 return false;
             };
@@ -2313,10 +2335,12 @@ var Util = (function () {
     Util.throwError = function (options, errorMessage) {
         if (typeof (options.error) === 'function') {
             options.error(errorMessage);
+            return;
         }
-        else {
-            throw errorMessage;
+        if (errorMessage.error) {
+            throw new Error(errorMessage.error.message);
         }
+        throw new Error(errorMessage);
     };
     /**
      * Heartland.Util.getItemByPropertyValue
@@ -2351,6 +2375,7 @@ var Util = (function () {
     Util.getParams = function (type, data) {
         var params = [];
         switch (type) {
+            case 'iframe':
             case 'pan':
                 params.push('token_type=supt', 'object=token', '_method=post', 'api_key=' + data.publicKey.replace(/^\s+|\s+$/g, ''), 'card%5Bnumber%5D=' + data.cardNumber.replace(/\s/g, ''), 'card%5Bexp_month%5D=' + data.cardExpMonth.replace(/^\s+|\s+$/g, ''), 'card%5Bexp_year%5D=' + data.cardExpYear.replace(/^\s+|\s+$/g, ''), 'card%5Bcvc%5D=' + data.cardCvv.replace(/^\s+|\s+$/g, ''));
                 break;
@@ -2600,10 +2625,19 @@ var HPS = (function () {
             this.options = Util.applyOptions(this.options, options);
             this.options = Util.getUrlByEnv(this.options);
         }
-        if (this.options.type === 'iframe') {
+        if (this.options.type === 'iframe' && !!this.frames.cardNumber) {
             this.Messages.post({
-                action: 'requestTokenize'
-            }, 'parent');
+                accumulateData: !!this.frames.cardNumber,
+                action: 'tokenize',
+                data: { publicKey: this.options.publicKey }
+            }, 'cardNumber');
+            return;
+        }
+        else if (this.options.type === 'iframe') {
+            this.Messages.post({
+                action: 'tokenize',
+                data: { publicKey: this.options.publicKey }
+            }, 'child');
             return;
         }
         var tokens = {
