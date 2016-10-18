@@ -1125,21 +1125,32 @@ var Events = (function () {
                         hps.Messages.post({
                             action: 'accumulateData'
                         }, 'parent');
-                        var el = document.getElementById('tokenizeOptions');
-                        if (!el) {
-                            el = document.createElement('input');
-                            el.id = 'tokenizeOptions';
-                            el.type = 'hidden';
+                        var elOpts = document.getElementById('tokenizeOptions');
+                        if (!elOpts) {
+                            elOpts = document.createElement('input');
+                            elOpts.id = 'tokenizeOptions';
+                            elOpts.type = 'hidden';
+                        }
+                        var elPK = document.getElementById('publicKey');
+                        if (!elPK) {
+                            elPK = document.createElement('input');
+                            elPK.id = 'publicKey';
+                            elPK.type = 'hidden';
                         }
                         if (data.data) {
-                            el.value = JSON2.stringify(data.data);
+                            elOpts.value = JSON2.stringify(data.data);
+                            elPK.value = data.data.publicKey;
                         }
                         else {
-                            el.value = JSON2.stringify({ publicKey: data.message });
+                            elOpts.value = JSON2.stringify({ publicKey: data.message });
+                            elPK.value = data.message;
                         }
                         document
                             .getElementById('heartland-field-wrapper')
-                            .appendChild(el);
+                            .appendChild(elOpts);
+                        document
+                            .getElementById('heartland-field-wrapper')
+                            .appendChild(elPK);
                     }
                     else {
                         Events.tokenizeIframe(hps, data.data);
@@ -1166,7 +1177,10 @@ var Events = (function () {
                         document.getElementById('cardCvv') &&
                         document.getElementById('cardExpiration')) {
                         var opts = document.getElementById('tokenizeOptions');
-                        Events.tokenizeIframe(hps, (opts ? JSON2.parse(opts.getAttribute('value')) : null));
+                        var pk = document.getElementById('publicKey');
+                        Events.tokenizeIframe(hps, (opts && opts.getAttribute('value') !== 'undefined'
+                            ? JSON2.parse(opts.getAttribute('value'))
+                            : { publicKey: pk.getAttribute('value') }));
                     }
                     break;
                 case 'getFieldData':
