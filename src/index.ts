@@ -9,6 +9,7 @@ import {Messages} from "./Messages";
 import {Styles} from "./Styles";
 import {Util} from "./Util";
 import Validator from "./Validator";
+import {JSON2} from "./vendor/json2.ts";
 
 export default {
     Ajax: Ajax,
@@ -18,6 +19,7 @@ export default {
     Formatter: Formatter,
     Frames: Frames,
     HPS: HPS,
+    JSON: JSON2,
     Messages: Messages,
     Styles: Styles,
     Util: Util,
