@@ -1,6 +1,5 @@
 import {Events} from "./Events";
 import {HPS} from "./HPS";
-import {JSON2} from "./vendor/json2.ts";
 
 /**
  * Heartland.Messages
@@ -65,14 +64,14 @@ export class Messages {
 
       current = null;
       if (re.test(window.location.hash)) {
-        current = JSON2.parse(decodeURIComponent(window.location.hash.replace(re, '')));
+        current = JSON.parse(decodeURIComponent(window.location.hash.replace(re, '')));
         data.concat(current);
       }
 
       if (messageArr !== []) {
         hps.cacheBust = hps.cacheBust || 1;
         data.push({ data: messageArr, source: { name: hps.field || 'parent' } });
-        const message = JSON2.stringify(data);
+        const message = JSON.stringify(data);
         const url = targetUrl.replace(/#.*$/, '') + '#' +
           (+new Date()) + (hps.cacheBust++) + '&' +
           encodeURIComponent(message);
@@ -128,7 +127,7 @@ export class Messages {
 
     if (window.postMessage) {
       targetNode.postMessage(
-        JSON2.stringify(message),
+        JSON.stringify(message),
         targetUrl
       );
     } else {
@@ -158,7 +157,7 @@ export class Messages {
   receive(callback: Function, sourceOrigin: string): void {
     if (window.postMessage) {
       this.callback = function (m) {
-        try { callback(JSON2.parse(m.data)); } catch (e) { /* */ }
+        try { callback(JSON.parse(m.data)); } catch (e) { /* */ }
       };
       if (window.addEventListener) {
         window.addEventListener('message', this.callback, !1);
@@ -176,7 +175,7 @@ export class Messages {
           const hash = document.location.hash,
             re = /^#?\d+&/;
           if (hash !== this.lastHash && re.test(hash)) {
-            const data = JSON2.parse(decodeURIComponent(hash.replace(re, '')));
+            const data = JSON.parse(decodeURIComponent(hash.replace(re, '')));
             this.lastHash = hash;
 
             for (const i in data) {
