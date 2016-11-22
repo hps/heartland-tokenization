@@ -1,5 +1,4 @@
 import {TokenizationResponse} from "./types/TokenizationResponse";
-import {JSON2} from "./vendor/json2";
 
 export interface Request {
     type: string;
@@ -85,7 +84,7 @@ export class Ajax {
       }
 
       if (xhr.readyState === 4 || (xhr.readyState !== 4 && xhr.responseText !== '')) {
-        const data = JSON2.parse(xhr.responseText);
+        const data = JSON.parse(xhr.responseText);
         callback(data);
       } else {
         callback({error: {message: 'no data'}});

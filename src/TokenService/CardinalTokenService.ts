@@ -42,13 +42,8 @@ export class CardinalTokenService implements TokenService {
       responseData.jwt = jwt;
       callback(this.deserializeResponseData(responseData));
     };
-    // init only once per frame
-    if (!cardinal.__secureSubmitFrameInit) {
-      cardinal.setup('init', { jwt: this.jwt });
-      cardinal.on('payments.validated', cb);
-      cardinal.__secureSubmitFrameInit = true;
-    }
-    cardinal.trigger('jwt.update', this.jwt);
+    cardinal.setup('init', { jwt: this.jwt });
+    cardinal.on('payments.validated', cb);
     cardinal.start('cca', request.payload);
   }
 
