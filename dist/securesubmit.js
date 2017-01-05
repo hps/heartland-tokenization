@@ -2859,16 +2859,16 @@ var HPS = (function () {
         this.Messages.dispose();
         this.Messages = null;
         if (this.frames.cardNumber && this.frames.cardNumber.targetNode) {
-            this.frames.cardNumber.frame.remove();
+            this.removeNode(this.frames.cardNumber.frame);
         }
         if (this.frames.cardExpiration && this.frames.cardExpiration.frame) {
-            this.frames.cardExpiration.frame.remove();
+            this.removeNode(this.frames.cardExpiration.frame);
         }
         if (this.frames.cardCvv && this.frames.cardCvv.frame) {
-            this.frames.cardCvv.frame.remove();
+            this.removeNode(this.frames.cardCvv.frame);
         }
         if (this.frames.child && this.frames.child.frame) {
-            this.frames.child.frame.remove();
+            this.removeNode(this.frames.child.frame);
         }
         if (this.clickHandler) {
             Events.removeHandler(this.options.buttonTarget, 'click', this.clickHandler);
@@ -2881,6 +2881,14 @@ var HPS = (function () {
         }
     };
     ;
+    HPS.prototype.removeNode = function (node) {
+        if (node.remove) {
+            node.remove();
+        }
+        else if (node.parentNode && node.parentNode.removeChild) {
+            node.parentNode.removeChild(node);
+        }
+    };
     return HPS;
 }());
 
