@@ -341,16 +341,16 @@ export class HPS {
     this.Messages.dispose();
     this.Messages = null;
     if (this.frames.cardNumber && this.frames.cardNumber.targetNode) {
-      (<any>this.frames.cardNumber.frame).remove();
+      this.removeNode(this.frames.cardNumber.frame);
     }
     if (this.frames.cardExpiration && this.frames.cardExpiration.frame) {
-      (<any>this.frames.cardExpiration.frame).remove();
+      this.removeNode(this.frames.cardExpiration.frame);
     }
     if (this.frames.cardCvv && this.frames.cardCvv.frame) {
-      (<any>this.frames.cardCvv.frame).remove();
+      this.removeNode(this.frames.cardCvv.frame);
     }
     if (this.frames.child && this.frames.child.frame) {
-      (<any>this.frames.child.frame).remove();
+      this.removeNode(this.frames.child.frame);
     }
     if (this.clickHandler) {
       Events.removeHandler(
@@ -374,4 +374,12 @@ export class HPS {
       );
     }
   };
+
+  removeNode(node: Window): void {
+    if ((<any>node).remove) {
+      (<any>node).remove();
+    } else if ((<any>node).parentNode && (<any>node).parentNode.removeChild) {
+      (<any>node).parentNode.removeChild(node);
+    }
+  }
 }
