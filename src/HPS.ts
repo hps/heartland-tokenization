@@ -71,13 +71,20 @@ export class HPS {
     }
 
     this.frames = {};
+    
     if (this.options.type === 'iframe') {
+
       this.iframe_url = '';
 
       this.Messages = new Messages(this);
       this.mailbox = [];
       this.cacheBust = 1;
       Frames.configureIframe(this);
+      
+      if(this.options.env == "cert"){
+        DOM.addCertAlert();
+      }
+      
     }
 
     return this;

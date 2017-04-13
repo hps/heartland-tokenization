@@ -298,4 +298,33 @@ export class DOM {
     }
     return set;
   }
+
+
+  /**
+   * Heartland.DOM.addCertAlert
+   *
+   * Adds an alert letting the developer know they're in sandbox mode
+   *
+   * @param {Heartland.HPS} hps
+   * @param {string} elementid
+   */
+  public static addCertAlert() {
+
+    const el = document.createElement('div');
+    const text = document.createTextNode("You're in test mode.");
+    
+    el.appendChild(text);   
+
+    el.setAttribute("style", "display:block;width:100%;margin-bottom:5px;color:#fff;background-color: #770000;padding: 8px 5px;font-family: Verdana;font-weight: 100;font-size: 12px;text-align: center;box-sizing: border-box;");
+
+    const container = document.getElementById('cardNumber');
+    const frame = document.getElementById('heartland-frame-cardNumber');
+
+    container.insertBefore(el, frame);
+    
+  }
+
+
 }
+
+
