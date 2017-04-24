@@ -250,6 +250,8 @@ export class DOM {
    * Heartland.DOM.addCertAlert
    *
    * Adds an alert letting the developer know they're in sandbox mode
+   * 
+   * @param {string} elementid
    *
    */
   public static addCertAlert(elementid: string) {
