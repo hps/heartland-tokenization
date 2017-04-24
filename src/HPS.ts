@@ -81,8 +81,8 @@ export class HPS {
       this.cacheBust = 1;
       Frames.configureIframe(this);
       
-      if(this.options.env == "cert"){
-        DOM.addCertAlert();
+      if(this.options.env === "cert"){
+        DOM.addCertAlert(this.options.fields.cardNumber.target);
       }
       
     }
