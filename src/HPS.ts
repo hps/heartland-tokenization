@@ -82,7 +82,11 @@ export class HPS {
       Frames.configureIframe(this);
       
       if(this.options.env === "cert"){
-        DOM.addCertAlert(this.options.fields.cardNumber.target);
+        if(this.options.iframeTarget !== "" ){
+          DOM.addCertAlert(this.options.iframeTarget);
+        }else{
+          DOM.addCertAlert(this.options.fields.cardNumber.target);
+        }
       }
       
     }
