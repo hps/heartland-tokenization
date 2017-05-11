@@ -132,6 +132,17 @@ export class Frames {
             );
           }
 
+          if (fieldFrame && fieldFrame.options.value) {
+            hps.Messages.post(
+              {
+                action: 'setValue',
+                id: 'heartland-field',
+                text: fieldFrame.options.value
+              },
+              fieldFrame.name
+            );
+          }
+
           if (options.style) {
             const css = options.styleString
               || (options.styleString = DOM.json2css(options.style));
@@ -190,9 +201,6 @@ export class Frames {
           break;
       }
     }, '*');
-
-
-    // monitorFieldEvents(hps, )
   }
 
   /**
