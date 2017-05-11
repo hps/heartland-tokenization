@@ -246,6 +246,39 @@ export class DOM {
     }
   }
 
+  /**
+   * Heartland.DOM.addCertAlert
+   *
+   * Adds an alert letting the developer know they're in sandbox mode
+   * 
+   * @param {string} elementid
+   *
+   */
+  public static addCertAlert(elementid: string) {
+    const el = document.createElement('div');
+    const text = document.createTextNode("This page is currently in test mode. Do not use real/active card numbers.");
+    el.appendChild(text);   
+    el.style.display = "block";
+    el.style.width = "100%";
+    el.style.marginBottom = "5px";
+    el.style.color = "#fff";
+    el.style.backgroundColor = "#770000";
+    el.style.padding = "8px 5px";
+    el.style.fontFamily = "Verdana";
+    el.style.fontWeight = "100";
+    el.style.fontSize = "12px";
+    el.style.textAlign = "center";
+    el.style.boxSizing = "border-box";
+    const container = document.getElementById(elementid);
+    const frame = document.getElementById('heartland-frame-cardNumber');
+    if(frame){
+      container.insertBefore(el, frame);
+    }else{
+      const frame2 = document.getElementById('heartland-frame-heartland-frame-securesubmit'); 
+      container.insertBefore(el, frame2);
+    }
+  }
+
   /***********
    * Helpers *
    ***********/
@@ -298,4 +331,5 @@ export class DOM {
     }
     return set;
   }
+
 }

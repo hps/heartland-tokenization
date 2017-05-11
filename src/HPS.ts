@@ -71,13 +71,24 @@ export class HPS {
     }
 
     this.frames = {};
+    
     if (this.options.type === 'iframe') {
+
       this.iframe_url = '';
 
       this.Messages = new Messages(this);
       this.mailbox = [];
       this.cacheBust = 1;
       Frames.configureIframe(this);
+      
+      if(this.options.env === "cert"){
+        if(this.options.iframeTarget !== "" ){
+          DOM.addCertAlert(this.options.iframeTarget);
+        }else{
+          DOM.addCertAlert(this.options.fields.cardNumber.target);
+        }
+      }
+      
     }
 
     return this;
