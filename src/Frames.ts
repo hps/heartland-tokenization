@@ -201,9 +201,6 @@ export class Frames {
           break;
       }
     }, '*');
-
-
-    // monitorFieldEvents(hps, )
   }
 
   /**
