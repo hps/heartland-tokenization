@@ -11,6 +11,8 @@ import {Util} from "./Util";
 import Validator from "./Validator";
 import {JSON2} from "./vendor/json2";
 
+(window as any).HPS = HPS;
+
 export default {
     Ajax: Ajax,
     Card: Card,

@@ -769,6 +769,20 @@ var DOM = (function () {
         }
     };
     /**
+     * Heartland.DOM.setValue
+     *
+     * Sets an element's value within a child iframe window
+     *
+     * @param {string} elementid
+     * @param {string} value
+     */
+    DOM.setValue = function (elementid, text) {
+        var el = document.getElementById(elementid);
+        if (el && typeof el.value !== "undefined") {
+            el.value = DOM.encodeEntities(text);
+        }
+    };
+    /**
      * Heartland.DOM.setPlaceholder
      *
      * Sets an element's placeholder attribute within a child iframe window.
@@ -902,6 +916,39 @@ var DOM = (function () {
         var el = document.getElementById('heartland-field');
         if (el) {
             el.focus();
+        }
+    };
+    /**
+     * Heartland.DOM.addCertAlert
+     *
+     * Adds an alert letting the developer know they're in sandbox mode
+     *
+     * @param {string} elementid
+     *
+     */
+    DOM.addCertAlert = function (elementid) {
+        var el = document.createElement('div');
+        var text = document.createTextNode("This page is currently in test mode. Do not use real/active card numbers.");
+        el.appendChild(text);
+        el.style.display = "block";
+        el.style.width = "100%";
+        el.style.marginBottom = "5px";
+        el.style.color = "#fff";
+        el.style.backgroundColor = "#770000";
+        el.style.padding = "8px 5px";
+        el.style.fontFamily = "Verdana";
+        el.style.fontWeight = "100";
+        el.style.fontSize = "12px";
+        el.style.textAlign = "center";
+        el.style.boxSizing = "border-box";
+        var container = document.getElementById(elementid);
+        var frame = document.getElementById('heartland-frame-cardNumber');
+        if (frame) {
+            container.insertBefore(el, frame);
+        }
+        else {
+            var frame2 = document.getElementById('heartland-frame-heartland-frame-securesubmit');
+            container.insertBefore(el, frame2);
         }
     };
     /***********
@@ -1168,6 +1215,9 @@ var Events = (function () {
                     DOM.setText(data.id, data.text);
                     DOM.resizeFrame(hps);
                     break;
+                case 'setValue':
+                    DOM.setValue(data.id, data.text);
+                    break;
                 case 'setPlaceholder':
                     DOM.setPlaceholder(data.id, data.text);
                     break;
@@ -1258,6 +1308,29 @@ var Events = (function () {
             success: tokenResponse('onTokenSuccess'),
             type: 'pan'
         });
+    };
+    /**
+     * Ensures frame's input field is active instead of frame
+     *
+     * @param {HPS} HPS instance
+     * @param {Object} event data
+     */
+    Events.ensureFrameFocusToInput = function (hps, event) {
+        if (event.type !== "blur") {
+            return;
+        }
+        var order = hps.options.tabOrder;
+        var name = event.source;
+        if (!name) {
+            return;
+        }
+        var targetIndex = order.indexOf(name);
+        if (targetIndex === -1) {
+            return;
+        }
+        if (targetIndex + 1 <= order.length && order[targetIndex + 1]) {
+            hps.setFocus(order[targetIndex + 1]);
+        }
     };
     return Events;
 }());
@@ -1599,6 +1672,7 @@ var Card = (function () {
         Events.addHandler(document.querySelector(selector), 'keydown', Card.restrictNumeric);
         Events.addHandler(document.querySelector(selector), 'keydown', Card.restrictLength(19));
         Events.addHandler(document.querySelector(selector), 'keydown', Card.deleteProperly);
+        Events.addHandler(document.querySelector(selector), 'keyup', Card.formatNumber);
         Events.addHandler(document.querySelector(selector), 'input', Card.formatNumber);
         Events.addHandler(document.querySelector(selector), 'input', Card.validateNumber);
         Events.addHandler(document.querySelector(selector), 'input', Card.addType);
@@ -1666,6 +1740,7 @@ var defaults = {
     pinBlock: '',
     publicKey: '',
     success: null,
+    tabOrder: ['cardNumber', 'cardExpiration', 'cardCvv', 'submit'],
     targetType: '',
     tokenType: 'supt',
     track: '',
@@ -2125,6 +2200,13 @@ var Frames = (function () {
                             text: fieldFrame.options.placeholder
                         }, fieldFrame.name);
                     }
+                    if (fieldFrame && fieldFrame.options.value) {
+                        hps.Messages.post({
+                            action: 'setValue',
+                            id: 'heartland-field',
+                            text: fieldFrame.options.value
+                        }, fieldFrame.name);
+                    }
                     if (options.style) {
                         var css = options.styleString
                             || (options.styleString = DOM.json2css(options.style));
@@ -2159,6 +2241,9 @@ var Frames = (function () {
                     }, cardNumberFieldFrame.name);
                     break;
                 case 'fieldEvent':
+                    if (hps.options.tabOrder) {
+                        Events.ensureFrameFocusToInput(hps, data.event);
+                    }
                     if (!options.onEvent) {
                         break;
                     }
@@ -2172,7 +2257,6 @@ var Frames = (function () {
                     break;
             }
         }, '*');
-        // monitorFieldEvents(hps, )
     };
     /**
      * Heartland.Frames.makeFieldsAndLink
@@ -2611,6 +2695,14 @@ var HPS = (function () {
             this.mailbox = [];
             this.cacheBust = 1;
             Frames.configureIframe(this);
+            if (this.options.env === "cert") {
+                if (this.options.iframeTarget !== "") {
+                    DOM.addCertAlert(this.options.iframeTarget);
+                }
+                else {
+                    DOM.addCertAlert(this.options.fields.cardNumber.target);
+                }
+            }
         }
         return this;
     }
@@ -2898,6 +2990,7 @@ var Validator = {
     Expiration: Expiration$1
 };
 
+window.HPS = HPS;
 var index = {
     Ajax: Ajax,
     Card: Card,
