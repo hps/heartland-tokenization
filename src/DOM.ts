@@ -102,6 +102,21 @@ export class DOM {
   }
 
   /**
+   * Heartland.DOM.setValue
+   *
+   * Sets an element's value within a child iframe window
+   *
+   * @param {string} elementid
+   * @param {string} value
+   */
+  public static setValue(elementid: string, text: string) {
+    const el = document.getElementById(elementid) as HTMLInputElement;
+    if (el && typeof el.value !== "undefined") {
+      el.value = DOM.encodeEntities(text);
+    }
+  }
+
+  /**
    * Heartland.DOM.setPlaceholder
    *
    * Sets an element's placeholder attribute within a child iframe window.

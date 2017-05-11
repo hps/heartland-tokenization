@@ -179,6 +179,9 @@ export class Events {
           DOM.setText(data.id, data.text);
           DOM.resizeFrame(hps);
           break;
+        case 'setValue':
+          DOM.setValue(data.id, data.text);
+          break;
         case 'setPlaceholder':
           DOM.setPlaceholder(data.id, data.text);
           break;
