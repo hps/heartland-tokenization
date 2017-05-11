@@ -276,4 +276,33 @@ export class Events {
       type: 'pan'
     });
   }
+
+  /**
+   * Ensures frame's input field is active instead of frame
+   *
+   * @param {HPS} HPS instance
+   * @param {Object} event data
+   */
+  public static ensureFrameFocusToInput(hps: HPS, event: any) {
+    if (event.type !== "blur") {
+      return;
+    }
+
+    const order = hps.options.tabOrder;
+    const name = event.source;
+
+    if (!name) {
+      return;
+    }
+
+    const targetIndex = order.indexOf(name);
+
+    if (targetIndex === -1) {
+      return;
+    }
+
+    if (targetIndex + 1 <= order.length && order[targetIndex + 1]) {
+      hps.setFocus(order[targetIndex + 1]);
+    }
+  }
 }
