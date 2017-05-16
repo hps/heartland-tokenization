@@ -1,6 +1,6 @@
 import {Events} from "./Events";
 import {HPS} from "./HPS";
-import {JSON2} from "./vendor/json2.ts";
+import {JSON2} from "./vendor/json2";
 
 /**
  * Heartland.Messages

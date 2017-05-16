@@ -9,7 +9,7 @@ import {Messages} from "./Messages";
 import {Styles} from "./Styles";
 import {Util} from "./Util";
 import Validator from "./Validator";
-import {JSON2} from "./vendor/json2.ts";
+import {JSON2} from "./vendor/json2";
 
 export default {
     Ajax: Ajax,
