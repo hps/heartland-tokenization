@@ -370,6 +370,7 @@ export class Card {
     Events.addHandler(document.querySelector(selector), 'keydown', Card.restrictNumeric);
     Events.addHandler(document.querySelector(selector), 'keydown', Card.restrictLength(19));
     Events.addHandler(document.querySelector(selector), 'keydown', Card.deleteProperly);
+    Events.addHandler(document.querySelector(selector), 'keyup', Card.formatNumber);
     Events.addHandler(document.querySelector(selector), 'input', Card.formatNumber);
     Events.addHandler(document.querySelector(selector), 'input', Card.validateNumber);
     Events.addHandler(document.querySelector(selector), 'input', Card.addType);

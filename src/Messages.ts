@@ -10,7 +10,7 @@ import {JSON2} from "./vendor/json2";
  */
 export class Messages {
   hps: HPS;
-  intervalId: number;
+  intervalId: NodeJS.Timer;
   lastHash: string;
   pushIntervalStarted: boolean;
   private callback: (m: any) => any;
