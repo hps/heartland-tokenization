@@ -132,6 +132,17 @@ export class Frames {
             );
           }
 
+          if (fieldFrame && fieldFrame.options.value) {
+            hps.Messages.post(
+              {
+                action: 'setValue',
+                id: 'heartland-field',
+                text: fieldFrame.options.value
+              },
+              fieldFrame.name
+            );
+          }
+
           if (options.style) {
             const css = options.styleString
               || (options.styleString = DOM.json2css(options.style));
@@ -177,9 +188,14 @@ export class Frames {
           );
           break;
         case 'fieldEvent':
+          if (hps.options.tabOrder) {
+            Events.ensureFrameFocusToInput(hps, data.event);
+          }
+
           if (!options.onEvent) {
             break;
           }
+
           options.onEvent(data.event);
           break;
         case 'error':
@@ -190,9 +206,6 @@ export class Frames {
           break;
       }
     }, '*');
-
-
-    // monitorFieldEvents(hps, )
   }
 
   /**

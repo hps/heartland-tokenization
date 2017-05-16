@@ -22,6 +22,7 @@ export const defaults: Options = {
   pinBlock: '',
   publicKey: '',
   success: null,
+  tabOrder: ['cardNumber', 'cardExpiration', 'cardCvv', 'submit'],
   targetType: '',
   tokenType: 'supt',
   track: '',
