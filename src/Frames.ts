@@ -188,10 +188,6 @@ export class Frames {
           );
           break;
         case 'fieldEvent':
-          if (hps.options.tabOrder) {
-            Events.ensureFrameFocusToInput(hps, data.event);
-          }
-
           if (!options.onEvent) {
             break;
           }
