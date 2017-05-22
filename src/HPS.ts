@@ -71,7 +71,7 @@ export class HPS {
     }
 
     this.frames = {};
-    
+
     if (this.options.type === 'iframe') {
 
       this.iframe_url = '';
@@ -80,7 +80,7 @@ export class HPS {
       this.mailbox = [];
       this.cacheBust = 1;
       Frames.configureIframe(this);
-      
+
       if(this.options.env === "cert"){
         if(this.options.iframeTarget !== "" ){
           DOM.addCertAlert(this.options.iframeTarget);
@@ -88,7 +88,7 @@ export class HPS {
           DOM.addCertAlert(this.options.fields.cardNumber.target);
         }
       }
-      
+
     }
 
     return this;
@@ -262,10 +262,13 @@ export class HPS {
       return function() {
         DOM.resizeFrame(hps);
         DOM.configureField(hps);
+
         const method = 'attach' + window.name.replace('card', '') + 'Events';
         if ((<any>Card)[method]) {
           (<any>Card)[method]('#heartland-field');
         }
+
+        Events.addFieldFrameFocusEvent(hps);
       };
     } (this));
 

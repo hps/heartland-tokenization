@@ -276,4 +276,30 @@ export class Events {
       type: 'pan'
     });
   }
+
+  /**
+   * addFieldFrameFocusEvent
+   *
+   * Ensures an iframe's document forwards its received focus
+   * to the input field. Helps provide consistent behavior in
+   * all browsers.
+   *
+   * @param {Heartland.HPS} hps
+   */
+  public static addFieldFrameFocusEvent(hps: HPS) {
+    var element = document.getElementById('heartland-field');
+    var focusEventName = 'focus';
+    if ((document as any)['on' + focusEventName + 'in']) {
+      document.addEventListener(focusEventName + 'in', function (e) {
+        if ((event as any).fromElement === element) { return; }
+        if ((event as any).relatedTarget) { return; }
+
+        element.focus();
+      }, false);
+    } else {
+      document.addEventListener(focusEventName, function (e) {
+        element.focus();
+      }, false);
+    }
+  }
 }
