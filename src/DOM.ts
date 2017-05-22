@@ -30,6 +30,7 @@ export class DOM {
     frame.style.border = '0';
     frame.frameBorder = '0';
     frame.scrolling = 'no';
+    frame.setAttribute('allowtransparency', 'true');
     return frame;
   }
 
@@ -265,14 +266,14 @@ export class DOM {
    * Heartland.DOM.addCertAlert
    *
    * Adds an alert letting the developer know they're in sandbox mode
-   * 
+   *
    * @param {string} elementid
    *
    */
   public static addCertAlert(elementid: string) {
     const el = document.createElement('div');
     const text = document.createTextNode("This page is currently in test mode. Do not use real/active card numbers.");
-    el.appendChild(text);   
+    el.appendChild(text);
     el.style.display = "block";
     el.style.width = "100%";
     el.style.marginBottom = "5px";
@@ -289,7 +290,7 @@ export class DOM {
     if(frame){
       container.insertBefore(el, frame);
     }else{
-      const frame2 = document.getElementById('heartland-frame-heartland-frame-securesubmit'); 
+      const frame2 = document.getElementById('heartland-frame-heartland-frame-securesubmit');
       container.insertBefore(el, frame2);
     }
   }
