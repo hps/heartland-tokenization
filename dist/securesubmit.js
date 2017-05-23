@@ -704,6 +704,7 @@ var DOM = (function () {
         frame.style.border = '0';
         frame.frameBorder = '0';
         frame.scrolling = 'no';
+        frame.setAttribute('allowtransparency', 'true');
         return frame;
     };
     /**
@@ -1310,26 +1311,32 @@ var Events = (function () {
         });
     };
     /**
-     * Ensures frame's input field is active instead of frame
+     * addFieldFrameFocusEvent
      *
-     * @param {HPS} HPS instance
-     * @param {Object} event data
+     * Ensures an iframe's document forwards its received focus
+     * to the input field. Helps provide consistent behavior in
+     * all browsers.
+     *
+     * @param {Heartland.HPS} hps
      */
-    Events.ensureFrameFocusToInput = function (hps, event) {
-        if (event.type !== "blur") {
-            return;
+    Events.addFieldFrameFocusEvent = function (hps) {
+        var element = document.getElementById('heartland-field');
+        var focusEventName = 'focus';
+        if (document['on' + focusEventName + 'in']) {
+            document.addEventListener(focusEventName + 'in', function (e) {
+                if (event.fromElement === element) {
+                    return;
+                }
+                if (event.relatedTarget) {
+                    return;
+                }
+                element.focus();
+            }, false);
         }
-        var order = hps.options.tabOrder;
-        var name = event.source;
-        if (!name) {
-            return;
-        }
-        var targetIndex = order.indexOf(name);
-        if (targetIndex === -1) {
-            return;
-        }
-        if (targetIndex + 1 <= order.length && order[targetIndex + 1]) {
-            hps.setFocus(order[targetIndex + 1]);
+        else {
+            document.addEventListener(focusEventName, function (e) {
+                element.focus();
+            }, false);
         }
     };
     return Events;
@@ -1740,7 +1747,6 @@ var defaults = {
     pinBlock: '',
     publicKey: '',
     success: null,
-    tabOrder: ['cardNumber', 'cardExpiration', 'cardCvv', 'submit'],
     targetType: '',
     tokenType: 'supt',
     track: '',
@@ -2241,9 +2247,6 @@ var Frames = (function () {
                     }, cardNumberFieldFrame.name);
                     break;
                 case 'fieldEvent':
-                    if (hps.options.tabOrder) {
-                        Events.ensureFrameFocusToInput(hps, data.event);
-                    }
                     if (!options.onEvent) {
                         break;
                     }
@@ -2866,6 +2869,7 @@ var HPS = (function () {
                 if (Card[method]) {
                     Card[method]('#heartland-field');
                 }
+                Events.addFieldFrameFocusEvent(hps);
             };
         }(this));
         this.receiveMessageHandlerAddedHandler = (function (hps) {
