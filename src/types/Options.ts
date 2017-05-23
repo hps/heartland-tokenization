@@ -33,5 +33,4 @@ export interface Options {
     orderNumber?: string;
     jwt?: string;
   };
-  tabOrder?: string[];
 }
