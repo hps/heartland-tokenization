@@ -3,7 +3,7 @@ import { HPS } from "./HPS";
 import { CardData } from "./types/CardData";
 import { Options } from "./types/Options";
 import { TokenizationResponse } from "./types/TokenizationResponse";
-import { Expiration as ExpirationFormatter } from "./formatter/Expiration";
+import { Expiration as ExpirationFormatter } from "./Formatter/Expiration";
 import { JSON2 } from "./vendor/json2";
 
 class Ev {
