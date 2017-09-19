@@ -36,5 +36,11 @@ export const cardTypes: CardType[] = [
     format: /(\d{1,4})/g,
     length: 16,
     regex: /^35/
+  },
+  {
+    code: 'gift',
+    format: /(\d{1,19})/g,
+    length: 19,
+    regex: /^\d/
   }
 ];
