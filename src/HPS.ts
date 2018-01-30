@@ -13,7 +13,7 @@ import { CardinalTokenService } from "./TokenService/CardinalTokenService";
 import { Options } from "./types/Options";
 import { TokenizationResponse } from "./types/TokenizationResponse";
 
-interface Frame {
+export interface Frame {
   frame?: Window;
   name?: string;
   options?: any;
@@ -22,7 +22,7 @@ interface Frame {
   url?: string;
 }
 
-interface FrameCollection {
+export interface FrameCollection {
   cardNumber?: Frame;
   cardExpiration?: Frame;
   cardCvv?: Frame;
@@ -81,10 +81,10 @@ export class HPS {
       this.cacheBust = 1;
       Frames.configureIframe(this);
 
-      if(this.options.env === "cert"){
-        if(this.options.iframeTarget !== "" ){
+      if (this.options.env === "cert") {
+        if (this.options.iframeTarget !== "" ) {
           DOM.addCertAlert(this.options.iframeTarget);
-        }else{
+        } else {
           DOM.addCertAlert(this.options.fields.cardNumber.target);
         }
       }
