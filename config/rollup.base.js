@@ -1,13 +1,19 @@
-import typescript from "rollup-plugin-typescript";
+import typescript from 'rollup-plugin-typescript2';
+
+const override = {compilerOptions: {declaration: true}};
 
 export default {
-  entry: "./src/index.ts",
-  dest: "./dist/securesubmit.js",
-  sourceMap: true,
-  moduleName: "Heartland",
-  format: "cjs",
+  input: './src/index.ts',
+  output: {
+    name: 'Heartland',
+    file: './dist/securesubmit.js',
+    sourcemap: true,
+    format: 'cjs',
+  },
 
-  plugins: [
-    typescript()
-  ]
-}
+  plugins: [typescript({
+    tsConfigOverride: override,
+    typescript: require('typescript'),
+    useTsconfigDeclarationDir: true,
+  })],
+};

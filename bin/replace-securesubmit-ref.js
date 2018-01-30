@@ -4,9 +4,9 @@ const options = {
     'dist/*.html',
   ],
 
-  //Replacement to make (string or regex)
-  replace: /\/dist\/securesubmit/g,
-  with: 'securesubmit',
+  // Replacement to make (string or regex)
+  from: /\/dist\/securesubmit/g,
+  to: 'securesubmit',
 };
 replace(options)
   .then(changedFiles => {

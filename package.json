@@ -12,13 +12,11 @@
     "build:browser": "rollup -c config/rollup.browser.js && rollup -c config/rollup.browser.min.js",
     "build:minify-assets": "html-minifier -c config/html-minifier.json --input-dir dist --output-dir dist --file-ext html",
     "clean": "rimraf dist test/bundle.js test/bundle.js.map",
-    "install": "npm run typings:install && npm run build",
+    "install": "npm run build",
     "pretest": "rollup -c config/rollup.browser.test.js",
     "test": "phantomjs --web-security=false node_modules/mocha-phantomjs-core/mocha-phantomjs-core.js test/index.html dot",
     "test:lint": "tslint -t verbose -c tslint.json --exclude src/vendor/**/*.ts src/**/*.ts",
     "test:jsdom": "npm run pretest && mocha test/bundle.js",
-    "typings": "typings",
-    "typings:install": "typings install",
     "watch": "rollup --watch -c rollup.browser.js"
   },
   "repository": {
@@ -41,6 +39,11 @@
   },
   "homepage": "https://github.com/hps/heartland-tokenization#readme",
   "devDependencies": {
+    "@types/chai": "^4.1.2",
+    "@types/jquery": "^3.3.0",
+    "@types/jsdom": "^11.0.4",
+    "@types/mocha": "^2.2.47",
+    "@types/node": "^9.4.0",
     "chai": "^3.5.0",
     "html-minifier": "^3.0.2",
     "jsdom": "^9.4.2",
@@ -49,14 +52,12 @@
     "phantomjs-prebuilt": "^2.1.12",
     "replace-in-file": "^2.0.1",
     "rimraf": "^2.5.4",
-    "rollup": "^0.34.11",
-    "rollup-plugin-multi-entry": "^2.0.1",
-    "rollup-plugin-typescript": "^0.8.1",
+    "rollup": "^0.55.0",
+    "rollup-plugin-multi-entry": "^2.0.2",
+    "rollup-plugin-typescript2": "^0.10.0",
     "rollup-plugin-uglify": "^1.0.1",
     "source-map-support": "^0.4.2",
-    "systemjs": "^0.19.37",
     "tslint": "^2.5.1",
-    "typescript": "^1.8.10",
-    "typings": "^1.3.3"
+    "typescript": "^2.6.2"
   }
 }
