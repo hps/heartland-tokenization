@@ -170,39 +170,44 @@ the Apache 2.0 License, whether by implication, estoppel or otherwise.
 // methods in a closure to avoid creating global variables.
 var JSON2 = {};
 (function () {
-    'use strict';
     function f(n) {
         // format integers to have at least two digits.
-        return n < 10 ? '0' + n : n;
+        return n < 10 ? "0" + n : n;
     }
-    if (typeof Date.prototype.toJSON !== 'function') {
+    if (typeof Date.prototype.toJSON !== "function") {
         Date.prototype.toJSON = function (key) {
             return isFinite(this.valueOf())
-                ? this.getUTCFullYear() + '-' +
-                    f(this.getUTCMonth() + 1) + '-' +
-                    f(this.getUTCDate()) + 'T' +
-                    f(this.getUTCHours()) + ':' +
-                    f(this.getUTCMinutes()) + ':' +
-                    f(this.getUTCSeconds()) + 'Z'
+                ? this.getUTCFullYear() +
+                    "-" +
+                    f(this.getUTCMonth() + 1) +
+                    "-" +
+                    f(this.getUTCDate()) +
+                    "T" +
+                    f(this.getUTCHours()) +
+                    ":" +
+                    f(this.getUTCMinutes()) +
+                    ":" +
+                    f(this.getUTCSeconds()) +
+                    "Z"
                 : null;
         };
         var strProto = String.prototype;
         var numProto = Number.prototype;
-        numProto.JSON = strProto.JSON =
-            Boolean.prototype.toJSON = function (key) {
-                return this.valueOf();
-            };
+        numProto.JSON = strProto.JSON = Boolean.prototype.toJSON = function (key) {
+            return this.valueOf();
+        };
     }
     var cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g, 
     // tslint:disable-next-line
     esc = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g, gap, indent, meta = {
-        '\b': '\\b',
-        '\t': '\\t',
-        '\n': '\\n',
-        '\f': '\\f',
-        '\r': '\\r',
+        // table of character substitutions
+        "\b": "\\b",
+        "\t": "\\t",
+        "\n": "\\n",
+        "\f": "\\f",
+        "\r": "\\r",
         '"': '\\"',
-        '\\': '\\\\'
+        "\\": "\\\\"
     }, rep;
     function quote(string) {
         // if the string contains no control characters, no quote characters, and no
@@ -210,12 +215,16 @@ var JSON2 = {};
         // otherwise we must also replace the offending characters with safe escape
         // sequences.
         esc.lastIndex = 0;
-        return esc.test(string) ? '"' + string.replace(esc, function (a) {
-            var c = meta[a];
-            return typeof c === 'string'
-                ? c
-                : '\\u' + ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
-        }) + '"' : '"' + string + '"';
+        return esc.test(string)
+            ? '"' +
+                string.replace(esc, function (a) {
+                    var c = meta[a];
+                    return typeof c === "string"
+                        ? c
+                        : "\\u" + ("0000" + a.charCodeAt(0).toString(16)).slice(-4);
+                }) +
+                '"'
+            : '"' + string + '"';
     }
     function str(key, holder) {
         // produce a string from holder[key].
@@ -224,66 +233,69 @@ var JSON2 = {};
         v, // the member value.
         length, mind = gap, partial, value = holder[key];
         // if the value has a toJSON method, call it to obtain a replacement value.
-        if (value && typeof value === 'object' &&
-            typeof value.toJSON === 'function') {
+        if (value &&
+            typeof value === "object" &&
+            typeof value.toJSON === "function") {
             value = value.toJSON(key);
         }
         // if we were called with a replacer function, then call the replacer to
         // obtain a replacement value.
-        if (typeof rep === 'function') {
+        if (typeof rep === "function") {
             value = rep.call(holder, key, value);
         }
         // what happens next depends on the value's type.
         switch (typeof value) {
-            case 'string':
+            case "string":
                 return quote(value);
-            case 'number':
+            case "number":
                 // json numbers must be finite. Encode non-finite numbers as null.
-                return isFinite(value) ? String(value) : 'null';
-            case 'boolean':
-            case 'null':
+                return isFinite(value) ? String(value) : "null";
+            case "boolean":
+            case "undefined":
+            case "null":
                 // if the value is a boolean or null, convert it to a string. Note:
                 // typeof null does not produce 'null'. The case is included here in
                 // the remote chance that this gets fixed someday.
                 return String(value);
             // if the type is 'object', we might be dealing with an object or an array or
             // null.
-            case 'object':
+            case "object":
                 // due to a specification blunder in ECMAScript, typeof null is 'object',
                 // so watch out for that case.
                 if (!value) {
-                    return 'null';
+                    return "null";
                 }
                 // make an array to hold the partial: string[] results of stringifying this object value.
                 gap += indent;
                 partial = [];
                 // is the value an array?
-                if (Object.prototype.toString.apply(value, []) === '[object Array]') {
+                if (Object.prototype.toString.apply(value, []) === "[object Array]") {
                     // the value is an array. Stringify every element. Use null as a placeholder
                     // for non-JSON values.
                     length = value.length;
                     for (i = 0; i < length; i += 1) {
-                        partial[i] = str(i.toString(), value) || 'null';
+                        partial[i] = str(i.toString(), value) || "null";
                     }
                     // join all of the elements together, separated with commas, and wrap them in
                     // brackets.
-                    v = partial.length === 0
-                        ? '[]'
-                        : gap
-                            ? '[\n' + gap + partial.join(',\n' + gap) + '\n' + mind + ']'
-                            : '[' + partial.join(',') + ']';
+                    v =
+                        partial.length === 0
+                            ? "[]"
+                            : gap
+                                ? "[\n" + gap + partial.join(",\n" + gap) + "\n" + mind + "]"
+                                : "[" + partial.join(",") + "]";
                     gap = mind;
                     return v;
                 }
                 // if the replacer is an array, use it to select the members to be stringified.
-                if (rep && typeof rep === 'object') {
+                if (rep && typeof rep === "object") {
                     length = rep.length;
                     for (i = 0; i < length; i += 1) {
-                        if (typeof rep[i] === 'string') {
+                        if (typeof rep[i] === "string") {
                             k = rep[i];
                             v = str(k, value);
                             if (v) {
-                                partial.push(quote(k) + (gap ? ': ' : ':') + v);
+                                partial.push(quote(k) + (gap ? ": " : ":") + v);
                             }
                         }
                     }
@@ -294,24 +306,25 @@ var JSON2 = {};
                         if (Object.prototype.hasOwnProperty.call(value, k)) {
                             v = str(k, value);
                             if (v) {
-                                partial.push(quote(k) + (gap ? ': ' : ':') + v);
+                                partial.push(quote(k) + (gap ? ": " : ":") + v);
                             }
                         }
                     }
                 }
                 // join all of the member texts together, separated with commas,
                 // and wrap them in braces.
-                v = partial.length === 0
-                    ? '{}'
-                    : gap
-                        ? '{\n' + gap + partial.join(',\n' + gap) + '\n' + mind + '}'
-                        : '{' + partial.join(',') + '}';
+                v =
+                    partial.length === 0
+                        ? "{}"
+                        : gap
+                            ? "{\n" + gap + partial.join(",\n" + gap) + "\n" + mind + "}"
+                            : "{" + partial.join(",") + "}";
                 gap = mind;
                 return v;
         }
     }
     // if the JSON object does not yet have a stringify method, give it one.
-    if (typeof JSON2.stringify !== 'function') {
+    if (typeof JSON2.stringify !== "function") {
         JSON2.stringify = function (value, replacer, space) {
             // the stringify method takes a value and an optional replacer, and an optional
             // space parameter, and returns a JSON text. The replacer can be a function
@@ -319,33 +332,34 @@ var JSON2 = {};
             // a default replacer method can be provided. Use of the space parameter can
             // produce text that is more easily readable.
             var i;
-            gap = '';
-            indent = '';
+            gap = "";
+            indent = "";
             // if the space parameter is a number, make an indent string containing that
             // many spaces.
-            if (typeof space === 'number') {
+            if (typeof space === "number") {
                 for (i = 0; i < space; i += 1) {
-                    indent += ' ';
+                    indent += " ";
                 }
+                // if the space parameter is a string, it will be used as the indent string.
             }
-            else if (typeof space === 'string') {
+            else if (typeof space === "string") {
                 indent = space;
             }
             // if there is a replacer, it must be a function or an array.
             // otherwise, throw an error.
             rep = replacer;
-            if (replacer && typeof replacer !== 'function' &&
-                (typeof replacer !== 'object' ||
-                    typeof replacer.length !== 'number')) {
-                throw new Error('JSON.stringify');
+            if (replacer &&
+                typeof replacer !== "function" &&
+                (typeof replacer !== "object" || typeof replacer.length !== "number")) {
+                throw new Error("JSON.stringify");
             }
             // make a fake root object containing our value under the key of ''.
             // return the result of stringifying the value.
-            return str('', { '': value });
+            return str("", { "": value });
         };
     }
     // if the JSON object does not yet have a parse method, give it one.
-    if (typeof JSON2.parse !== 'function') {
+    if (typeof JSON2.parse !== "function") {
         JSON2.parse = function (text, reviver) {
             // the parse method takes a text and an optional reviver function, and returns
             // a JavaScript value if the text is a valid JSON text.
@@ -354,7 +368,7 @@ var JSON2 = {};
                 // the walk method is used to recursively walk the resulting structure so
                 // that modifications can be made.
                 var k = null, v, value = holder[key];
-                if (value && typeof value === 'object') {
+                if (value && typeof value === "object") {
                     for (k in value) {
                         if (Object.prototype.hasOwnProperty.call(value, k)) {
                             v = walk(value, k);
@@ -376,8 +390,7 @@ var JSON2 = {};
             cx.lastIndex = 0;
             if (cx.test(text)) {
                 text = text.replace(cx, function (a) {
-                    return '\\u' +
-                        ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
+                    return "\\u" + ("0000" + a.charCodeAt(0).toString(16)).slice(-4);
                 });
             }
             // in the second stage, we run the text against regular expressions that look
@@ -391,28 +404,26 @@ var JSON2 = {};
             // open brackets that follow a colon or comma or that begin the text. Finally,
             // we look to see that the remaining characters are only whitespace or ']' or
             // ',' or ':' or '{' or '}'. If that is so, then the text is safe for eval.
-            if (/^[\],:{}\s]*$/
-                .test(text.replace(/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g, '@')
-                .replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']')
-                .replace(/(?:^|:|,)(?:\s*\[)+/g, ''))) {
+            if (/^[\],:{}\s]*$/.test(text
+                .replace(/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g, "@")
+                .replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, "]")
+                .replace(/(?:^|:|,)(?:\s*\[)+/g, ""))) {
                 // in the third stage we use the eval function to compile the text into a
                 // javascript structure. The '{' operator is subject to a syntactic ambiguity
                 // in JavaScript: it can begin a block or an object literal. We wrap the text
                 // in parens to eliminate the ambiguity.
-                j = (new Function('return (' + text + ')')());
+                j = new Function("return (" + text + ")")();
                 // in the optional fourth stage, we recursively walk the new structure, passing
                 // each name/value pair to a reviver function for possible transformation.
-                return typeof reviver === 'function'
-                    ? walk({ '': j }, '')
-                    : j;
+                return typeof reviver === "function" ? walk({ "": j }, "") : j;
             }
             // if the text is not JSON parseable, then a SyntaxError is thrown.
-            throw new SyntaxError('JSON.parse');
+            throw new SyntaxError("JSON.parse");
         };
     }
-}());
+})();
 
-var JsonpRequest = (function () {
+var JsonpRequest = /** @class */ (function () {
     function JsonpRequest(url, payload) {
         if (url === void 0) { url = ""; }
         if (payload === void 0) { payload = ""; }
@@ -422,7 +433,7 @@ var JsonpRequest = (function () {
     }
     return JsonpRequest;
 }());
-var NullRequest = (function () {
+var NullRequest = /** @class */ (function () {
     function NullRequest(payload) {
         if (payload === void 0) { payload = {}; }
         this.payload = payload;
@@ -433,7 +444,7 @@ var NullRequest = (function () {
 /**
  * @namespace Heartland.Ajax
  */
-var Ajax = (function () {
+var Ajax = /** @class */ (function () {
     function Ajax() {
     }
     /**
@@ -446,15 +457,20 @@ var Ajax = (function () {
      * @param {function} callback
      */
     Ajax.jsonp = function (request, callback) {
-        var script = document.createElement('script');
-        var callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+        var script = document.createElement("script");
+        var callbackName = "jsonp_callback_" + Math.round(100000 * Math.random());
         window[callbackName] = function (data) {
             window[callbackName] = undefined;
             document.body.removeChild(script);
             callback(data);
         };
-        script.src = request.url + (request.url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName
-            + '&' + request.payload;
+        script.src =
+            request.url +
+                (request.url.indexOf("?") >= 0 ? "&" : "?") +
+                "callback=" +
+                callbackName +
+                "&" +
+                request.payload;
         document.body.appendChild(script);
     };
     /**
@@ -467,40 +483,41 @@ var Ajax = (function () {
      */
     Ajax.cors = function (request, callback) {
         var xhr;
-        var method = 'POST';
+        var method = "POST";
         var timeout;
-        if ((new XMLHttpRequest()).withCredentials === undefined) {
+        if (new XMLHttpRequest().withCredentials === undefined) {
             xhr = new window.XDomainRequest();
-            method = 'GET';
-            request.url = request.url.split('?')[0];
-            request.url = request.url + '?' + request.payload;
+            method = "GET";
+            request.url = request.url.split("?")[0];
+            request.url = request.url + "?" + request.payload;
             xhr.open(method, request.url);
         }
         else {
             xhr = new XMLHttpRequest();
             xhr.open(method, request.url);
-            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
         }
         var cb = function (e) {
             clearTimeout(timeout);
-            if (e.type === 'error') {
-                callback({ error: { message: 'communication error' } });
+            if (e.type === "error") {
+                callback({ error: { message: "communication error" } });
                 return;
             }
-            if (xhr.readyState === 4 || (xhr.readyState !== 4 && xhr.responseText !== '')) {
+            if (xhr.readyState === 4 ||
+                (xhr.readyState !== 4 && xhr.responseText !== "")) {
                 var data = JSON2.parse(xhr.responseText);
                 callback(data);
             }
             else {
-                callback({ error: { message: 'no data' } });
+                callback({ error: { message: "no data" } });
             }
         };
         xhr.onload = cb;
         xhr.onerror = cb;
         xhr.send(request.payload);
-        timeout = setTimeout(function () {
+        timeout = window.setTimeout(function () {
             xhr.abort();
-            callback({ error: { message: 'timeout' } });
+            callback({ error: { message: "timeout" } });
         }, 5000);
     };
     return Ajax;
@@ -545,7 +562,7 @@ var cardTypes = [
     }
 ];
 
-var CardNumber = (function () {
+var CardNumber = /** @class */ (function () {
     function CardNumber() {
     }
     CardNumber.prototype.format = function (number) {
@@ -566,7 +583,7 @@ var CardNumber = (function () {
     return CardNumber;
 }());
 
-var Expiration = (function () {
+var Expiration = /** @class */ (function () {
     function Expiration() {
     }
     Expiration.prototype.format = function (exp, final) {
@@ -602,7 +619,7 @@ var Expiration = (function () {
     return Expiration;
 }());
 
-var CardNumber$1 = (function () {
+var CardNumber$1 = /** @class */ (function () {
     function CardNumber() {
     }
     CardNumber.prototype.validate = function (number) {
@@ -620,7 +637,7 @@ var CardNumber$1 = (function () {
     return CardNumber;
 }());
 
-var Cvv = (function () {
+var Cvv = /** @class */ (function () {
     function Cvv() {
     }
     Cvv.prototype.validate = function (cvv) {
@@ -636,7 +653,7 @@ var Cvv = (function () {
     return Cvv;
 }());
 
-var Expiration$1 = (function () {
+var Expiration$1 = /** @class */ (function () {
     function Expiration() {
     }
     Expiration.prototype.validate = function (exp) {
@@ -676,7 +693,7 @@ var Expiration$1 = (function () {
 /**
  * @namespace Heartland.DOM
  */
-var DOM = (function () {
+var DOM = /** @class */ (function () {
     function DOM() {
     }
     /**
@@ -1003,7 +1020,7 @@ var DOM = (function () {
     return DOM;
 }());
 
-var Expiration$2 = (function () {
+var Expiration$2 = /** @class */ (function () {
     function Expiration() {
     }
     Expiration.prototype.format = function (exp, final) {
@@ -1039,7 +1056,7 @@ var Expiration$2 = (function () {
     return Expiration;
 }());
 
-var Ev = (function () {
+var Ev = /** @class */ (function () {
     function Ev() {
     }
     Ev.listen = function (node, eventName, callback) {
@@ -1061,9 +1078,9 @@ var Ev = (function () {
     };
     Ev.trigger = function (node, eventName) {
         if (document.createEvent) {
-            var event = document.createEvent('Event');
-            event.initEvent(eventName, true, true);
-            node.dispatchEvent(event);
+            var event_1 = document.createEvent('Event');
+            event_1.initEvent(eventName, true, true);
+            node.dispatchEvent(event_1);
         }
         else {
             document.documentElement[eventName]++;
@@ -1086,7 +1103,7 @@ var Ev = (function () {
 /**
  * @namespace Heartland.Events
  */
-var Events = (function () {
+var Events = /** @class */ (function () {
     function Events() {
     }
     /**
@@ -1149,9 +1166,9 @@ var Events = (function () {
     Events.trigger = function (name, target, data, bubble) {
         if (bubble === void 0) { bubble = false; }
         if (document.createEvent) {
-            var event = document.createEvent('Event');
-            event.initEvent(name, true, true);
-            target.dispatchEvent(event);
+            var event_2 = document.createEvent('Event');
+            event_2.initEvent(name, true, true);
+            target.dispatchEvent(event_2);
         }
         else {
             Ev.trigger(target, name);
@@ -1345,7 +1362,7 @@ var Events = (function () {
 /**
  * @namespace Heartland.Card
  */
-var Card = (function () {
+var Card = /** @class */ (function () {
     function Card() {
     }
     /**
@@ -1720,10 +1737,12 @@ if (!Array.prototype.indexOf) {
     };
 }
 
-var Formatter = {
-    CardNumber: CardNumber,
-    Expiration: Expiration
-};
+
+
+var Formatter = Object.freeze({
+	CardNumber: CardNumber,
+	Expiration: Expiration
+});
 
 var defaults = {
     _method: 'post',
@@ -1775,7 +1794,7 @@ var urls = {
  * Initializes a new object for wrapping `window.postMessage` and a fallback
  * method for legacy browsers.
  */
-var Messages = (function () {
+var Messages = /** @class */ (function () {
     /**
      * Heartland.Messages (constructor)
      *
@@ -2098,7 +2117,7 @@ var Styles;
 /**
  * @namespace Heartland.Frames
  */
-var Frames = (function () {
+var Frames = /** @class */ (function () {
     function Frames() {
     }
     /**
@@ -2318,8 +2337,8 @@ var Frames = (function () {
         var events = ['click', 'blur', 'focus', 'change', 'keypress', 'keydown', 'keyup'];
         var i = 0, length = events.length;
         for (i; i < length; i++) {
-            var event = events[i];
-            Events.addHandler(target, event, function (e) {
+            var event_1 = events[i];
+            Events.addHandler(target, event_1, function (e) {
                 var field = document.getElementById('heartland-field');
                 var classes = [];
                 var data = {};
@@ -2347,7 +2366,7 @@ var Frames = (function () {
 /**
  * @namespace Heartland.Util
  */
-var Util = (function () {
+var Util = /** @class */ (function () {
     function Util() {
     }
     /**
@@ -2516,12 +2535,11 @@ var Util = (function () {
                 window.event.returnValue = false;
             }
             var fields = Util.getFields(options.formId);
-            var cardType = Util.getCardType(fields.number, 'pan');
             options.cardNumber = fields.number;
             options.cardExpMonth = fields.expMonth;
             options.cardExpYear = fields.expYear;
             options.cardCvv = fields.cvv;
-            options.cardType = cardType;
+            options.cardType = Util.getCardType('pan', options);
             Ajax.call('pan', options);
         };
         Events.addHandler(payment_form, 'submit', code);
@@ -2562,7 +2580,7 @@ var Util = (function () {
     return Util;
 }());
 
-var HeartlandTokenService = (function () {
+var HeartlandTokenService = /** @class */ (function () {
     function HeartlandTokenService(url, type) {
         if (type === void 0) { type = "pan"; }
         this.url = url;
@@ -2597,7 +2615,7 @@ var HeartlandTokenService = (function () {
     return HeartlandTokenService;
 }());
 
-var CardinalTokenService = (function () {
+var CardinalTokenService = /** @class */ (function () {
     function CardinalTokenService(jwt) {
         this.jwt = jwt;
     }
@@ -2674,7 +2692,7 @@ var CardinalTokenService = (function () {
  * passed as an option. This expects the default fields (see `getFields`) to
  * be present as children of `formId`.
  */
-var HPS = (function () {
+var HPS = /** @class */ (function () {
     /**
      * Heartland.HPS (constructor)
      *
@@ -2809,7 +2827,7 @@ var HPS = (function () {
         Events.addHandler(document, 'receiveMessageHandlerAdded', this.receiveMessageHandlerAddedHandler);
         this.Messages.receive(Events.frameHandleWith(this), '*');
     };
-    ;
+    
     /**
      * Heartland.HPS.configureButtonFieldIframe
      *
@@ -2882,7 +2900,7 @@ var HPS = (function () {
         Frames.monitorFieldEvents(this, 'heartland-field');
         this.Messages.receive(Events.frameHandleWith(this), '*');
     };
-    ;
+    
     /**
      * Heartland.HPS.resizeIFrame
      *
@@ -2898,7 +2916,7 @@ var HPS = (function () {
         }
         frame.style.height = (parseInt(height, 10)) + 'px';
     };
-    ;
+    
     /**
      * Heartland.HPS.setText
      *
@@ -2910,7 +2928,7 @@ var HPS = (function () {
     HPS.prototype.setText = function (elementid, elementtext) {
         this.Messages.post({ action: 'setText', id: elementid, text: elementtext }, 'child');
     };
-    ;
+    
     /**
      * Heartland.HPS.setStyle
      *
@@ -2922,7 +2940,7 @@ var HPS = (function () {
     HPS.prototype.setStyle = function (elementid, elementstyle) {
         this.Messages.post({ action: 'setStyle', id: elementid, style: elementstyle }, 'child');
     };
-    ;
+    
     /**
      * Heartland.HPS.appendStyle
      *
@@ -2934,7 +2952,7 @@ var HPS = (function () {
     HPS.prototype.appendStyle = function (elementid, elementstyle) {
         this.Messages.post({ action: 'appendStyle', id: elementid, style: elementstyle }, 'child');
     };
-    ;
+    
     /**
      * Heartland.HPS.setFocus
      *
@@ -2945,7 +2963,7 @@ var HPS = (function () {
     HPS.prototype.setFocus = function (elementid) {
         this.Messages.post({ action: 'setFocus' }, elementid);
     };
-    ;
+    
     /**
      * Heartland.HPS.dispose
      *
@@ -2976,7 +2994,7 @@ var HPS = (function () {
             Events.removeHandler(document, 'receiveMessageHandlerAdded', this.receiveMessageHandlerAddedHandler);
         }
     };
-    ;
+    
     HPS.prototype.removeNode = function (node) {
         if (node.remove) {
             node.remove();
@@ -2988,11 +3006,13 @@ var HPS = (function () {
     return HPS;
 }());
 
-var Validator = {
-    CardNumber: CardNumber$1,
-    Cvv: Cvv,
-    Expiration: Expiration$1
-};
+
+
+var Validator = Object.freeze({
+	CardNumber: CardNumber$1,
+	Cvv: Cvv,
+	Expiration: Expiration$1
+});
 
 window.HPS = HPS;
 var index = {
