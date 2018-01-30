@@ -33,7 +33,7 @@
     "card"
   ],
   "author": "Heartland Payment Systems",
-  "license": "Custom",
+  "license": "GPL-2.0",
   "bugs": {
     "url": "https://github.com/hps/heartland-tokenization/issues"
   },
