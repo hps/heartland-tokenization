@@ -1784,9 +1784,24 @@ var fields = [
 var urls = {
     CERT: 'https://cert.api2.heartlandportico.com/Hps.Exchange.PosGateway.Hpf.v1/api/token',
     PROD: 'https://api.heartlandportico.com/SecureSubmit.v1/api/token',
-    iframeCERT: 'https://hps.github.io/token/2.1/',
-    iframePROD: 'https://api.heartlandportico.com/SecureSubmit.v1/token/2.1/'
+    iframeCERT: 'https://hps.github.io/token/',
+    iframePROD: 'https://api.heartlandportico.com/SecureSubmit.v1/token/'
 };
+
+/**
+ * WARNING: This module is updated with the project's
+ * `bin/update-version.js` script located at the root
+ * of the project. If you need to increment the project's
+ * version, do so in the project's `package.json` file.
+ *
+ * This version number should match what is listed as the
+ * `version` property in `package.json` as well as the
+ * deployed directory on `hps.github.io` in certification
+ * and `api2.heartlandportico.com` in production, e.g.:
+ *
+ *     https://hps.github.io/token/2.2.0/
+ */
+var LibraryVersion = "2.2.0";
 
 /**
  * Heartland.Messages
@@ -2291,7 +2306,7 @@ var Frames = /** @class */ (function () {
     Frames.makeFieldsAndLink = function (hps) {
         var options = hps.options;
         var fieldsLength = fields.length;
-        var baseUrl = hps.iframe_url.replace('index.html', '');
+        var baseUrl = hps.iframe_url.replace('index.html', '') + LibraryVersion + '/';
         for (var i = 0; i < fieldsLength; i++) {
             var field = fields[i];
             var fieldOptions = options.fields[field];
