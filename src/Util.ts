@@ -220,13 +220,11 @@ export class Util {
       }
 
       const fields = Util.getFields(options.formId);
-      const cardType = Util.getCardType(fields.number, 'pan');
-
       options.cardNumber = fields.number;
       options.cardExpMonth = fields.expMonth;
       options.cardExpYear = fields.expYear;
       options.cardCvv = fields.cvv;
-      options.cardType = cardType;
+      options.cardType = Util.getCardType('pan', options);
 
       Ajax.call('pan', options);
     };

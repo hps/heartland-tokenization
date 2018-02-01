@@ -2,24 +2,24 @@ import {TokenizationResponse} from "./types/TokenizationResponse";
 import {JSON2} from "./vendor/json2";
 
 export interface Request {
-    type: string;
-    url?: string;
-    payload?: any;
+  type: string;
+  url?: string;
+  payload?: any;
 }
 
 export class CorsRequest implements Request {
-    public type = "cors";
-    constructor(public url = "", public payload = "") {}
+  public type = "cors";
+  constructor(public url = "", public payload = "") {}
 }
 
 export class JsonpRequest implements Request {
-    public type = "jsonp";
-    constructor(public url = "", public payload = "") {}
+  public type = "jsonp";
+  constructor(public url = "", public payload = "") {}
 }
 
 export class NullRequest implements Request {
-    public type = "null";
-    constructor(public payload = {}) {}
+  public type = "null";
+  constructor(public payload = {}) {}
 }
 
 /**
@@ -35,17 +35,25 @@ export class Ajax {
    * @param {string} url
    * @param {function} callback
    */
-  public static jsonp(request: JsonpRequest, callback: (data: TokenizationResponse) => void) {
-    const script = document.createElement('script');
-    const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
-    (<any>window)[callbackName] = function (data: TokenizationResponse): void {
+  public static jsonp(
+    request: JsonpRequest,
+    callback: (data: TokenizationResponse) => void,
+  ) {
+    const script = document.createElement("script");
+    const callbackName = "jsonp_callback_" + Math.round(100000 * Math.random());
+    (<any>window)[callbackName] = function(data: TokenizationResponse): void {
       (<any>window)[callbackName] = undefined;
       document.body.removeChild(script);
       callback(data);
     };
 
-    script.src = request.url + (request.url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName
-        + '&' + request.payload;
+    script.src =
+      request.url +
+      (request.url.indexOf("?") >= 0 ? "&" : "?") +
+      "callback=" +
+      callbackName +
+      "&" +
+      request.payload;
     document.body.appendChild(script);
   }
 
@@ -57,47 +65,50 @@ export class Ajax {
    * @param {string} url
    * @param {function} callback
    */
-  public static cors(request: CorsRequest, callback: (data: TokenizationResponse) => void) {
+  public static cors(
+    request: CorsRequest,
+    callback: (data: TokenizationResponse) => void,
+  ) {
     let xhr: any;
-    let method = 'POST';
+    let method = "POST";
     let timeout: number;
 
-    if ((new XMLHttpRequest()).withCredentials === undefined) {
+    if (new XMLHttpRequest().withCredentials === undefined) {
       xhr = new (<any>window).XDomainRequest();
-      method = 'GET';
-      request.url = request.url.split('?')[0];
-      request.url = request.url + '?' + request.payload;
+      method = "GET";
+      request.url = request.url.split("?")[0];
+      request.url = request.url + "?" + request.payload;
       xhr.open(method, request.url);
     } else {
       xhr = new XMLHttpRequest();
       xhr.open(method, request.url);
-      xhr.setRequestHeader(
-        'Content-Type',
-        'application/x-www-form-urlencoded'
-      );
+      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     }
-    const cb = function (e: Event) {
+    const cb = function(e: Event) {
       clearTimeout(timeout);
 
-      if (e.type === 'error') {
-        callback({error: {message: 'communication error'}});
+      if (e.type === "error") {
+        callback({error: {message: "communication error"}});
         return;
       }
 
-      if (xhr.readyState === 4 || (xhr.readyState !== 4 && xhr.responseText !== '')) {
+      if (
+        xhr.readyState === 4 ||
+        (xhr.readyState !== 4 && xhr.responseText !== "")
+      ) {
         const data = JSON2.parse(xhr.responseText);
         callback(data);
       } else {
-        callback({error: {message: 'no data'}});
+        callback({error: {message: "no data"}});
       }
     };
 
     xhr.onload = cb;
     xhr.onerror = cb;
     xhr.send(request.payload);
-    timeout = setTimeout(function () {
+    timeout = window.setTimeout(function() {
       xhr.abort();
-      callback({error: {message: 'timeout'}});
+      callback({error: {message: "timeout"}});
     }, 5000);
   }
 }

@@ -3,7 +3,7 @@ import {Options} from "../types/Options";
 import {TokenizationResponse} from "../types/TokenizationResponse";
 import {TokenService} from "./TokenService";
 
-interface CardinalTokenResponse {
+export interface CardinalTokenResponse {
   ActionCode?: string;
   ErrorDescription?: string;
   ErrorNumber?: number;

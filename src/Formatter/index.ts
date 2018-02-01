@@ -1,7 +1,2 @@
-import {CardNumber} from "./CardNumber";
-import {Expiration} from "./Expiration";
-
-export default {
-    CardNumber: CardNumber,
-    Expiration: Expiration
-}
+export {CardNumber} from "./CardNumber";
+export {Expiration} from "./Expiration";

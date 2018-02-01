@@ -1,6 +1,8 @@
 {
   "compilerOptions": {
+    "declaration": true,
+    "declarationDir": "dist",
     "noImplicitAny": true
   },
-  "include": [ "src/", "typings/", "test/" ]
+  "include": [ "src/", "test/" ]
 }

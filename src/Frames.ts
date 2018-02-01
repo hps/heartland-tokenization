@@ -1,6 +1,7 @@
 import { defaults } from "./vars/defaults";
 import { fields } from "./vars/fields";
 import { urls } from "./vars/urls";
+import LibraryVersion from "./vars/version";
 import { DOM } from "./DOM";
 import { Events } from "./Events";
 import { HPS } from "./HPS";
@@ -215,7 +216,7 @@ export class Frames {
   public static makeFieldsAndLink(hps: HPS) {
     const options = hps.options;
     const fieldsLength = fields.length;
-    const baseUrl = hps.iframe_url.replace('index.html', '');
+    const baseUrl = hps.iframe_url.replace('index.html', '') + LibraryVersion + '/';
 
     for (let i = 0; i < fieldsLength; i++) {
       const field = fields[i];

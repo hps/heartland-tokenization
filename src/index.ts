@@ -2,13 +2,13 @@ import {Ajax} from "./Ajax";
 import {Card} from "./Card";
 import {DOM} from "./DOM";
 import {Events} from "./Events";
-import Formatter from "./Formatter";
+import * as Formatter from "./Formatter";
 import {Frames} from "./Frames";
 import {HPS} from "./HPS";
 import {Messages} from "./Messages";
 import {Styles} from "./Styles";
 import {Util} from "./Util";
-import Validator from "./Validator";
+import * as Validator from "./Validator";
 import {JSON2} from "./vendor/json2";
 
 (window as any).HPS = HPS;

@@ -287,9 +287,9 @@ export class DOM {
     el.style.boxSizing = "border-box";
     const container = document.getElementById(elementid);
     const frame = document.getElementById('heartland-frame-cardNumber');
-    if(frame){
+    if (frame) {
       container.insertBefore(el, frame);
-    }else{
+    } else {
       const frame2 = document.getElementById('heartland-frame-heartland-frame-securesubmit');
       container.insertBefore(el, frame2);
     }
