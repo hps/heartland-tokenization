@@ -1782,10 +1782,10 @@ var fields = [
 ];
 
 var urls = {
-    CERT: 'https://cert.api2.heartlandportico.com/Hps.Exchange.PosGateway.Hpf.v1/api/token',
-    PROD: 'https://api.heartlandportico.com/SecureSubmit.v1/api/token',
+    CERT: 'https://cert.api2-c.heartlandportico.com/Hps.Exchange.PosGateway.Hpf.v1/api/token',
+    PROD: 'https://api2-c.heartlandportico.com/SecureSubmit.v1/api/token',
     iframeCERT: 'https://hps.github.io/token/',
-    iframePROD: 'https://api.heartlandportico.com/SecureSubmit.v1/token/'
+    iframePROD: 'https://api2-c.heartlandportico.com/SecureSubmit.v1/token/'
 };
 
 /**
@@ -1799,9 +1799,9 @@ var urls = {
  * deployed directory on `hps.github.io` in certification
  * and `api2.heartlandportico.com` in production, e.g.:
  *
- *     https://hps.github.io/token/2.2.0/
+ *     https://hps.github.io/token/2.2.1/
  */
-var LibraryVersion = "2.2.0";
+var LibraryVersion = "2.2.1";
 
 /**
  * Heartland.Messages
