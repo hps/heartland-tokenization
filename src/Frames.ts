@@ -274,10 +274,6 @@ export class Frames {
           classes = field.className.split(' ');
         }
 
-        if ((<any>e).keyCode) {
-          data.keyCode = (<any>e).keyCode;
-        }
-
         hps.Messages.post(
           {
             action: 'fieldEvent',

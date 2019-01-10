@@ -9,6 +9,6 @@
  * deployed directory on `hps.github.io` in certification
  * and `api2.heartlandportico.com` in production, e.g.:
  *
- *     https://hps.github.io/token/2.2.1/
+ *     https://hps.github.io/token/2.3.0/
  */
-export default "2.2.1";
+export default "2.3.0";
