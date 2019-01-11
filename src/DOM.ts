@@ -13,6 +13,17 @@ export class DOM {
    */
   public static configureField(hps: HPS) {
     document.getElementById('heartland-field').setAttribute('name', hps.field);
+    switch (hps.field) {
+      case 'cardNumber':
+        document.getElementById('heartland-field').setAttribute('autocomplete', 'cc-number');
+        break;
+      case 'cardCvv':
+        document.getElementById('heartland-field').setAttribute('autocomplete', 'cc-csc');
+        break;
+      case 'cardExpiration':
+        document.getElementById('heartland-field').setAttribute('autocomplete', 'cc-exp');
+        break;
+    }
   }
 
   /**
