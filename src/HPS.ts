@@ -269,6 +269,44 @@ export class HPS {
         }
 
         Events.addFieldFrameFocusEvent(hps);
+
+        if (window.name === 'cardNumber') {
+          const parent = document.getElementById('heartland-field-wrapper');
+          const card = document.getElementById('heartland-field') as HTMLInputElement;
+          const cvv = document.createElement('input');
+          const exp = document.createElement('input');
+    
+          cvv.className = 'autocomplete-hidden';
+          exp.className = 'autocomplete-hidden';
+          cvv.tabIndex = -1;
+          exp.tabIndex = -1;
+          card.autocomplete = 'cc-number';
+          cvv.autocomplete = 'cc-csc';
+          exp.autocomplete = 'cc-exp';
+
+          Events.addHandler(cvv, 'input', function () {
+            hps.Messages.post({
+              action: 'setAutocompleteValue',
+              data: {
+                target: 'cardCvv',
+                text: cvv.value
+              }
+            }, 'parent');
+          });
+
+          Events.addHandler(exp, 'input', function () {
+            hps.Messages.post({
+              action: 'setAutocompleteValue',
+              data: {
+                target: 'cardExpiration',
+                text: exp.value
+              }
+            }, 'parent');
+          });
+    
+          parent.appendChild(cvv);
+          parent.appendChild(exp);
+        }
       };
     } (this));
 

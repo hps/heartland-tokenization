@@ -201,6 +201,16 @@ export class Frames {
           }
           options.onError(data);
           break;
+        case 'setAutocompleteValue':
+          hps.Messages.post(
+            {
+              action: 'setValue',
+              id: 'heartland-field',
+              text: data.data.text
+            },
+            data.data.target
+          );
+          break;
       }
     }, '*');
   }
