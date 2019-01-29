@@ -25,7 +25,7 @@ suite('tokenize Cardinal', function () {
     });
   });
 
-  test('Valid card should return 2 response objects to success callback', function (done) {
+  test.skip('Valid card should return 2 response objects to success callback', function (done) {
     let called = false;
     const hps = new Heartland.HPS({
       cardCvv: '123',
@@ -54,7 +54,7 @@ suite('tokenize Cardinal', function () {
     hps.tokenize();
   });
 
-  test('Valid card should return 2 tokens with cca enabled and good jwt', function (done) {
+  test.skip('Valid card should return 2 tokens with cca enabled and good jwt', function (done) {
     let called = false;
     const hps = new Heartland.HPS({
       cardCvv: '123',

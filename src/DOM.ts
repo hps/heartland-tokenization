@@ -1,4 +1,5 @@
 import {HPS} from "./HPS";
+import {Events} from "./Events";
 
 /**
  * @namespace Heartland.DOM
@@ -114,6 +115,9 @@ export class DOM {
     const el = document.getElementById(elementid) as HTMLInputElement;
     if (el && typeof el.value !== "undefined") {
       el.value = DOM.encodeEntities(text);
+      
+      Events.trigger("keyup", el);
+      Events.trigger("input", el);
     }
   }
 

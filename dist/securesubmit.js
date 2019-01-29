@@ -798,6 +798,8 @@ var DOM = /** @class */ (function () {
         var el = document.getElementById(elementid);
         if (el && typeof el.value !== "undefined") {
             el.value = DOM.encodeEntities(text);
+            Events.trigger("keyup", el);
+            Events.trigger("input", el);
         }
     };
     /**
@@ -1799,9 +1801,9 @@ var urls = {
  * deployed directory on `hps.github.io` in certification
  * and `api2.heartlandportico.com` in production, e.g.:
  *
- *     https://hps.github.io/token/2.3.0/
+ *     https://hps.github.io/token/2.4.0/
  */
-var LibraryVersion = "2.3.0";
+var LibraryVersion = "2.4.0";
 
 /**
  * Heartland.Messages
@@ -2291,6 +2293,13 @@ var Frames = /** @class */ (function () {
                         break;
                     }
                     options.onError(data);
+                    break;
+                case 'setAutocompleteValue':
+                    hps.Messages.post({
+                        action: 'setValue',
+                        id: 'heartland-field',
+                        text: data.data.text
+                    }, data.data.target);
                     break;
             }
         }, '*');
@@ -2900,6 +2909,39 @@ var HPS = /** @class */ (function () {
                     Card[method]('#heartland-field');
                 }
                 Events.addFieldFrameFocusEvent(hps);
+                if (window.name === 'cardNumber') {
+                    var parent_1 = document.getElementById('heartland-field-wrapper');
+                    var card = document.getElementById('heartland-field');
+                    var cvv_1 = document.createElement('input');
+                    var exp_1 = document.createElement('input');
+                    cvv_1.className = 'autocomplete-hidden';
+                    exp_1.className = 'autocomplete-hidden';
+                    cvv_1.tabIndex = -1;
+                    exp_1.tabIndex = -1;
+                    card.autocomplete = 'cc-number';
+                    cvv_1.autocomplete = 'cc-csc';
+                    exp_1.autocomplete = 'cc-exp';
+                    Events.addHandler(cvv_1, 'input', function () {
+                        hps.Messages.post({
+                            action: 'setAutocompleteValue',
+                            data: {
+                                target: 'cardCvv',
+                                text: cvv_1.value
+                            }
+                        }, 'parent');
+                    });
+                    Events.addHandler(exp_1, 'input', function () {
+                        hps.Messages.post({
+                            action: 'setAutocompleteValue',
+                            data: {
+                                target: 'cardExpiration',
+                                text: exp_1.value
+                            }
+                        }, 'parent');
+                    });
+                    parent_1.appendChild(cvv_1);
+                    parent_1.appendChild(exp_1);
+                }
             };
         }(this));
         this.receiveMessageHandlerAddedHandler = (function (hps) {
