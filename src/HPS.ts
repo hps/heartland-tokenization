@@ -321,6 +321,9 @@ export class HPS {
     Frames.monitorFieldEvents(this, 'heartland-field');
 
     this.Messages.receive(Events.frameHandleWith(this), '*');
+
+    // Fix iOS issue with cross-origin iframes
+    Events.addHandler(document.body, 'touchstart', function () { });
   };
 
   /**
