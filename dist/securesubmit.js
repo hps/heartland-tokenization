@@ -1801,9 +1801,9 @@ var urls = {
  * deployed directory on `hps.github.io` in certification
  * and `api2.heartlandportico.com` in production, e.g.:
  *
- *     https://hps.github.io/token/2.4.0/
+ *     https://hps.github.io/token/2.4.1/
  */
-var LibraryVersion = "2.4.0";
+var LibraryVersion = "2.4.1";
 
 /**
  * Heartland.Messages
@@ -2953,6 +2953,8 @@ var HPS = /** @class */ (function () {
         Events.addHandler(document, 'receiveMessageHandlerAdded', this.receiveMessageHandlerAddedHandler);
         Frames.monitorFieldEvents(this, 'heartland-field');
         this.Messages.receive(Events.frameHandleWith(this), '*');
+        // Fix iOS issue with cross-origin iframes
+        Events.addHandler(document.body, 'touchstart', function () { });
     };
     
     /**
