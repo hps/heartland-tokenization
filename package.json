@@ -1,6 +1,6 @@
 {
   "name": "heartland-tokenization",
-  "version": "2.4.0",
+  "version": "2.4.1",
   "description": "This plugin allows you to use your SecureSubmit Public API Key to convert a credit card into a secure Token which can be charged in a PCI friendly way.",
   "main": "dist/securesubmit.min.js",
   "directories": {
